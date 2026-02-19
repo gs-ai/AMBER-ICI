@@ -1,0 +1,17 @@
+{
+  "name": "ollama-gui",
+  "version": "1.0.0",
+  "description": "Industrial-grade local Ollama command center",
+  "main": "frontend/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "keywords": ["ollama", "ai", "gui", "cyberpunk"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.0.0"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLLAMA COMMAND CENTER</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Cytoscape.js for graph visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <!-- Chart.js for telemetry charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="command-center">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">⬢</div>
+                <h1>OLLAMA COMMAND CENTER</h1>
+            </div>
+            <div class="system-status">
+                <div class="status-indicator active"></div>
+                <span>SYSTEM ONLINE</span>
+            </div>
+            <div class="header-controls">
+                <button id="toggleTelemetry" class="icon-btn" title="Toggle Telemetry">
+                    <span>📊</span>
+                </button>
+                <button id="toggleWorkspace" class="icon-btn" title="Toggle Workspace">
+                    <span>📁</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Left Panel - Model Control -->
+            <aside class="left-panel">
+                <div class="panel-section">
+                    <h2 class="panel-title">MODEL SELECTION</h2>
+                    <div id="modelList" class="model-list">
+                        <div class="loading">Loading models...</div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="panel-title">EXECUTION MODE</h2>
+                    <div class="execution-modes">
+                        <button class="mode-btn active" data-mode="single">SINGLE</button>
+                        <button class="mode-btn" data-mode="parallel">PARALLEL</button>
+                        <button class="mode-btn" data-mode="chain">CHAIN</button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="panel-title">FILE INGESTION</h2>
+                    <div id="dropZone" class="drop-zone">
+                        <div class="drop-zone-icon">📄</div>
+                        <p>Drop files here</p>
+                        <p class="drop-zone-hint">PDF, Images, Text, DOCX</p>
+                        <input type="file" id="fileInput" multiple hidden>
+                        <button id="browseFiles" class="btn-secondary">Browse Files</button>
+                    </div>
+                    <div id="fileList" class="file-list"></div>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="panel-title">AGENTS</h2>
+                    <div class="agent-controls">
+                        <select id="agentType" class="select-input">
+                            <option value="research">Research</option>
+                            <option value="analysis">Analysis</option>
+                            <option value="summary">Summary</option>
+                            <option value="investigation">Investigation</option>
+                        </select>
+                        <button id="launchAgent" class="btn-primary">Launch Agent</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center Panel - Main Interface -->
+            <main class="center-panel">
+                <!-- Prompt Input -->
+                <div class="prompt-section">
+                    <textarea id="promptInput" class="prompt-input" placeholder="Enter your prompt here..."></textarea>
+                    <div class="prompt-controls">
+                        <button id="executeBtn" class="btn-execute">EXECUTE</button>
+                        <button id="clearBtn" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="output">OUTPUT STREAM</button>
+                    <button class="tab-btn" data-tab="graph">GRAPH VIEW</button>
+                    <button class="tab-btn" data-tab="logs">EXECUTION LOGS</button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Output Stream Tab -->
+                    <div id="outputTab" class="tab-pane active">
+                        <div id="outputStreams" class="output-streams"></div>
+                    </div>
+
+                    <!-- Graph View Tab -->
+                    <div id="graphTab" class="tab-pane">
+                        <div class="graph-controls">
+                            <button id="fitGraph" class="btn-secondary">Fit to View</button>
+                            <button id="clearGraph" class="btn-secondary">Clear Graph</button>
+                            <button id="buildGraph" class="btn-primary">Build Graph</button>
+                        </div>
+                        <div id="graphContainer" class="graph-container"></div>
+                    </div>
+
+                    <!-- Logs Tab -->
+                    <div id="logsTab" class="tab-pane">
+                        <div id="executionLogs" class="execution-logs"></div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Panel - Telemetry & Workspace -->
+            <aside class="right-panel">
+                <!-- Telemetry Section -->
+                <div id="telemetryPanel" class="panel-section">
+                    <h2 class="panel-title">SYSTEM TELEMETRY</h2>
+                    
+                    <div class="telemetry-grid">
+                        <div class="telemetry-card">
+                            <div class="telemetry-label">CPU</div>
+                            <div class="telemetry-value" id="cpuValue">--</div>
+                            <div class="telemetry-bar">
+                                <div id="cpuBar" class="telemetry-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="telemetry-card">
+                            <div class="telemetry-label">RAM</div>
+                            <div class="telemetry-value" id="ramValue">--</div>
+                            <div class="telemetry-bar">
+                                <div id="ramBar" class="telemetry-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="telemetry-card">
+                            <div class="telemetry-label">VRAM</div>
+                            <div class="telemetry-value" id="vramValue">--</div>
+                            <div class="telemetry-bar">
+                                <div id="vramBar" class="telemetry-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="telemetry-card">
+                            <div class="telemetry-label">DISK</div>
+                            <div class="telemetry-value" id="diskValue">--</div>
+                            <div class="telemetry-bar">
+                                <div id="diskBar" class="telemetry-bar-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="gpuDetails" class="gpu-details"></div>
+                </div>
+
+                <!-- Workspace Section -->
+                <div id="workspacePanel" class="panel-section">
+                    <h2 class="panel-title">WORKSPACES</h2>
+                    
+                    <div class="workspace-controls">
+                        <input type="text" id="workspaceName" class="input-field" placeholder="Workspace name">
+                        <button id="createWorkspace" class="btn-primary">Create</button>
+                    </div>
+
+                    <div id="workspaceList" class="workspace-list"></div>
+
+                    <div class="session-controls">
+                        <button id="saveSession" class="btn-primary">Save Session</button>
+                        <button id="loadSession" class="btn-secondary">Load Session</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Notification System -->
+    <div id="notifications" class="notifications"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
