@@ -1,0 +1,41 @@
+{
+  "name": "osint-platform",
+  "version": "1.0.0",
+  "description": "Autonomous Agentic OSINT Platform built on OpenClaw with local Ollama models",
+  "type": "module",
+  "main": "files/launch_ollama_gui.py",
+  "scripts": {
+    "start": "python3 files/launch_ollama_gui.py --host 127.0.0.1 --port 8765 --no-browser",
+    "start:browser": "python3 files/launch_ollama_gui.py --host 127.0.0.1 --port 8765",
+    "validate": "bash quick-start.sh --validate-only",
+    "audit:security": "bash scripts/security-audit.sh"
+  },
+  "keywords": [
+    "osint",
+    "intelligence",
+    "autonomous",
+    "agents",
+    "openclaw",
+    "ollama"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.6.0",
+    "xlsx": "^0.18.5",
+    "cheerio": "^1.0.0-rc.12",
+    "natural": "^6.10.0",
+    "compromise": "^14.11.0",
+    "phone": "^3.1.42",
+    "isemail": "^3.2.0",
+    "ip-address": "^9.0.5",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.1",
+    "uuid": "^9.0.1",
+    "date-fns": "^3.3.1"
+  }
+}
