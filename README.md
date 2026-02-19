@@ -1,19 +1,14 @@
-<h1 align="center"><span style="color:#cc7200;">OCI | Ollama Command Interface</span></h1>
+<p align="center">
+  <img alt="OCI | Ollama Command Interface" src="https://img.shields.io/badge/OCI%20%7C%20Ollama%20Command%20Interface-C76500?style=for-the-badge&labelColor=C76500&color=A84D00" />
+</p>
 
 <p align="center">
-  <strong>
-    <span style="color:#ffb347;">LOCAL CONTROL PLANE</span>
-    <span style="color:#ff9d00;"> // </span>
-    <span style="color:#e58a00;">CHAT</span>
-    <span style="color:#cc7200;"> · </span>
-    <span style="color:#d97b00;">PARALLEL</span>
-    <span style="color:#cc7200;"> · </span>
-    <span style="color:#c96a00;">AGENTS</span>
-    <span style="color:#cc7200;"> · </span>
-    <span style="color:#b85a00;">CHAINS</span>
-    <span style="color:#cc7200;"> · </span>
-    <span style="color:#a84d00;">GRAPH EXPORT</span>
-  </strong>
+  <img alt="LOCAL CONTROL PLANE" src="https://img.shields.io/badge/LOCAL%20CONTROL%20PLANE-FFB347?style=flat-square&labelColor=FFB347&color=FFB347" />
+  <img alt="CHAT" src="https://img.shields.io/badge/CHAT-E58A00?style=flat-square&labelColor=E58A00&color=E58A00" />
+  <img alt="PARALLEL" src="https://img.shields.io/badge/PARALLEL-D97B00?style=flat-square&labelColor=D97B00&color=D97B00" />
+  <img alt="AGENTS" src="https://img.shields.io/badge/AGENTS-C96A00?style=flat-square&labelColor=C96A00&color=C96A00" />
+  <img alt="CHAINS" src="https://img.shields.io/badge/CHAINS-B85A00?style=flat-square&labelColor=B85A00&color=B85A00" />
+  <img alt="GRAPH EXPORT" src="https://img.shields.io/badge/GRAPH%20EXPORT-A84D00?style=flat-square&labelColor=A84D00&color=A84D00" />
 </p>
 
 <p align="center">
