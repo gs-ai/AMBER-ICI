@@ -1,197 +1,137 @@
-# ● OCI Ollama Command Interface V2
+<h1 align="center"><span style="color:#cc7200;">OCI | Ollama Command Interface</span></h1>
 
-**Hardened. Local. Secure.**  
-A local-only Ollama GUI launcher with strict endpoint validation, CSP enforcement, and intelligent file attachment context injection.
+<p align="center">
+  <strong>
+    <span style="color:#ffb347;">LOCAL CONTROL PLANE</span>
+    <span style="color:#ff9d00;"> // </span>
+    <span style="color:#e58a00;">CHAT</span>
+    <span style="color:#cc7200;"> · </span>
+    <span style="color:#d97b00;">PARALLEL</span>
+    <span style="color:#cc7200;"> · </span>
+    <span style="color:#c96a00;">AGENTS</span>
+    <span style="color:#cc7200;"> · </span>
+    <span style="color:#b85a00;">CHAINS</span>
+    <span style="color:#cc7200;"> · </span>
+    <span style="color:#a84d00;">GRAPH EXPORT</span>
+  </strong>
+</p>
 
----
+<p align="center">
+  Local-only Ollama GUI. No remote endpoints.
+</p>
 
-## Overview
+## What This Is
 
-OCI is a lightweight, secure Ollama GUI launcher that runs entirely on `localhost`. It provides single-page interface with intelligent file context injection, CSP hardening, and zero external dependencies.
+OCI is a single-page local interface for running Ollama workflows with:
 
-**What's Included**:
-- `files/launch_ollama_gui.py` — Local HTTP server
-- `files/ollama_gui.html` — Single-page UI
-- `quick-start.sh` — Setup & launch
-- `scripts/security-audit.sh` — Security verification
+- Chat
+- Parallel model runs
+- Agents
+- Chains (pipeline steps)
+- Graph visualization
+- Full-session export
 
----
+All runtime traffic is constrained to localhost endpoints.
 
-## Quick Start
+## Start The Program
 
-### Prerequisites
-
-1. **Python 3** (for launcher)
-2. **Ollama** (installed and running locally)
-3. **Node.js + npm** (for task scripting)
-
-### Setup and Launch
-
-#### 1. Validate environment (first time)
-```bash
-npm run validate
-```
-
-#### 2. Start Ollama daemon
+1. Start Ollama:
 ```bash
 ollama serve
 ```
-
-#### 3. Launch the GUI (stealth mode — no browser auto-open)
+2. Start OCI:
 ```bash
 npm start
 ```
+3. Open in browser:
+`http://127.0.0.1:8765/ollama_gui.html`
 
-#### 4. Open in browser
-Navigate to: `http://127.0.0.1:8765/ollama_gui.html`
-
-### Optional: Auto-open browser
+Optional auto-open:
 ```bash
 npm run start:browser
 ```
 
----
+## GUI Example
 
-## Interface Preview
+<p align="center">
+  <img src="files/img2377dag8adw7g.png" alt="OCI GUI example" width="1200" />
+</p>
 
-![OCI Ollama Command Interface GUI](files/Screenshot%202026-02-18%20at%209.14.05%20PM.png)
+## How To Use Files
 
----
+1. Open the `FILES` tab in the left panel.
+2. Drag-and-drop or choose files (`.txt`, `.md`, `.pdf`, `.docx`).
+3. Keep files marked `ACTIVE` to inject them into prompts.
+4. Disable a file to exclude it from inference context.
+5. Remove files from the list to fully drop them from session context.
 
-## Security & Hardening
+Behavior:
+- Active files are prepended into prompt context in chat, parallel runs, agents, and pipeline steps.
 
-The application is hardened to ensure your data never leaves your machine:
+## How To Use Agents
 
-### Endpoint Restrictions
-- **Inference endpoint allowlist**: `127.0.0.1`, `localhost`, `::1` only
-- Remote endpoint attempts are blocked at runtime
-- GUI logic validates all endpoints before connection
+1. Open `AGENTS` in the left panel.
+2. Click `+ NEW AGENT`.
+3. Set:
+   - Agent name
+   - Model
+   - System prompt
+   - Execution mode (`SEQUENTIAL` or `PARALLEL`)
+   - Feed target
+4. Save the agent.
+5. Run one agent with `RUN`, or run all with `RUN ALL`.
 
-### Headers & Policy
-- **CSP** enforced in HTML and HTTP responses
-- No external font or resource calls
-- Referrer policy disabled
+Behavior:
+- Agent outputs are written into the main session transcript.
+- Parallel agents execute concurrently when `RUN ALL` is used.
 
-### Applied Response Headers
-```
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff  
-Referrer-Policy: no-referrer
-Permissions-Policy: (restrictive)
-```
+## How To Use Chains (Pipeline)
 
-### Verify Security Controls
-```bash
-npm run audit:security
-```
+1. Open `CHAIN` in the left panel.
+2. Click `+ ADD STEP`.
+3. For each step set:
+   - Model
+   - Optional system prompt
+   - Template (`{{input}}` supported)
+4. Add multiple steps in order.
+5. Enter seed input in the main prompt box.
+6. Click `RUN PIPE`.
 
----
+Behavior:
+- Each step output becomes next step input.
+- Step messages are appended to the main transcript and reflected in graph extraction.
 
-## Features
+## Export Behavior (Confirmed)
 
-### File Attachments & Context Injection
+Export is implemented in `files/ollama_gui.html` and includes:
 
-Files uploaded through the GUI file panel are **active by default** and automatically injected into model prompts across all execution modes:
+- Full transcript from all rendered session messages (chat + parallel + agent + pipeline)
+- Explicit `PARALLEL CONVERSATIONS` section
+- Agent configuration snapshot
+- Pipeline configuration snapshot
+- Graph nodes/edges snapshot
+- File snapshot
 
-- **Single chat messages** — `send()`
-- **Parallel model runs** — Execute same prompt on multiple models
-- **Agent execution** — AI agents have access to attached file content
-- **Pipeline steps** — Multi-step workflows use file context
+Code references:
+- `files/ollama_gui.html:1173` (`collectTranscript()`)
+- `files/ollama_gui.html:1189` (`expChat()`)
+- `files/ollama_gui.html:1237` (`PARALLEL CONVERSATIONS` section)
 
-> **Note**: Only files uploaded in the GUI file panel are included. IDE/chat attachments must be explicitly added through the GUI.
-
-### Model Modes
-
-- **Single Send** — Standard chat interface
-- **Parallel Execution** — Run same prompt against multiple models simultaneously
-- **Agent Mode** — Task-driven execution with context
-- **Pipeline Mode** — Multi-step workflows with file attachments
-
----
-
-## NPM Commands
+## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `npm run validate` | Check environment prerequisites |
-| `npm start` | Launch GUI (stealth mode) |
-| `npm run start:browser` | Launch with auto-open browser |
-| `npm run audit:security` | Verify security controls |
+| `npm start` | Start OCI without opening browser |
+| `npm run start:browser` | Start OCI and open browser |
 
----
+## Project Layout
 
-## Project Structure
-
+```text
+.
+├── README.md
+├── package.json
+└── files/
+    ├── launch_ollama_gui.py
+    ├── ollama_gui.html
+    └── img2377dag8adw7g.png
 ```
-ollama-gui/
-├── README.md                      # Documentation
-├── package.json                   # NPM config
-├── package-lock.json              # Dependencies lock
-├── quick-start.sh                 # Launch script
-├── files/
-│   ├── launch_ollama_gui.py       # HTTP server
-│   └── ollama_gui.html            # UI application
-└── scripts/
-    └── security-audit.sh          # Security checks
-```
-
----
-
-## How It Works
-
-1. **Launch Phase**
-   - `quick-start.sh` validates prerequisites (Python, Ollama, npm)
-   - `launch_ollama_gui.py` starts a local HTTP server on `127.0.0.1:8765`
-   - Server applies strict CSP and security headers
-
-2. **Runtime Phase**
-   - User accesses `http://127.0.0.1:8765/ollama_gui.html` in browser
-   - GUI enforces localhost-only endpoint policy
-   - Attached files are injected into prompts in real-time
-
-3. **Model Interaction**
-   - All inference requests route to local Ollama instance
-   - File attachments are included in context per mode
-   - Responses streamed back to browser UI
-
----
-
-## Security Posture Summary
-
-✓ **Localhost-only** — No remote connections allowed  
-✓ **No external dependencies** — Zero cloud calls  
-✓ **Content Security Policy** — Strict CSP headers enforced  
-✓ **Hardened headers** — Frame options, MIME type protection, referrer policies  
-✓ **File context injection** — Automatic for local analysis flows  
-
----
-
-## Key Points
-
-- **Local-only** — All operations restricted to your machine. Network access blocked.
-- **Active attachments** — Files are enabled by default. Remove from panel to exclude from context.
-- **Verified architecture** — No historical `src/` or multi-module remnants.
-
----
-
-## Troubleshooting
-
-### GUI won't load
-- Verify Ollama daemon is running: `ollama serve`
-- Check Python is installed: `python3 --version`
-- Verify port 8765 is not in use
-
-### Security audit fails
-```bash
-npm run audit:security
-```
-Review output and ensure all local-only restrictions are in place.
-
-### Files not appearing in context
-- Verify files are uploaded via GUI file panel
-- Confirm file panel shows them as "active"
-- IDE attachments must be manually added to GUI
-
----
-
-**Status**: Verified February 19, 2026
