@@ -14,7 +14,7 @@
 
 This project serves a single-file command interface with clear mode separation:
 
-- Top modes: `CHAT`, `PARALLEL`, `PIPELINE`, `GRAPH`
+- Top modes: `ANALYST CONSOLE`, `PARALLEL`, `PIPELINE`, `GRAPH`
 - Left workflow tabs: `MODELS`, `FILES`, `AGENTS`, `CHAIN`
 - Local Ollama-only runtime on `127.0.0.1`
 - Session stats, GPU/VRAM panel, system log, and export
@@ -53,7 +53,7 @@ Target/expected UI reference image:
 
 ## Runtime Behavior
 
-### Chat (`CHAT`)
+### Analyst Console (`ANALYST CONSOLE`)
 
 - Direct prompt/response with the active model.
 - Uses top runtime controls (`TEMP`, `CTX`, `FMT`, `STREAM`, `SEED`, `SYS`).
