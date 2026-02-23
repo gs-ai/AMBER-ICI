@@ -1541,8 +1541,114 @@ async function runPipeline(){
 }
 
 // ── GRAPH ─────────────────────────────────────────────
-function addNode(label,type){if(S.gNodes.find(n=>n.label===label))return;S.gNodes.push({id:rnd(6),label:label.substr(0,22),type,x:120+Math.random()*500,y:80+Math.random()*320,vx:0,vy:0,r:type==='model'?20:14});}
-function addEdge(from,to,label=''){S.gEdges.push({from,to,label});}
+let graphRebuildTimer=null;
+const GRAPH_STOPWORDS=new Set(['the','and','for','with','from','this','that','step','model','agent','file','output','input']);
+function queueGraphRebuild(){
+  if(graphRebuildTimer)clearTimeout(graphRebuildTimer);
+  graphRebuildTimer=setTimeout(()=>{graphRebuildTimer=null;rebuildPropertyEdges();},40);
+}
+function resolveNodeRef(ref){
+  const raw=String(ref||'');
+  const short=raw.substr(0,22);
+  return S.gNodes.find(n=>n.id===ref||n.label===raw||n.label===short);
+}
+function edgeKey(from,to,label,kind){
+  const a=String(from),b=String(to);
+  return `${a}|${b}|${label||''}|${kind||'explicit'}`;
+}
+function tokenizeLabel(label){
+  return new Set(
+    (String(label||'').toLowerCase().match(/[a-z0-9]{3,}/g)||[])
+      .filter(t=>!GRAPH_STOPWORDS.has(t))
+      .slice(0,10)
+  );
+}
+function jaccard(a,b){
+  if(!a.size||!b.size)return 0;
+  let inter=0;
+  a.forEach(v=>{if(b.has(v))inter++;});
+  const uni=a.size+b.size-inter;
+  return uni?inter/uni:0;
+}
+function commonPrefixRatio(a,b){
+  const x=String(a||'').toLowerCase(),y=String(b||'').toLowerCase();
+  const m=Math.min(x.length,y.length);
+  if(m<4)return 0;
+  let i=0;while(i<m&&x[i]===y[i])i++;
+  return i/m;
+}
+function buildExplicitAdjacency(){
+  const adj=new Map();
+  const add=(u,v)=>{if(!adj.has(u))adj.set(u,new Set());adj.get(u).add(v);};
+  S.gEdges.filter(e=>e.kind!=='inferred').forEach(e=>{
+    const a=resolveNodeRef(e.from),b=resolveNodeRef(e.to);
+    if(!a||!b||a.id===b.id)return;
+    add(a.id,b.id);add(b.id,a.id);
+  });
+  return adj;
+}
+function sharedNeighborCount(a,b,adj){
+  const sa=adj.get(a.id)||new Set(),sb=adj.get(b.id)||new Set();
+  let c=0;sa.forEach(x=>{if(sb.has(x))c++;});
+  return c;
+}
+function propertySimilarity(a,b,adj){
+  if(!a||!b||a.id===b.id)return 0;
+  let score=0;
+  if(a.type===b.type)score+=0.2;
+  const ta=tokenizeLabel(a.label),tb=tokenizeLabel(b.label);
+  score+=jaccard(ta,tb)*0.75;
+  const la=String(a.label||'').toLowerCase(),lb=String(b.label||'').toLowerCase();
+  if((la.includes(lb)||lb.includes(la))&&Math.min(la.length,lb.length)>=5)score+=0.22;
+  const px=commonPrefixRatio(la,lb);
+  if(px>=0.6)score+=0.18;
+  score+=Math.min(sharedNeighborCount(a,b,adj),3)*0.14;
+  return score;
+}
+function rebuildPropertyEdges(){
+  const explicit=S.gEdges.filter(e=>e.kind!=='inferred');
+  S.gEdges=explicit;
+  if(S.gNodes.length<3)return;
+  const adj=buildExplicitAdjacency();
+  const candidates=[];
+  for(let i=0;i<S.gNodes.length;i++){
+    for(let j=i+1;j<S.gNodes.length;j++){
+      const a=S.gNodes[i],b=S.gNodes[j];
+      const score=propertySimilarity(a,b,adj);
+      if(score>=0.56)candidates.push({a,b,score});
+    }
+  }
+  candidates.sort((x,y)=>y.score-x.score);
+  const degree=new Map();
+  const cap=4;
+  candidates.forEach(c=>{
+    const da=degree.get(c.a.id)||0,db=degree.get(c.b.id)||0;
+    if(da>=cap||db>=cap)return;
+    addEdge(c.a.id,c.b.id,'',{kind:'inferred',score:c.score,rebuild:false});
+    degree.set(c.a.id,da+1);degree.set(c.b.id,db+1);
+  });
+}
+function addNode(label,type){
+  const key=String(label||'').substr(0,22);
+  if(!key)return;
+  const ex=S.gNodes.find(n=>n.label===key);
+  if(ex){if(ex.type!==type)ex.type=type;return ex.id;}
+  const node={id:rnd(6),label:key,type,x:120+Math.random()*500,y:80+Math.random()*320,vx:0,vy:0,r:type==='model'?20:14};
+  S.gNodes.push(node);queueGraphRebuild();return node.id;
+}
+function addEdge(from,to,label='',opts={}){
+  const kind=opts.kind||'explicit';
+  const score=typeof opts.score==='number'?opts.score:1;
+  if(from===to)return;
+  const key=edgeKey(from,to,label,kind);
+  const i=S.gEdges.findIndex(e=>edgeKey(e.from,e.to,e.label,e.kind||'explicit')===key);
+  if(i>=0){
+    if(kind==='inferred'&&score>(S.gEdges[i].score||0))S.gEdges[i].score=score;
+  }else{
+    S.gEdges.push({from,to,label,kind,score});
+  }
+  if(opts.rebuild!==false&&kind!=='inferred')queueGraphRebuild();
+}
 function extractEnt(text,src=''){
   const caps=(text.match(/\b[A-Z][A-Za-z]{3,}\b/g)||[]).slice(0,6);
   caps.forEach(e=>{addNode(e,'entity');if(src)addEdge(src,e,'↗');});
@@ -1554,7 +1660,7 @@ function openGraph(){
   requestAnimationFrame(initGraph);
 }
 function closeGraph(){document.getElementById('GO').classList.remove('show');cancelAnimationFrame(GA);}
-function resetGraph(){S.gNodes=[];S.gEdges=[];log('GRAPH RESET','warn');}
+function resetGraph(){if(graphRebuildTimer)clearTimeout(graphRebuildTimer);S.gNodes=[];S.gEdges=[];log('GRAPH RESET','warn');}
 function exportGraphSVG(){toast('SVG EXPORT — OPEN BROWSER DEV TOOLS TO SAVE CANVAS');}
 
 const NC={model:'#ff9d00',entity:'#00ffaa',concept:'#00c8ff',prompt:'#aa88ff',file:'#ff4488'};
@@ -1586,7 +1692,10 @@ function animGraph(){
       const tg=i===ns.indexOf(a)?b:i===ns.indexOf(b)?a:null;
       if(!tg)return;
       const dx=tg.x-ns[i].x,dy=tg.y-ns[i].y;
-      const d=Math.sqrt(dx*dx+dy*dy)||1;const f=(d-90)*0.02;fx+=dx*f;fy+=dy*f;
+      const d=Math.sqrt(dx*dx+dy*dy)||1;
+      const rest=e.kind==='inferred'?115:90;
+      const spring=e.kind==='inferred'?0.012:0.02;
+      const f=(d-rest)*spring;fx+=dx*f;fy+=dy*f;
     });
     const cv=document.getElementById('gc');
     if(cv){const cx=cv.width/2/GT.s,cy=cv.height/2/GT.s;fx+=(cx-ns[i].x)*0.003;fy+=(cy-ns[i].y)*0.003;}
@@ -1612,7 +1721,15 @@ function drawGraph(){
     const a=S.gNodes.find(n=>n.label===e.from||n.id===e.from);
     const b=S.gNodes.find(n=>n.label===e.to||n.id===e.to);
     if(!a||!b)return;
-    GC.strokeStyle='rgba(255,157,0,.22)';GC.lineWidth=1;GC.setLineDash([4,6]);
+    if(e.kind==='inferred'){
+      GC.strokeStyle='rgba(0,200,255,.18)';
+      GC.lineWidth=Math.min(1.7,0.7+(e.score||0)*0.6);
+      GC.setLineDash([2,4]);
+    }else{
+      GC.strokeStyle='rgba(255,157,0,.22)';
+      GC.lineWidth=1;
+      GC.setLineDash([4,6]);
+    }
     GC.beginPath();GC.moveTo(a.x,a.y);GC.lineTo(b.x,b.y);GC.stroke();GC.setLineDash([]);
     if(e.label){GC.fillStyle='rgba(255,157,0,.45)';GC.font='8px Share Tech Mono';GC.textAlign='center';GC.fillText(e.label,(a.x+b.x)/2,(a.y+b.y)/2);}
   });
