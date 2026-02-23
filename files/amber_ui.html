@@ -417,7 +417,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <div class="fr"><label class="fl">MODEL</label><select class="fsel" id="aModel"><option value="">— SELECT —</option></select></div>
       <div class="fr"><label class="fl">SYSTEM PROMPT</label><textarea class="fta" id="aSys" placeholder="You are a specialized agent..."></textarea></div>
       <div class="fr"><label class="fl">EXECUTION MODE</label><select class="fsel" id="aMode"><option value="sequential">SEQUENTIAL</option><option value="parallel">PARALLEL</option><option value="gated">INPUT GATED</option></select></div>
-      <div class="fr"><label class="fl">OUTPUT → (scratchpad / chat)</label><input class="fi" id="aFeeds" placeholder="scratchpad"></div>
+      <div class="fr"><label class="fl">OUTPUT → (scratchpad / analyst console)</label><input class="fi" id="aFeeds" placeholder="scratchpad"></div>
     </div>
     <div class="mfooter"><button class="btn2" onclick="closeM('AM')">CANCEL</button><button class="btn1" id="ASB" onclick="saveAgent()">SAVE AGENT</button></div>
   </div>
@@ -447,7 +447,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     </div>
   </div>
   <nav class="tab-nav">
-    <button class="tab-btn active" onclick="headTab(this,'chat')">CHAT</button>
+    <button class="tab-btn active" onclick="headTab(this,'chat')">ANALYST CONSOLE</button>
     <button class="tab-btn" onclick="headTab(this,'parallel')">PARALLEL</button>
     <button class="tab-btn" onclick="headTab(this,'pipeline')">PIPELINE</button>
     <button class="tab-btn" onclick="openGraph()">GRAPH ◈</button>
@@ -1029,7 +1029,7 @@ function pushTPS(t){
 }
 function setMeter(p){document.getElementById('TF').style.width=Math.min(p,100)+'%'}
 
-// ── CHAT ──────────────────────────────────────────────
+// ── ANALYST CONSOLE ───────────────────────────────────
 function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px'}
 function onKey(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
@@ -1511,7 +1511,7 @@ function onCardDragEnd(e){
 async function runPipeline(){
   if(!S.pipeline.length){toast('NO STEPS','err');return;}
   const seed=document.getElementById('CI').value.trim();
-  if(!seed){toast('ENTER SEED INPUT IN CHAT BOX','err');return;}
+  if(!seed){toast('ENTER SEED INPUT IN ANALYST CONSOLE BOX','err');return;}
   document.getElementById('CI').value='';
   log('PIPELINE: '+S.pipeline.length+' steps','warn');toast('PIPELINE RUNNING');
   addMsgEl('sys','PIPELINE — '+S.pipeline.length+' STEPS — "'+seed.substr(0,36)+'"','PIPELINE','sys');
@@ -1657,7 +1657,7 @@ function clrChat(){
   S.msgs=[];S.stats={turns:0,tokIn:0,tokOut:0,tpsH:[],peakTPS:0,totalTPS:0,tpsN:0};S.scratch='';
   updStats();document.getElementById('TPSV').textContent='— t/s';document.getElementById('SPK').textContent='—';document.getElementById('SAV').textContent='—';
   document.getElementById('MSGS').innerHTML='<div class="empty-s" id="ES"><div class="ei">@</div><p>SELECT A MODEL FROM THE REGISTRY<br>TO BEGIN INFERENCE</p></div>';
-  log('SESSION CLEARED','warn');toast('CHAT CLEARED');
+  log('SESSION CLEARED','warn');toast('ANALYST CONSOLE CLEARED');
 }
 function cpyLast(){const l=S.msgs.filter(m=>m.role==='assistant').pop();if(!l){toast('NOTHING TO COPY','err');return;}navigator.clipboard.writeText(l.content).then(()=>toast('COPIED','ok'));}
 function collectTranscript(){
@@ -1666,7 +1666,7 @@ function collectTranscript(){
     const time=(el.querySelector('.mtime')?.textContent||'').trim();
     const content=(el.querySelector('.mbubble')?.innerText||'').trim();
     const role=el.classList.contains('user')?'USER':el.classList.contains('assistant')?'ASSISTANT':el.classList.contains('sys')?'SYSTEM':'MESSAGE';
-    let mode='CHAT';
+    let mode='ANALYST CONSOLE';
     if(el.classList.contains('parallel'))mode='PARALLEL';
     else if(/^PIPELINE\b/i.test(tag)||/^STEP\b/i.test(tag))mode='PIPELINE';
     else if(tag&&S.agents.some(a=>a.name===tag))mode='AGENT';
@@ -1723,7 +1723,7 @@ function expChat(){
   const out=
     'OLLAMA SESSION EXPORT\n'+
     sec('SESSION SUMMARY',summary)+
-    sec('FULL TRANSCRIPT (CHAT + PARALLEL + AGENT + PIPELINE)',transcriptBody)+
+    sec('FULL TRANSCRIPT (ANALYST CONSOLE + PARALLEL + AGENT + PIPELINE)',transcriptBody)+
     sec('PARALLEL CONVERSATIONS',parallelBody)+
     sec('AGENT CONFIGURATION',agentsBody)+
     sec('PIPELINE CONFIGURATION',pipelineBody)+
