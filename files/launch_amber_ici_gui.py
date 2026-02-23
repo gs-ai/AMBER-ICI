@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
 ╔══════════════════════════════════════════════════════╗
-║   OLLAMA // COMMAND INTERFACE v2 — CLI LAUNCHER      ║
+║   AMBER ICI // INVESTIGATIVE COMMAND INTERFACE v2    ║
 ║   Launches the local GUI in your default browser.    ║
 ║   NO cloud. NO telemetry. NO outbound requests.      ║
 ╚══════════════════════════════════════════════════════╝
 
 Usage:
-    python3 launch_ollama_gui.py [--port 8765] [--no-browser]
+    python3 launch_amber_ici_gui.py [--port 8765] [--no-browser]
 
 Options:
     --port        Port to serve the GUI on (default: 8765)
     --host        Host address (default: 127.0.0.1)
     --no-browser  Don't auto-open the browser
-    --gui PATH    Path to ollama_gui.html (default: auto-detected)
+    --gui PATH    Path to GUI HTML (default: auto-detected)
 """
 
 import argparse
@@ -38,12 +38,12 @@ CY = "\033[38;5;117m"  # cyan
 def banner():
     print(f"""
 {AM}{BO}
-  ██████  ██      ██      █████  ███    ███  █████
- ██    ██ ██      ██     ██   ██ ████  ████ ██   ██
- ██    ██ ██      ██     ███████ ██ ████ ██ ███████
- ██    ██ ██      ██     ██   ██ ██  ██  ██ ██   ██
-  ██████  ███████ ███████ ██  ██ ██      ██ ██   ██{R}
-{DM}  COMMAND INTERFACE // LOCAL INFERENCE // NO TELEMETRY{R}
+  █████╗ ███╗   ███╗██████╗ ███████╗██████╗
+ ██╔══██╗████╗ ████║██╔══██╗██╔════╝██╔══██╗
+ ███████║██╔████╔██║██████╔╝█████╗  ██████╔╝
+ ██╔══██║██║╚██╔╝██║██╔══██╗██╔══╝  ██╔══██╗
+ ██║  ██║██║ ╚═╝ ██║██████╔╝███████╗██║  ██║{R}
+{DM}  INVESTIGATIVE COMMAND INTERFACE // LOCAL INFERENCE // NO TELEMETRY{R}
 """)
 
 def check_port_free(host, port):
@@ -55,26 +55,25 @@ def check_port_free(host, port):
             return False
 
 def find_gui_file(hint=None):
-    """Locate ollama_gui.html relative to this script or from a hint."""
+    """Locate GUI HTML relative to this script or from a hint."""
     if hint:
         p = Path(hint)
-        if p.exists():
+        if p.exists() and p.is_file():
             return p
         print(f"{RD}ERROR:{R} GUI file not found: {hint}")
         sys.exit(1)
 
-    # Search common locations
-    candidates = [
-        Path(__file__).parent / "ollama_gui.html",
-        Path(__file__).parent / "gui" / "ollama_gui.html",
-        Path.cwd() / "ollama_gui.html",
-    ]
+    # Search common locations and both legacy/current names
+    names = ("amber_ui.html", "ici_gui.html", "ollama_gui.html", "index.html")
+    roots = (Path(__file__).parent, Path(__file__).parent / "gui", Path.cwd())
+    candidates = [r / n for r in roots for n in names]
     for c in candidates:
         if c.exists():
             return c
 
-    print(f"{RD}ERROR:{R} Could not find ollama_gui.html")
-    print(f"{DM}  Place ollama_gui.html in the same directory as this script.{R}")
+    print(f"{RD}ERROR:{R} Could not find a GUI HTML file.")
+    print(f"{DM}  Searched for: {', '.join(names)}{R}")
+    print(f"{DM}  Place one of these files in the same directory as this script.{R}")
     sys.exit(1)
 
 class SilentHandler(http.server.SimpleHTTPRequestHandler):
@@ -140,7 +139,7 @@ def launch(host, port, gui_path, open_browser):
 def main():
     banner()
     parser = argparse.ArgumentParser(
-        description="Launch the Ollama GUI in your browser",
+        description="Launch the Investigative Command Interface (AMBER ICI) in your browser",
         add_help=True
     )
     parser.add_argument("--port", type=int, default=8765,
@@ -150,12 +149,12 @@ def main():
     parser.add_argument("--no-browser", action="store_true",
                         help="Don't auto-open browser")
     parser.add_argument("--gui", default=None,
-                        help="Path to ollama_gui.html")
+                        help="Path to GUI HTML (e.g. files/amber_ui.html)")
     args = parser.parse_args()
 
     gui_path = find_gui_file(args.gui)
 
-    print(f"  {AM}OLLAMA GUI LAUNCHER{R}\n")
+    print(f"  {AM}INVESTIGATIVE COMMAND INTERFACE LAUNCHER{R}\n")
     launch(args.host, args.port, gui_path, not args.no_browser)
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OLLAMA // COMMAND INTERFACE v2</title>
+<title>AMBER // INVESTIGATIVE COMMAND INTERFACE v2</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
 <style>
 :root {
@@ -35,7 +35,7 @@
   --splitter-w:  12px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#0c0e13;font-family:var(--mono);color:var(--tp);overflow:hidden}
+html,body{height:100%;background:#000000;font-family:var(--mono);color:var(--tp);overflow:hidden}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,157,0,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,157,0,.022) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0}
 body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 55% 45% at 72% 28%,rgba(255,157,0,.07) 0%,transparent 65%),radial-gradient(ellipse 35% 55% at 18% 82%,rgba(255,100,0,.04) 0%,transparent 55%);pointer-events:none;z-index:0}
 .scanlines{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.1) 2px,rgba(0,0,0,.1) 4px);pointer-events:none;z-index:999;animation:scanMove 10s linear infinite}
@@ -148,6 +148,9 @@ main{
 .alist{flex:1;overflow-y:auto;padding:0 7px;min-height:0}
 .aitem{padding:8px 9px;margin-bottom:4px;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px;transition:all .15s;position:relative}
 .aitem:hover{border-color:var(--amber-dim)}
+.aitem{cursor:grab}
+.aitem.dragging{opacity:.65;border-color:var(--amber-dim);background:var(--amber-faint)}
+.aitem.drag-over{border-color:var(--amber-neon);box-shadow:inset 0 0 0 1px rgba(255,184,0,.35)}
 .aitem:hover .aname{color:var(--tb)}
 .aitem.run{border-color:var(--success)}
 .aitem.run::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--success);box-shadow:0 0 8px var(--success)}
@@ -162,6 +165,9 @@ main{
 /* Pipeline */
 .plist{flex:1;overflow-y:auto;padding:0 7px;min-height:0}
 .pstep{display:flex;gap:7px;align-items:flex-start;margin-bottom:6px;position:relative}
+.pstep{cursor:grab}
+.pstep.dragging{opacity:.65}
+.pstep.drag-over .sbody{outline:1px solid rgba(255,184,0,.4);border-radius:3px}
 .pstep::before{content:'';position:absolute;left:13px;top:27px;bottom:-6px;width:1px;background:var(--steel-border)}
 .pstep:last-child::before{display:none}
 .snum{width:26px;height:26px;flex-shrink:0;border-radius:50%;border:1px solid var(--amber-dim);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:9px;color:var(--amber-dim);background:var(--steel-light)}
@@ -176,6 +182,7 @@ main{
 .pcbtn:hover{border-color:var(--amber-dim);color:var(--amber-dim);background:var(--amber-faint)}
 .pcbtn.go{border-color:var(--amber-neon);color:var(--amber-hot)}
 .pcbtn.go:hover{background:var(--amber-faint);box-shadow:0 0 10px rgba(255,184,0,.18)}
+.pcbtn:disabled{border-color:var(--steel-border)!important;color:var(--td)!important;background:transparent!important;box-shadow:none!important;cursor:not-allowed}
 .pcsel{flex:2;min-width:0;padding:6px;background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px;color:var(--tp);font-family:var(--mono);font-size:8px;letter-spacing:1px;outline:none}
 .pcsel:focus{border-color:var(--amber-dim)}
 .pcsel option{background:var(--steel);color:var(--tp)}
@@ -244,6 +251,8 @@ main{
 .send-btn{padding:0 17px;height:40px;min-width:66px;background:var(--amber-dim);border:1px solid var(--amber-neon);border-radius:3px;color:#08090d;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .15s;text-transform:uppercase;white-space:nowrap;box-shadow:0 0 14px rgba(255,184,0,.22)}
 .send-btn:hover{background:var(--amber-neon);box-shadow:0 0 22px var(--amber-glow)}
 .send-btn:disabled{background:var(--steel-light);border-color:var(--steel-border);color:var(--td);box-shadow:none;cursor:not-allowed}
+.send-btn.stop{background:var(--steel-light);border-color:var(--steel-border);color:var(--td);box-shadow:none}
+.send-btn.stop:hover{background:var(--steel-hover);border-color:var(--amber-dim);color:var(--amber-dim)}
 .iacts{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
 .ihint{font-size:8px;color:var(--td);letter-spacing:1px}
 .abtns2{display:flex;gap:4px}
@@ -323,6 +332,11 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 .fright{display:flex;gap:13px;align-items:center}
 .kbd{padding:1px 6px;border:1px solid var(--steel-border);border-radius:2px;font-size:8px;color:var(--td);letter-spacing:1px}
 
+/* Center panel black overrides */
+#CP{background:#000000}
+#CP .mbar,#CP .cpills,#CP .tbar,#CP .spark-row,#CP .cinput-area,#CP .msgs{background:#000000}
+#CP .cinput{background:#000000}
+
 /* ── MODAL ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:800;align-items:center;justify-content:center}
 .overlay.show{display:flex}
@@ -397,7 +411,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 <!-- AGENT MODAL -->
 <div class="overlay" id="AM">
   <div class="modal">
-    <div class="mhd"><span class="mtitle">DEFINE AGENT</span><button class="mclose" onclick="closeM('AM')">✕</button></div>
+    <div class="mhd"><span class="mtitle" id="AMT">DEFINE AGENT</span><button class="mclose" onclick="closeM('AM')">✕</button></div>
     <div class="mbody">
       <div class="fr"><label class="fl">AGENT NAME</label><input class="fi" id="aName" placeholder="SUMMARIZER"></div>
       <div class="fr"><label class="fl">MODEL</label><select class="fsel" id="aModel"><option value="">— SELECT —</option></select></div>
@@ -405,20 +419,20 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <div class="fr"><label class="fl">EXECUTION MODE</label><select class="fsel" id="aMode"><option value="sequential">SEQUENTIAL</option><option value="parallel">PARALLEL</option><option value="gated">INPUT GATED</option></select></div>
       <div class="fr"><label class="fl">OUTPUT → (scratchpad / chat)</label><input class="fi" id="aFeeds" placeholder="scratchpad"></div>
     </div>
-    <div class="mfooter"><button class="btn2" onclick="closeM('AM')">CANCEL</button><button class="btn1" onclick="saveAgent()">SAVE AGENT</button></div>
+    <div class="mfooter"><button class="btn2" onclick="closeM('AM')">CANCEL</button><button class="btn1" id="ASB" onclick="saveAgent()">SAVE AGENT</button></div>
   </div>
 </div>
 
 <!-- PIPELINE MODAL -->
 <div class="overlay" id="PM">
   <div class="modal">
-    <div class="mhd"><span class="mtitle">ADD PIPELINE STEP</span><button class="mclose" onclick="closeM('PM')">✕</button></div>
+    <div class="mhd"><span class="mtitle" id="PMT">ADD PIPELINE STEP</span><button class="mclose" onclick="closeM('PM')">✕</button></div>
     <div class="mbody">
       <div class="fr"><label class="fl">MODEL</label><select class="fsel" id="pModel"><option value="">— SELECT —</option></select></div>
       <div class="fr"><label class="fl">SYSTEM PROMPT</label><textarea class="fta" id="pSys" placeholder="You are step N..."></textarea></div>
       <div class="fr"><label class="fl">PROMPT TEMPLATE (use {{input}} and {{scratchpad}})</label><textarea class="fta" id="pTpl" placeholder="Summarize: {{input}}"></textarea></div>
     </div>
-    <div class="mfooter"><button class="btn2" onclick="closeM('PM')">CANCEL</button><button class="btn1" onclick="savePipe()">ADD STEP</button></div>
+    <div class="mfooter"><button class="btn2" onclick="closeM('PM')">CANCEL</button><button class="btn1" id="PSB" onclick="savePipe()">ADD STEP</button></div>
   </div>
 </div>
 
@@ -428,8 +442,8 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   <div class="logo">
     <div class="dial"><span class="at">@</span></div>
     <div class="logo-text">
-      <div class="title">OLLAMA</div>
-      <div class="sub">COMMAND INTERFACE v2 // LOCAL // ZERO TELEMETRY</div>
+      <div class="title">AMBER</div>
+      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v2 // LOCAL // ZERO TELEMETRY</div>
     </div>
   </div>
   <nav class="tab-nav">
@@ -481,8 +495,8 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="lpane" id="lp-agents">
       <div class="alist" id="AL"><div class="nomods">NO AGENTS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div></div>
       <div class="pctrl">
-        <button class="pcbtn" onclick="openM('AM')">+ AGENT</button>
-        <button class="pcbtn go" onclick="runChain()">▶ RUN CHAIN</button>
+        <button class="pcbtn" onclick="openNewAgent()">+ AGENT</button>
+        <button class="pcbtn go" id="ARB" onclick="runChain()" disabled>▶ RUN</button>
         <button class="pcbtn" onclick="clrAgents()">CLEAR</button>
       </div>
       <div class="pctrl">
@@ -497,9 +511,9 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="lpane" id="lp-pipeline">
       <div class="plist" id="PL"><div class="nomods">NO STEPS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div></div>
       <div class="pctrl">
-        <button class="pcbtn" onclick="openM('PM')">+ STEP</button>
+        <button class="pcbtn" onclick="openNewPipeStep()">+ STEP</button>
         <button class="pcbtn" onclick="clrPipe()">CLEAR</button>
-        <button class="pcbtn go" onclick="runPipeline()">▶ RUN</button>
+        <button class="pcbtn go" id="CRB" onclick="runPipeline()" disabled>▶ RUN CHAIN</button>
       </div>
       <div class="pctrl">
         <select id="CSV" class="pcsel"></select>
@@ -515,7 +529,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 <div class="splitter" id="SP-L" role="separator" aria-orientation="vertical" aria-label="Resize left panel"></div>
 
 <!-- CENTER -->
-<section class="panel" style="display:flex;flex-direction:column;overflow:hidden">
+<section class="panel" id="CP" style="display:flex;flex-direction:column;overflow:hidden">
   <div class="mbar">
     <span class="sel-lbl">ACTIVE:</span>
     <span class="sel-model" id="AMD">— NONE —</span>
@@ -543,6 +557,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <textarea class="cinput" id="CI" placeholder="ENTER PROMPT // SHIFT+ENTER NEWLINE // ESC STOP" rows="1"
         onkeydown="onKey(event)" oninput="autoR(this)"></textarea>
       <button class="send-btn" id="SB" onclick="send()" disabled>SEND</button>
+      <button class="send-btn stop" id="STPB" onclick="stopStream()" disabled>STOP</button>
     </div>
     <div class="iacts">
       <span class="ihint">↵ SEND &nbsp;·&nbsp; SHIFT+↵ NEWLINE &nbsp;·&nbsp; ESC STOP &nbsp;·&nbsp; CTRL+K CLEAR</span>
@@ -604,13 +619,13 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   </div>
   <div class="isec flex1">
     <div class="stitle"><span class="sl">SYSTEM LOG</span></div>
-    <div class="log" id="LOG"><div class="ll info">[BOOT] OLLAMA GUI v2</div></div>
+    <div class="log" id="LOG"><div class="ll info">[BOOT] AMBER ICI GUI v2</div></div>
   </div>
 </aside>
 </main>
 
 <footer>
-  <span class="ftxt">OLLAMA LOCAL // ALL INFERENCE ON-DEVICE // ZERO TELEMETRY // NO CLOUD</span>
+  <span class="ftxt">AMBER ICI LOCAL // ALL INFERENCE ON-DEVICE // ZERO TELEMETRY // NO CLOUD</span>
   <div class="fright">
     <span class="ftxt" id="SID">SID: ——————</span>
     <span class="kbd">ESC STOP</span><span class="kbd">CTRL+K CLEAR</span><span class="kbd">CTRL+G GRAPH</span>
@@ -620,7 +635,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 
 <script>
 /* ═══════════════════════════════════════════════════
-   OLLAMA GUI v2 — ALL LOCAL — ZERO TELEMETRY
+   AMBER ICI GUI v2 — ALL LOCAL — ZERO TELEMETRY
    ═══════════════════════════════════════════════════ */
 const S={
   models:[],active:null,msgs:[],streaming:false,abort:null,
@@ -630,6 +645,7 @@ const S={
   gNodes:[],gEdges:[],
   sid:rnd(8),checked:new Set(),scratch:''
 };
+const UI={editAgentId:null,editPipeId:null,drag:null};
 function rnd(n){return Math.random().toString(36).substr(2,n).toUpperCase()}
 const LOCAL_OLLAMA_DEFAULT='http://127.0.0.1:11434';
 const LOCAL_ONLY_HOSTS=new Set(['127.0.0.1','localhost','::1','[::1]']);
@@ -704,7 +720,7 @@ function hydrateSavedState(){
   S.chainSets=(loadStore(STORE_KEYS.chainSets,[])||[]).map(s=>normSet(s,'chain')).filter(Boolean);
   renderAgents();renderPipe();renderSavedSets();
   if(S.agents.length||S.pipeline.length||S.agentSets.length||S.chainSets.length){
-    log('LOADED SAVED AGENTS/CHAINS','ok');
+    log('LOADED SAVED AGENTS/CHAIN','ok');
   }
 }
 function pxNum(v,d){const n=parseFloat(v);return Number.isFinite(n)?n:d;}
@@ -813,6 +829,7 @@ window.addEventListener('load',()=>{
   loadMainLayout();
   initResizers();
   hydrateSavedState();
+  syncActionAvailability();
   log('BOOT OK','ok');log('SID: '+S.sid,'info');
   connect();setInterval(refreshGPU,5000);
 });
@@ -851,13 +868,68 @@ function setConn(ok){
 }
 
 // ── MODELS ───────────────────────────────────────────
+function clearModelDetails(){
+  document.getElementById('IN').textContent='—';
+  document.getElementById('IS').textContent='—';
+  document.getElementById('IF').textContent='—';
+  document.getElementById('IP').textContent='—';
+  document.getElementById('IQ').textContent='—';
+}
+function applyModelDetails(m){
+  if(!m){clearModelDetails();return;}
+  document.getElementById('IN').textContent=m.name.split(':')[0].toUpperCase().substr(0,14);
+  document.getElementById('IS').textContent=m.size?(m.size/1e9).toFixed(2)+' GB':'—';
+  document.getElementById('IF').textContent=m.details?.family?.toUpperCase()||'—';
+  document.getElementById('IP').textContent=m.details?.parameter_size||'—';
+  document.getElementById('IQ').textContent=m.details?.quantization_level||'—';
+}
+function clearActiveModel(){
+  S.active=null;
+  document.getElementById('AMD').textContent='— NONE —';
+  clearModelDetails();
+}
+function canSendSingleModel(){
+  const checkedCount=S.checked.size;
+  if(!S.active)return false;
+  if(checkedCount===0)return true;
+  return checkedCount===1&&S.checked.has(S.active);
+}
+function syncActionAvailability(){
+  const sb=document.getElementById('SB');
+  if(sb)sb.disabled=S.streaming||!canSendSingleModel();
+  const agentsPaneOpen=document.getElementById('lp-agents')?.classList.contains('active');
+  const chainPaneOpen=document.getElementById('lp-pipeline')?.classList.contains('active');
+  const agentsReady=agentsPaneOpen&&S.agents.length>0;
+  const chainReady=chainPaneOpen&&S.pipeline.length>0;
+  const ar=document.getElementById('ARB');
+  const cr=document.getElementById('CRB');
+  if(ar)ar.disabled=!agentsReady;
+  if(cr)cr.disabled=!chainReady;
+}
 async function loadModels(){
   log('SCANNING...');
   try{
     const r=await fetch(base()+'/api/tags');
     const d=await r.json();
     S.models=d.models||[];
+    const available=new Set(S.models.map(m=>m.name));
+    S.checked=new Set([...S.checked].filter(n=>available.has(n)));
+    if(S.active&&!available.has(S.active))clearActiveModel();
+    if(S.checked.size===1){
+      const only=[...S.checked][0];
+      if(S.active!==only)S.active=only;
+    }else if(S.checked.size>1){
+      clearActiveModel();
+    }
     renderModels(S.models);
+    if(S.active){
+      document.getElementById('AMD').textContent=S.active;
+      applyModelDetails(S.models.find(x=>x.name===S.active));
+      document.getElementById('ES')?.remove();
+    }else{
+      clearModelDetails();
+    }
+    syncActionAvailability();
     document.getElementById('MC').textContent=S.models.length+' LOCAL';
     log('FOUND '+S.models.length+' MODEL(S)','ok');
     popSelects();setConn(true);
@@ -885,22 +957,28 @@ function renderModels(list){
   }).join('');
 }
 function filterM(q){renderModels(S.models.filter(m=>m.name.toLowerCase().includes(q.toLowerCase())))}
-function togPar(n,c){if(c)S.checked.add(n);else S.checked.delete(n)}
-function selModel(n){
+function togPar(n,c){
+  if(c)S.checked.add(n);else S.checked.delete(n);
+  if(S.checked.size===1){
+    selModel([...S.checked][0],true);
+    return;
+  }
+  if(S.checked.size>1)clearActiveModel();
+  renderModels(S.models);
+  syncActionAvailability();
+}
+function selModel(n,quiet=false){
   S.active=n;
   const m=S.models.find(x=>x.name===n);
   document.getElementById('AMD').textContent=n;
-  document.getElementById('SB').disabled=false;
   document.getElementById('ES')?.remove();
-  if(m){
-    document.getElementById('IN').textContent=m.name.split(':')[0].toUpperCase().substr(0,14);
-    document.getElementById('IS').textContent=m.size?(m.size/1e9).toFixed(2)+' GB':'—';
-    document.getElementById('IF').textContent=m.details?.family?.toUpperCase()||'—';
-    document.getElementById('IP').textContent=m.details?.parameter_size||'—';
-    document.getElementById('IQ').textContent=m.details?.quantization_level||'—';
+  applyModelDetails(m);
+  renderModels(S.models);
+  syncActionAvailability();
+  if(!quiet){
+    log('SELECTED: '+n,'ok');toast('MODEL: '+n);
+    addNode(n,'model');
   }
-  renderModels(S.models);log('SELECTED: '+n,'ok');toast('MODEL: '+n);
-  addNode(n,'model');
 }
 
 // ── TABS ─────────────────────────────────────────────
@@ -909,9 +987,14 @@ function lTab(btn,t){
   document.querySelectorAll('.ltab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   document.querySelectorAll('.lpane').forEach(p=>p.classList.remove('active'));
   document.getElementById('lp-'+t)?.classList.add('active');
+  syncActionAvailability();
 }
 function openM(id){document.getElementById(id).classList.add('show')}
-function closeM(id){document.getElementById(id).classList.remove('show')}
+function closeM(id){
+  document.getElementById(id).classList.remove('show');
+  if(id==='AM')resetAgentForm();
+  if(id==='PM')resetPipeForm();
+}
 
 // ── DIAL ─────────────────────────────────────────────
 function syncDial(){
@@ -986,7 +1069,8 @@ function showThink(){
 }
 
 async function send(){
-  if(S.streaming||!S.active)return;
+  if(S.streaming)return;
+  if(!canSendSingleModel()){toast('SELECT EXACTLY 1 MODEL FOR SEND','err');return;}
   const inp=document.getElementById('CI');
   const p=inp.value.trim();if(!p)return;
   inp.value='';inp.style.height='auto';
@@ -1048,7 +1132,9 @@ async function send(){
 
 function stopStream(){if(S.abort){S.abort.abort();log('STOP SIGNAL','warn');}}
 function setStream(v){
-  S.streaming=v;document.getElementById('SB').disabled=v;
+  S.streaming=v;
+  syncActionAvailability();
+  document.getElementById('STPB').disabled=!v;
   const ri=document.getElementById('RI');
   ri.className='run-ind'+(v?' live':'');
   ri.innerHTML=`<div class="d"></div><span>${v?'RUNNING':'IDLE'}</span>`;
@@ -1145,29 +1231,76 @@ function saveAgent(){
   const md=document.getElementById('aMode').value;
   const f=document.getElementById('aFeeds').value.trim();
   if(!n||!m){toast('NAME AND MODEL REQUIRED','err');return;}
-  S.agents.push({id:rnd(6),name:n,model:m,system:s,mode:md,feeds:f||'chat',status:'idle'});
+  if(UI.editAgentId){
+    const i=S.agents.findIndex(a=>a.id===UI.editAgentId);
+    if(i>=0){
+      S.agents[i]={...S.agents[i],name:n,model:m,system:s,mode:md,feeds:f||'chat'};
+      log('AGENT UPDATED: '+n,'ok');toast('AGENT UPDATED','ok');
+    }
+  }else{
+    S.agents.push({id:rnd(6),name:n,model:m,system:s,mode:md,feeds:f||'chat',status:'idle'});
+    log('AGENT: '+n+'('+m+')','ok');toast('AGENT: '+n,'ok');
+  }
   persistAgents();
   renderAgents();closeM('AM');
-  ['aName','aSys','aFeeds'].forEach(id=>document.getElementById(id).value='');
-  log('AGENT: '+n+'('+m+')','ok');toast('AGENT: '+n,'ok');
+}
+function resetAgentForm(){
+  UI.editAgentId=null;
+  document.getElementById('AMT').textContent='DEFINE AGENT';
+  document.getElementById('ASB').textContent='SAVE AGENT';
+  document.getElementById('aName').value='';
+  document.getElementById('aModel').value='';
+  document.getElementById('aSys').value='';
+  document.getElementById('aMode').value='sequential';
+  document.getElementById('aFeeds').value='';
+}
+function openNewAgent(){resetAgentForm();openM('AM');}
+function editAgent(id){
+  const a=S.agents.find(x=>x.id===id);
+  if(!a){toast('AGENT NOT FOUND','err');return;}
+  UI.editAgentId=id;
+  document.getElementById('AMT').textContent='EDIT AGENT';
+  document.getElementById('ASB').textContent='SAVE CHANGES';
+  document.getElementById('aName').value=a.name;
+  document.getElementById('aModel').value=a.model;
+  document.getElementById('aSys').value=a.system||'';
+  document.getElementById('aMode').value=a.mode||'sequential';
+  document.getElementById('aFeeds').value=a.feeds||'chat';
+  openM('AM');
 }
 function renderAgents(){
   const al=document.getElementById('AL');
-  if(!S.agents.length){al.innerHTML='<div class="nomods">NO AGENTS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div>';return;}
+  if(!S.agents.length){
+    al.innerHTML='<div class="nomods">NO AGENTS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div>';
+    syncActionAvailability();
+    return;
+  }
   al.innerHTML=S.agents.map(a=>`
-    <div class="aitem ${a.status==='running'?'run':''}" id="ag-${a.id}">
+    <div class="aitem ${a.status==='running'?'run':''}" id="ag-${a.id}" draggable="true"
+      ondragstart="onCardDragStart(event,'agent','${a.id}')"
+      ondragover="onCardDragOver(event,'agent','${a.id}')"
+      ondragleave="onCardDragLeave(event)"
+      ondrop="onCardDrop(event,'agent','${a.id}')"
+      ondragend="onCardDragEnd(event)">
       <div class="aname">${a.name}</div>
       <div class="ameta">${a.model} · ${a.mode.toUpperCase()} → ${a.feeds}</div>
       <div class="abtns">
         <button class="abtn grun" onclick="runAgent('${a.id}')">▶ RUN</button>
+        <button class="abtn" onclick="editAgent('${a.id}')">EDIT</button>
         <button class="abtn" onclick="delAgent('${a.id}')">✕</button>
       </div>
     </div>`).join('');
+  syncActionAvailability();
 }
-function delAgent(id){S.agents=S.agents.filter(a=>a.id!==id);persistAgents();renderAgents();log('AGENT DELETED','warn');}
+function delAgent(id){
+  S.agents=S.agents.filter(a=>a.id!==id);
+  if(UI.editAgentId===id)resetAgentForm();
+  persistAgents();renderAgents();log('AGENT DELETED','warn');
+}
 function clrAgents(){
   if(!S.agents.length){toast('NO AGENTS','err');return;}
   if(!confirm('CLEAR ALL ACTIVE AGENTS?'))return;
+  resetAgentForm();
   S.agents=[];persistAgents();renderAgents();log('AGENTS CLEARED','warn');toast('AGENTS CLEARED');
 }
 function saveAgentSet(){
@@ -1191,6 +1324,7 @@ function loadAgentSet(){
   if(!id){toast('SELECT AN AGENT SET','err');return;}
   const set=S.agentSets.find(x=>x.id===id);
   if(!set){toast('SET NOT FOUND','err');return;}
+  resetAgentForm();
   S.agents=set.items.map(a=>normAgent(a)).filter(Boolean).map(a=>({...a,id:rnd(6),status:'idle'}));
   persistAgents();renderAgents();
   log('AGENT SET LOADED: '+set.name,'ok');toast('AGENT SET LOADED','ok');
@@ -1240,29 +1374,71 @@ function savePipe(){
   const s=document.getElementById('pSys').value.trim();
   const t=document.getElementById('pTpl').value.trim();
   if(!m){toast('SELECT A MODEL','err');return;}
-  S.pipeline.push({id:rnd(6),model:m,system:s,template:t||'{{input}}'});
+  if(UI.editPipeId){
+    const i=S.pipeline.findIndex(step=>step.id===UI.editPipeId);
+    if(i>=0){
+      S.pipeline[i]={...S.pipeline[i],model:m,system:s,template:t||'{{input}}'};
+      log('STEP UPDATED: '+m,'ok');toast('STEP UPDATED','ok');
+    }
+  }else{
+    S.pipeline.push({id:rnd(6),model:m,system:s,template:t||'{{input}}'});
+    log('PIPE STEP: '+m,'ok');
+  }
   persistPipe();
   renderPipe();closeM('PM');
-  ['pSys','pTpl'].forEach(id=>document.getElementById(id).value='');
-  log('PIPE STEP: '+m,'ok');
+}
+function resetPipeForm(){
+  UI.editPipeId=null;
+  document.getElementById('PMT').textContent='ADD PIPELINE STEP';
+  document.getElementById('PSB').textContent='ADD STEP';
+  document.getElementById('pModel').value='';
+  document.getElementById('pSys').value='';
+  document.getElementById('pTpl').value='';
+}
+function openNewPipeStep(){resetPipeForm();openM('PM');}
+function editPipeStep(id){
+  const step=S.pipeline.find(x=>x.id===id);
+  if(!step){toast('STEP NOT FOUND','err');return;}
+  UI.editPipeId=id;
+  document.getElementById('PMT').textContent='EDIT PIPELINE STEP';
+  document.getElementById('PSB').textContent='SAVE CHANGES';
+  document.getElementById('pModel').value=step.model;
+  document.getElementById('pSys').value=step.system||'';
+  document.getElementById('pTpl').value=step.template||'{{input}}';
+  openM('PM');
 }
 function renderPipe(){
   const pl=document.getElementById('PL');
-  if(!S.pipeline.length){pl.innerHTML='<div class="nomods">NO STEPS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div>';return;}
+  if(!S.pipeline.length){
+    pl.innerHTML='<div class="nomods">NO STEPS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div>';
+    syncActionAvailability();
+    return;
+  }
   pl.innerHTML=S.pipeline.map((s,i)=>`
-    <div class="pstep">
+    <div class="pstep" draggable="true"
+      ondragstart="onCardDragStart(event,'pipe','${s.id}')"
+      ondragover="onCardDragOver(event,'pipe','${s.id}')"
+      ondragleave="onCardDragLeave(event)"
+      ondrop="onCardDrop(event,'pipe','${s.id}')"
+      ondragend="onCardDragEnd(event)">
       <div class="snum">${i+1}</div>
       <div class="sbody"><div class="smodel">${s.model}</div><div class="sprompt">${s.template.substr(0,55)}${s.template.length>55?'...':''}</div></div>
-      <div class="sctrl"><button class="psbtn" onclick="delPipeStep('${s.id}')">✕</button></div>
+      <div class="sctrl">
+        <button class="psbtn" onclick="editPipeStep('${s.id}')">EDIT</button>
+        <button class="psbtn" onclick="delPipeStep('${s.id}')">✕</button>
+      </div>
     </div>`).join('');
+  syncActionAvailability();
 }
 function delPipeStep(id){
   S.pipeline=S.pipeline.filter(s=>s.id!==id);
+  if(UI.editPipeId===id)resetPipeForm();
   persistPipe();renderPipe();log('PIPE STEP DELETED','warn');
 }
 function clrPipe(){
   if(!S.pipeline.length){toast('NO STEPS','err');return;}
   if(!confirm('CLEAR CURRENT CHAIN STEPS?'))return;
+  resetPipeForm();
   S.pipeline=[];persistPipe();renderPipe();log('PIPE CLEARED','warn');
 }
 function saveChainSet(){
@@ -1286,6 +1462,7 @@ function loadChainSet(){
   if(!id){toast('SELECT A CHAIN SET','err');return;}
   const set=S.chainSets.find(x=>x.id===id);
   if(!set){toast('SET NOT FOUND','err');return;}
+  resetPipeForm();
   S.pipeline=set.items.map(s=>normStep(s)).filter(Boolean).map(s=>({...s,id:rnd(6)}));
   persistPipe();renderPipe();
   log('CHAIN SET LOADED: '+set.name,'ok');toast('CHAIN SET LOADED','ok');
@@ -1299,6 +1476,37 @@ function delChainSet(){
   S.chainSets=S.chainSets.filter(x=>x.id!==id);
   persistChainSets();renderSavedSets();
   log('CHAIN SET DELETED: '+set.name,'warn');toast('CHAIN SET DELETED');
+}
+function onCardDragStart(e,type,id){
+  if(e.target.closest('button')){e.preventDefault();return;}
+  UI.drag={type,id};
+  e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setData('text/plain',id);}catch(_){}
+  e.currentTarget.classList.add('dragging');
+}
+function onCardDragOver(e,type,id){
+  if(!UI.drag||UI.drag.type!==type||UI.drag.id===id)return;
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function onCardDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function onCardDrop(e,type,targetId){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!UI.drag||UI.drag.type!==type||UI.drag.id===targetId)return;
+  const list=type==='agent'?S.agents:S.pipeline;
+  const from=list.findIndex(x=>x.id===UI.drag.id);
+  const to=list.findIndex(x=>x.id===targetId);
+  if(from<0||to<0||from===to)return;
+  const [moved]=list.splice(from,1);
+  list.splice(to,0,moved);
+  if(type==='agent'){persistAgents();renderAgents();log('AGENTS REORDERED','ok');}
+  else{persistPipe();renderPipe();log('CHAIN STEPS REORDERED','ok');}
+}
+function onCardDragEnd(e){
+  document.querySelectorAll('.dragging').forEach(n=>n.classList.remove('dragging'));
+  document.querySelectorAll('.drag-over').forEach(n=>n.classList.remove('drag-over'));
+  UI.drag=null;
 }
 async function runPipeline(){
   if(!S.pipeline.length){toast('NO STEPS','err');return;}
@@ -1394,7 +1602,7 @@ function drawGraph(){
   const cv=document.getElementById('gc');
   const W=cv.width,H=cv.height;
   GC.clearRect(0,0,W,H);
-  GC.fillStyle='#0c0e13';GC.fillRect(0,0,W,H);
+  GC.fillStyle='#000000';GC.fillRect(0,0,W,H);
   GC.strokeStyle='rgba(255,157,0,.03)';GC.lineWidth=1;
   for(let x=0;x<W;x+=36){GC.beginPath();GC.moveTo(x,0);GC.lineTo(x,H);GC.stroke();}
   for(let y=0;y<H;y+=36){GC.beginPath();GC.moveTo(0,y);GC.lineTo(W,y);GC.stroke();}

@@ -1,17 +1,19 @@
 {
-  "name": "osint-platform",
+  "name": "amber-ici",
   "version": "1.0.0",
-  "description": "OCI local Ollama GUI launcher",
+  "description": "AMBER ICI Investigative Command Interface local launcher",
   "type": "module",
-  "main": "files/launch_ollama_gui.py",
+  "main": "files/launch_amber_ici_gui.py",
   "scripts": {
-    "start": "python3 files/launch_ollama_gui.py --host 127.0.0.1 --port 8765 --no-browser",
-    "start:browser": "python3 files/launch_ollama_gui.py --host 127.0.0.1 --port 8765"
+    "start": "python3 files/launch_amber_ici_gui.py --host 127.0.0.1 --port 8765 --no-browser",
+    "start:browser": "python3 files/launch_amber_ici_gui.py --host 127.0.0.1 --port 8765"
   },
   "keywords": [
+    "amber",
+    "amber-ici",
     "ollama",
     "gui",
-    "oci"
+    "ici"
   ],
   "author": "",
   "license": "MIT",
