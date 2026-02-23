@@ -218,3 +218,4 @@ ollama-gui/
 *.crt
 id_rsa
 id_rsa.pub
+modhistory.txt

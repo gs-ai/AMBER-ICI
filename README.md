@@ -1,123 +1,96 @@
 <p align="center">
-  <img alt="OCI | Ollama Command Interface" src="https://img.shields.io/badge/OCI%20%7C%20Ollama%20Command%20Interface-C76500?style=for-the-badge&labelColor=C76500&color=A84D00" />
+  <img src="image/README/06b51b0b-382c-46e8-9942-6163001684c0.png" alt="AMBER ICI UI" width="1200" />
 </p>
 
 <p align="center">
-  <img alt="LOCAL CONTROL PLANE" src="https://img.shields.io/badge/LOCAL%20CONTROL%20PLANE-FFB347?style=flat-square&labelColor=FFB347&color=FFB347" />
-  <img alt="CHAT" src="https://img.shields.io/badge/CHAT-E58A00?style=flat-square&labelColor=E58A00&color=E58A00" />
-  <img alt="PARALLEL" src="https://img.shields.io/badge/PARALLEL-D97B00?style=flat-square&labelColor=D97B00&color=D97B00" />
-  <img alt="AGENTS" src="https://img.shields.io/badge/AGENTS-C96A00?style=flat-square&labelColor=C96A00&color=C96A00" />
-  <img alt="CHAINS" src="https://img.shields.io/badge/CHAINS-B85A00?style=flat-square&labelColor=B85A00&color=B85A00" />
-  <img alt="GRAPH EXPORT" src="https://img.shields.io/badge/GRAPH%20EXPORT-A84D00?style=flat-square&labelColor=A84D00&color=A84D00" />
+  <img alt="AMBER INVESTIGATIVE COMMAND INTERFACE / REMOTE / NO TELEMETRY" src="https://img.shields.io/badge/AMBER%20INVESTIGATIVE%20COMMAND%20INTERFACE%20%2F%20REMOTE%20%2F%20NO%20TELEMETRY-C76500?style=for-the-badge&labelColor=C76500&color=A84D00" />
 </p>
 
 <p align="center">
-  Local-only Ollama GUI. No remote endpoints.
+  Professional investigative command UI over Ollama with a zero-telemetry workflow.
 </p>
 
 ## What This Is
 
-OCI is a single-page local interface for running Ollama workflows with:
+This project serves a single-file command interface with clear mode separation:
 
-- Chat
-- Parallel model runs
-- Agents
-- Chains (pipeline steps)
-- Graph visualization
-- Full-session export
+- Top modes: `CHAT`, `PARALLEL`, `PIPELINE`, `GRAPH`
+- Left workflow tabs: `MODELS`, `FILES`, `AGENTS`, `CHAIN`
+- Local Ollama-only runtime on `127.0.0.1`
+- Session stats, GPU/VRAM panel, system log, and export
 
-All runtime traffic is constrained to localhost endpoints.
+UI entry file is now:
 
-## Start The Program
+- `files/amber_ui.html`
+
+## Start
 
 1. Start Ollama:
 ```bash
 ollama serve
 ```
-2. Start OCI:
+
+2. Start the UI:
 ```bash
 npm start
 ```
-3. Open in browser:
-`http://127.0.0.1:8765/ollama_gui.html`
 
-Optional auto-open:
+3. Open:
+`http://127.0.0.1:8765/amber_ui.html`
+
+Optional:
 ```bash
 npm run start:browser
 ```
 
-## GUI Example
+## UI Reference
+
+Target/expected UI reference image:
 
 <p align="center">
-  <img src="files/img2377dag8adw7g.png" alt="OCI GUI example" width="1200" />
+  <img src="image/README/7w7f8wgwefgfiau.png" alt="Correct ICI UI reference" width="1200" />
 </p>
 
-## How To Use Files
+## Runtime Behavior
 
-1. Open the `FILES` tab in the left panel.
-2. Drag-and-drop or choose files (`.txt`, `.md`, `.pdf`, `.docx`).
-3. Keep files marked `ACTIVE` to inject them into prompts.
-4. Disable a file to exclude it from inference context.
-5. Remove files from the list to fully drop them from session context.
+### Chat (`CHAT`)
 
-Behavior:
-- Active files are prepended into prompt context in chat, parallel runs, agents, and pipeline steps.
+- Direct prompt/response with the active model.
+- Uses top runtime controls (`TEMP`, `CTX`, `FMT`, `STREAM`, `SEED`, `SYS`).
 
-## How To Use Agents
+### Parallel (`PARALLEL`)
 
-1. Open `AGENTS` in the left panel.
-2. Click `+ NEW AGENT`.
-3. Set:
-   - Agent name
-   - Model
-   - System prompt
-   - Execution mode (`SEQUENTIAL` or `PARALLEL`)
-   - Feed target
-4. Save the agent.
-5. Run one agent with `RUN`, or run all with `RUN ALL`.
+- Runs checked models concurrently.
+- Uses shared conversation context.
 
-Behavior:
-- Agent outputs are written into the main session transcript.
-- Parallel agents execute concurrently when `RUN ALL` is used.
+### Agents (`AGENTS`)
 
-## How To Use Chains (Pipeline)
+- Configure autonomous units with model + system prompt + mode.
+- `RUN` executes one agent.
+- `RUN CHAIN` executes the agent orchestration loop.
 
-1. Open `CHAIN` in the left panel.
-2. Click `+ ADD STEP`.
-3. For each step set:
-   - Model
-   - Optional system prompt
-   - Template (`{{input}}` supported)
-4. Add multiple steps in order.
-5. Enter seed input in the main prompt box.
-6. Click `RUN PIPE`.
+### Chain (`CHAIN` / pipeline builder)
 
-Behavior:
-- Each step output becomes next step input.
-- Step messages are appended to the main transcript and reflected in graph extraction.
+- Build ordered multi-step prompt stages.
+- Each step output feeds the next step.
+- Save/load/delete named chain sets.
+- `RUN` executes current chain steps.
 
-## Export Behavior (Confirmed)
+## Persistence
 
-Export is implemented in `files/ollama_gui.html` and includes:
+Saved runtime configuration is browser-local (`localStorage`):
 
-- Full transcript from all rendered session messages (chat + parallel + agent + pipeline)
-- Explicit `PARALLEL CONVERSATIONS` section
-- Agent configuration snapshot
-- Pipeline configuration snapshot
-- Graph nodes/edges snapshot
-- File snapshot
+- `oci_agents_v1`
+- `oci_pipeline_v1`
+- `oci_agent_sets_v1`
+- `oci_chain_sets_v1`
+- `oci_layout_v1`
 
-Code references:
-- `files/ollama_gui.html:1173` (`collectTranscript()`)
-- `files/ollama_gui.html:1189` (`expChat()`)
-- `files/ollama_gui.html:1237` (`PARALLEL CONVERSATIONS` section)
+## Security
 
-## Commands
-
-| Command | Purpose |
-|---------|---------|
-| `npm start` | Start OCI without opening browser |
-| `npm run start:browser` | Start OCI and open browser |
+- Localhost-only endpoint policy in both launcher and UI CSP.
+- No remote domains in `connect-src`.
+- Local binding by default (`127.0.0.1`).
 
 ## Project Layout
 
@@ -125,8 +98,12 @@ Code references:
 .
 ├── README.md
 ├── package.json
+├── modhistory.txt
+├── image/
+│   └── README/
+│       ├── 06b51b0b-382c-46e8-9942-6163001684c0.png
+│       └── 7w7f8wgwefgfiau.png
 └── files/
-    ├── launch_ollama_gui.py
-    ├── ollama_gui.html
-    └── img2377dag8adw7g.png
+    ├── launch_amber_ici_gui.py
+    └── amber_ui.html
 ```
