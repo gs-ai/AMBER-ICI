@@ -1,6 +1,6 @@
 {
   "name": "amber-ici",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AMBER ICI Investigative Command Interface local launcher",
   "type": "module",
   "main": "files/launch_amber_ici_gui.py",

@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMBER // VECTOR ARCHIVE</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
+<style>
+:root {
+  --bg: #0a0c0f;
+  --panel: #0f1215;
+  --panel2: #111519;
+  --border: #1a2030;
+  --border2: #222d3d;
+  --gold: #c8932a;
+  --gold-dim: #6a4d15;
+  --gold-bright: #f0b840;
+  --green: #27ae60;
+  --green-bright: #2ecc71;
+  --red: #c0392b;
+  --red-bright: #e74c3c;
+  --cyan: #0891b2;
+  --cyan-bright: #22d3ee;
+  --orange: #d97706;
+  --orange-bright: #f59e0b;
+  --purple: #7c3aed;
+  --purple-bright: #a78bfa;
+  --text: #8a9bb0;
+  --text-dim: #3d5068;
+  --text-bright: #dde6f0;
+  --amber: #A84D00;
+  --amber-bright: #C76500;
+  --mono: Menlo, Consolas, "Liberation Mono", monospace;
+  --display: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  font-family: var(--mono);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none; z-index: 999;
+}
+
+/* ── TOP BAR ───────────────────────────────────────── */
+.topbar {
+  height: 48px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 20px;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-logo {
+  font-family: var(--display);
+  font-size: 16px; font-weight: 700;
+  letter-spacing: 6px; color: var(--gold-bright);
+  text-transform: uppercase;
+}
+.topbar-sep { color: var(--text-dim); }
+.topbar-module {
+  font-size: 10px; letter-spacing: 4px;
+  color: var(--cyan-bright); text-transform: uppercase;
+}
+.topbar-right {
+  margin-left: auto; display: flex; align-items: center; gap: 16px;
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 6px var(--red);
+}
+.status-dot.up { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-text { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; }
+.stat-chip {
+  font-size: 9px; letter-spacing: 2px; padding: 2px 8px;
+  border: 1px solid var(--border2); color: var(--text-dim);
+  background: var(--bg);
+}
+.stat-chip span { color: var(--cyan-bright); }
+
+/* ── MAIN LAYOUT ───────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: calc(100vh - 48px);
+}
+
+/* ── LEFT PANEL ─────────────────────────────────────── */
+.left-panel {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title {
+  font-family: var(--display);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+}
+.panel-count {
+  font-size: 10px; color: var(--text-dim);
+}
+
+/* drop zone */
+.dropzone {
+  margin: 12px;
+  border: 1px dashed var(--border2);
+  padding: 20px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--gold-dim);
+  background: rgba(200,147,42,0.04);
+}
+.dropzone-icon { font-size: 20px; color: var(--text-dim); margin-bottom: 8px; }
+.dropzone-label { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; line-height: 1.8; }
+.dropzone-label strong { color: var(--gold); display: block; font-size: 10px; }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+/* file list */
+.file-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+.file-list::-webkit-scrollbar { width: 3px; }
+.file-list::-webkit-scrollbar-track { background: transparent; }
+.file-list::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.file-item {
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(26,32,48,0.5);
+  display: flex; align-items: flex-start; gap: 10px;
+  transition: background 0.1s;
+}
+.file-item:hover { background: rgba(255,255,255,0.02); }
+.file-icon { font-size: 11px; color: var(--gold-dim); margin-top: 1px; flex-shrink: 0; }
+.file-info { flex: 1; min-width: 0; }
+.file-name {
+  font-size: 10px; color: var(--text-bright);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.file-meta { font-size: 8px; color: var(--text-dim); letter-spacing: 1px; margin-top: 2px; }
+.file-status {
+  font-size: 8px; padding: 1px 5px;
+  border: 1px solid; letter-spacing: 1px; flex-shrink: 0; margin-top: 1px;
+}
+.file-status.pending { color: var(--text); border-color: rgba(138,155,176,0.25); }
+.file-status.reindex { color: var(--orange-bright); border-color: rgba(245,158,11,0.35); }
+.file-status.indexed { color: var(--green); border-color: rgba(39,174,96,0.3); }
+.file-status.indexing { color: var(--orange-bright); border-color: rgba(217,119,6,0.3); }
+.file-status.error { color: var(--red-bright); border-color: rgba(192,57,43,0.3); }
+
+/* bottom controls */
+.left-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.btn {
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 8px 12px; border: 1px solid; cursor: pointer;
+  background: transparent; width: 100%; transition: all 0.15s;
+}
+.btn-gold {
+  color: var(--gold-bright); border-color: var(--gold-dim);
+}
+.btn-gold:hover { background: rgba(200,147,42,0.08); border-color: var(--gold); }
+.btn-gold:disabled { color: var(--text-dim); border-color: var(--border); cursor: not-allowed; }
+.btn-red { color: var(--red-bright); border-color: rgba(192,57,43,0.3); font-size: 9px; }
+.btn-red:hover { background: rgba(192,57,43,0.08); }
+.btn-cyan { color: var(--cyan-bright); border-color: rgba(8,145,178,0.3); }
+.btn-cyan:hover { background: rgba(8,145,178,0.08); }
+
+/* progress bar */
+.progress-wrap { display: none; }
+.progress-wrap.active { display: block; }
+.progress-label { font-size: 8px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.progress-bar { height: 3px; background: var(--border); position: relative; overflow: hidden; }
+.progress-fill {
+  height: 100%; background: var(--gold-bright);
+  box-shadow: 0 0 8px var(--gold);
+  transition: width 0.3s ease;
+  position: absolute; left: 0; top: 0;
+}
+
+/* ── RIGHT PANEL ─────────────────────────────────────── */
+.right-panel {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* search area */
+.search-area {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.search-label { font-size: 9px; color: var(--text-dim); letter-spacing: 3px; margin-bottom: 8px; }
+.search-row { display: flex; gap: 8px; }
+.search-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--text-bright);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--gold-dim); }
+.search-input::placeholder { color: var(--text-dim); }
+.btn-search {
+  padding: 10px 20px;
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 3px;
+  background: rgba(200,147,42,0.1);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn-search:hover { background: rgba(200,147,42,0.18); border-color: var(--gold); }
+.btn-search:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* search options */
+.search-opts {
+  display: flex; gap: 16px; margin-top: 10px; align-items: center; flex-wrap: wrap;
+}
+.opt-group { display: flex; align-items: center; gap: 8px; }
+.opt-label { font-size: 8px; color: var(--text-dim); letter-spacing: 2px; }
+.opt-select {
+  background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono);
+  font-size: 9px; padding: 3px 8px; outline: none;
+}
+.opt-select option { background: var(--bg); }
+
+/* results */
+.results-area { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.results-area::-webkit-scrollbar { width: 3px; }
+.results-area::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 14px; opacity: 0.5;
+}
+.empty-icon { font-size: 32px; color: var(--text-dim); }
+.empty-title {
+  font-family: var(--display);
+  font-size: 14px; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase;
+}
+.empty-sub { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-align: center; line-height: 1.8; }
+
+/* result card */
+.result-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+.result-card:hover { border-color: var(--border2); }
+.result-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.result-rank {
+  font-family: var(--display);
+  font-size: 22px; font-weight: 700; color: var(--border2);
+  line-height: 1; min-width: 28px;
+}
+.result-rank.top { color: var(--gold-dim); }
+.result-info { flex: 1; min-width: 0; }
+.result-filename {
+  font-size: 11px; color: var(--text-bright);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.result-filemeta { font-size: 8px; color: var(--text-dim); letter-spacing: 1px; margin-top: 2px; }
+.score-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.score-val {
+  font-family: var(--display);
+  font-size: 16px; font-weight: 700; min-width: 40px; text-align: right;
+}
+.score-bar { flex: 1; height: 4px; background: var(--border); position: relative; overflow: hidden; }
+.score-fill { height: 100%; position: absolute; left: 0; top: 0; transition: width 0.4s ease; }
+.result-chunk {
+  padding: 12px 14px;
+  font-size: 10px; color: var(--text); line-height: 1.8;
+  border-bottom: 1px solid var(--border);
+}
+.result-chunk .highlight { color: var(--gold-bright); background: rgba(200,147,42,0.1); padding: 0 2px; }
+.result-footer {
+  padding: 6px 14px;
+  display: flex; gap: 16px; font-size: 8px; color: var(--text-dim); letter-spacing: 1px;
+}
+
+/* results header */
+.results-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.results-title {
+  font-family: var(--display);
+  font-size: 11px; font-weight: 700; letter-spacing: 4px;
+  color: var(--text-dim); text-transform: uppercase;
+}
+.results-query { font-size: 9px; color: var(--gold); letter-spacing: 1px; }
+.results-count { font-size: 9px; color: var(--text-dim); }
+
+/* log strip */
+.log-strip {
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  padding: 6px 20px;
+  font-size: 9px; color: var(--text-dim); letter-spacing: 1px;
+  height: 28px; overflow: hidden;
+  display: flex; align-items: center; gap: 8px;
+}
+.log-prefix { color: var(--gold-dim); }
+
+/* chunk settings */
+.settings-row {
+  display: flex; gap: 8px; margin-bottom: 8px; align-items: center;
+}
+.settings-label { font-size: 8px; color: var(--text-dim); letter-spacing: 2px; white-space: nowrap; }
+.settings-input {
+  background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono);
+  font-size: 9px; padding: 3px 6px; width: 60px; outline: none;
+  text-align: center;
+}
+
+/* toast */
+.toast {
+  position: fixed; bottom: 40px; right: 24px;
+  background: var(--panel); border: 1px solid var(--border2);
+  padding: 10px 16px;
+  font-size: 10px; color: var(--text-bright); letter-spacing: 1px;
+  z-index: 1000; transform: translateY(20px); opacity: 0;
+  transition: all 0.2s; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left: 2px solid var(--green); }
+.toast.error { border-left: 2px solid var(--red); }
+.toast.info { border-left: 2px solid var(--cyan-bright); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="topbar-logo">AMBER</span>
+  <span class="topbar-sep">//</span>
+  <span class="topbar-module">Vector Archive</span>
+  <div class="topbar-right">
+    <div class="status-dot" id="ollamaDot"></div>
+    <span class="status-text" id="ollamaStatus">CHECKING...</span>
+    <div class="stat-chip">DOCS <span id="statDocs">0</span></div>
+    <div class="stat-chip">CHUNKS <span id="statChunks">0</span></div>
+    <div class="stat-chip">DIMS <span id="statDims">—</span></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="panel-header">
+      <span class="panel-title">Archive Index</span>
+      <span class="panel-count" id="fileCount">0 files</span>
+    </div>
+
+    <!-- Drop zone -->
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-icon">⬆</div>
+      <div class="dropzone-label">
+        <strong>DROP FILES HERE</strong>
+        .txt .md .csv .json .log .html .pdf .docx<br>
+        or click to browse
+      </div>
+      <input type="file" id="fileInput" multiple
+        accept=".txt,.md,.csv,.json,.log,.html,.xml,.py,.js,.sh,.yaml,.yml,.conf,.ini,.pdf,.docx">
+    </div>
+
+    <!-- Chunk settings -->
+    <div style="padding: 8px 12px; border-bottom: 1px solid var(--border);">
+      <div class="settings-row">
+        <span class="settings-label">CHUNK SIZE</span>
+        <input class="settings-input" id="chunkSize" type="number" value="500" min="100" max="2000">
+        <span class="settings-label">OVERLAP</span>
+        <input class="settings-input" id="chunkOverlap" type="number" value="50" min="0" max="500">
+      </div>
+    </div>
+
+    <!-- File list -->
+    <div class="file-list" id="fileList">
+      <div style="padding: 20px 16px; text-align: center; font-size: 9px; color: var(--text-dim); letter-spacing: 2px;">
+        NO FILES INDEXED
+      </div>
+    </div>
+
+    <!-- Footer controls -->
+    <div class="left-footer">
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-label">
+          <span id="progressLabel">INDEXING...</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      </div>
+      <button class="btn btn-gold" id="indexBtn" onclick="indexAll()" disabled>
+        ◈  INDEX ALL FILES
+      </button>
+      <button class="btn btn-cyan" id="exportBtn" onclick="exportIndex()">
+        ↓  EXPORT INDEX
+      </button>
+      <div style="display:flex; gap:6px;">
+        <button class="btn btn-cyan" style="font-size:8px; padding:5px" onclick="importIndex()">IMPORT INDEX</button>
+        <button class="btn btn-red" style="font-size:8px; padding:5px; flex:1" onclick="clearAll()">CLEAR ALL</button>
+      </div>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="doImport(event)">
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- Search area -->
+    <div class="search-area">
+      <div class="search-label">SEMANTIC QUERY</div>
+      <div class="search-row">
+        <input class="search-input" id="queryInput" placeholder="Find all documents mentioning this entity, event, or concept..."
+          onkeydown="if(event.key==='Enter') runSearch()">
+        <button class="btn-search" id="searchBtn" onclick="runSearch()">▶  QUERY ARCHIVE</button>
+      </div>
+      <div class="search-opts">
+        <div class="opt-group">
+          <span class="opt-label">RESULTS</span>
+          <select class="opt-select" id="topK">
+            <option value="5">TOP 5</option>
+            <option value="10" selected>TOP 10</option>
+            <option value="20">TOP 20</option>
+            <option value="50">TOP 50</option>
+          </select>
+        </div>
+        <div class="opt-group">
+          <span class="opt-label">MIN SCORE</span>
+          <select class="opt-select" id="minScore">
+            <option value="0">NONE</option>
+            <option value="0.3">0.30</option>
+            <option value="0.4">0.40</option>
+            <option value="0.5" selected>0.50</option>
+            <option value="0.6">0.60</option>
+            <option value="0.7">0.70</option>
+          </select>
+        </div>
+        <div class="opt-group">
+          <span class="opt-label">GROUP BY FILE</span>
+          <select class="opt-select" id="groupBy">
+            <option value="0">OFF</option>
+            <option value="1" selected>ON</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-area" id="resultsArea">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">◈</div>
+        <div class="empty-title">Archive Empty</div>
+        <div class="empty-sub">
+          DROP FILES INTO THE LEFT PANEL<br>
+          INDEX THEM WITH mxbai-embed-large<br>
+          THEN QUERY ACROSS YOUR ENTIRE ARCHIVE
+        </div>
+      </div>
+    </div>
+
+    <!-- Log strip -->
+    <div class="log-strip">
+      <span class="log-prefix">SYS //</span>
+      <span id="logLine">VECTOR ARCHIVE READY — mxbai-embed-large @ 127.0.0.1:11434</span>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────
+const OLLAMA = 'http://127.0.0.1:11434';
+const EMBED_MODEL = 'mxbai-embed-large:latest';
+const STORE_API = '/api/store/state/vector_store';
+const MAX_FILE_MB = 25;
+
+// ── STATE ────────────────────────────────────────────────────────────────
+let vectorStore = [];   // [{id, filename, filesize, chunkIndex, totalChunks, text, embedding, addedAt}]
+let pendingFiles = [];  // raw File objects queued for indexing
+let indexing = false;
+let ollamaOnline = false;
+let embedModelOnline = false;
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  await loadFromStorage();
+  checkOllama();
+  setInterval(checkOllama, 15000);
+  setupDrop();
+  renderFileList();
+  updateStats();
+  syncActionButtons();
+});
+
+// ── OLLAMA HEALTH ─────────────────────────────────────────────────────────
+async function checkOllama() {
+  try {
+    const r = await fetch(`${OLLAMA}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const models = (d.models || []).map(m => String(m.name || ''));
+    ollamaOnline = true;
+    embedModelOnline = models.includes(EMBED_MODEL) || models.some(m => m.startsWith('mxbai-embed-large:'));
+    document.getElementById('ollamaDot').className = 'status-dot up';
+    document.getElementById('ollamaStatus').textContent = embedModelOnline ? 'READY' : 'EMBED MODEL MISSING';
+    if (!embedModelOnline) log(`Missing embed model: ${EMBED_MODEL}`);
+  } catch {
+    ollamaOnline = false;
+    embedModelOnline = false;
+    document.getElementById('ollamaDot').className = 'status-dot';
+    document.getElementById('ollamaStatus').textContent = 'OLLAMA DOWN';
+  }
+  syncActionButtons();
+}
+
+function syncActionButtons() {
+  const canEmbed = ollamaOnline && embedModelOnline;
+  const idx = document.getElementById('indexBtn');
+  const search = document.getElementById('searchBtn');
+  if (idx) idx.disabled = indexing || !pendingFiles.length || !canEmbed;
+  if (search) search.disabled = indexing || !vectorStore.length || !canEmbed;
+}
+
+// ── DRAG AND DROP ─────────────────────────────────────────────────────────
+function setupDrop() {
+  const zone = document.getElementById('dropzone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    handleFiles([...e.dataTransfer.files]);
+  });
+  document.getElementById('fileInput').addEventListener('change', e => {
+    handleFiles([...e.target.files]);
+    e.target.value = '';
+  });
+}
+
+function handleFiles(files) {
+  const valid = files.filter(f => f.size < MAX_FILE_MB * 1024 * 1024);
+  if (valid.length < files.length)
+    toast(`${files.length - valid.length} file(s) skipped - over ${MAX_FILE_MB}MB limit`, 'error');
+
+  const newFiles = valid.filter(f =>
+    !pendingFiles.find(p => p.name === f.name && p.size === f.size)
+  );
+
+  if (!newFiles.length) { toast('No new files to add', 'info'); return; }
+
+  const reindexCount = newFiles.filter(f => vectorStore.some(c => c.filename === f.name)).length;
+  pendingFiles.push(...newFiles);
+  renderFileList();
+  updateStats();
+  log(`${newFiles.length} file(s) queued for indexing`);
+  if (reindexCount) log(`${reindexCount} file(s) will replace existing indexed chunks`);
+  syncActionButtons();
+  toast(`${newFiles.length} file(s) queued`, 'success');
+}
+
+// ── CHUNKING ──────────────────────────────────────────────────────────────
+function chunkText(text, size = 500, overlap = 50) {
+  const safeSize = Math.max(100, Math.floor(Number(size) || 500));
+  const safeOverlap = Math.max(0, Math.min(Math.floor(Number(overlap) || 0), safeSize - 1));
+  const step = Math.max(1, safeSize - safeOverlap);
+  const words = text.split(/\s+/).filter(Boolean);
+  const chunks = [];
+  let i = 0;
+  while (i < words.length) {
+    const chunk = words.slice(i, i + safeSize).join(' ');
+    if (chunk.trim()) chunks.push(chunk);
+    i += step;
+  }
+  return chunks;
+}
+
+function extOf(name) {
+  const p = String(name || '').toLowerCase().split('.');
+  return p.length > 1 ? p.pop() : '';
+}
+
+async function readFileContent(file) {
+  const ext = extOf(file.name);
+  if (['txt','md','csv','json','log','html','xml','py','js','sh','yaml','yml','conf','ini'].includes(ext)) {
+    return file.text();
+  }
+  if (ext === 'pdf') return readPDF(file);
+  if (ext === 'docx') return readDOCX(file);
+  throw new Error(`Unsupported extension: .${ext || 'unknown'}`);
+}
+
+async function readPDF(file) {
+  const buf = await file.arrayBuffer();
+  const str = new TextDecoder('latin1').decode(new Uint8Array(buf));
+  const blocks = str.match(/BT[\s\S]*?ET/g) || [];
+  let out = '';
+  for (const b of blocks) {
+    const pts = b.match(/\(([^)]*)\)\s*Tj/g) || [];
+    for (const p of pts) out += p.replace(/^\(/, '').replace(/\)\s*Tj$/, '') + ' ';
+  }
+  return out.trim() || '[PDF: extracted text unavailable in browser parser]';
+}
+
+async function readDOCX(file) {
+  const buf = await file.arrayBuffer();
+  const str = new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(buf));
+  const parts = str.match(/<w:t[^>]*>([^<]*)<\/w:t>/g) || [];
+  return parts.map(x => x.replace(/<[^>]+>/g, '')).join(' ').trim() || '[DOCX: extracted text unavailable in browser parser]';
+}
+
+// ── EMBED ─────────────────────────────────────────────────────────────────
+async function embed(text) {
+  const query = String(text || '').trim();
+  if (!query) throw new Error('Empty input for embedding');
+
+  // Preferred Ollama endpoint (newer builds)
+  try {
+    const r = await fetch(`${OLLAMA}/api/embed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: EMBED_MODEL, input: query })
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const vec = Array.isArray(d.embeddings) ? d.embeddings[0] : d.embedding;
+      if (Array.isArray(vec) && vec.length) return vec;
+    }
+  } catch (_) {}
+
+  // Fallback endpoint for older builds
+  const r2 = await fetch(`${OLLAMA}/api/embeddings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: EMBED_MODEL, prompt: query })
+  });
+  if (!r2.ok) throw new Error(`Embed failed: HTTP ${r2.status}`);
+  const d2 = await r2.json();
+  if (!Array.isArray(d2.embedding) || !d2.embedding.length) throw new Error('Embed returned empty vector');
+  return d2.embedding;
+}
+
+// ── COSINE SIMILARITY ─────────────────────────────────────────────────────
+function cosine(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || !a.length || !b.length || a.length !== b.length) return -1;
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    na  += a[i] * a[i];
+    nb  += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-10);
+}
+
+// ── INDEX ALL ─────────────────────────────────────────────────────────────
+async function indexAll() {
+  if (indexing || !pendingFiles.length) return;
+  if (!ollamaOnline || !embedModelOnline) {
+    toast('Ollama/embed model not ready', 'error');
+    return;
+  }
+  indexing = true;
+  syncActionButtons();
+
+  const chunkSize   = parseInt(document.getElementById('chunkSize').value)   || 500;
+  const chunkOverlap = parseInt(document.getElementById('chunkOverlap').value) || 50;
+
+  showProgress(true);
+  const total = pendingFiles.length;
+  let done = 0;
+
+  for (const file of [...pendingFiles]) {
+    updateFileStatus(file.name, 'indexing');
+    log(`Reading: ${file.name}`);
+    try {
+      const existing = vectorStore.filter(c => c.filename === file.name).length;
+      if (existing) {
+        vectorStore = vectorStore.filter(c => c.filename !== file.name);
+        log(`Re-indexing ${file.name} (replaced ${existing} existing chunks)`);
+      }
+
+      const text = await readFileContent(file);
+      const chunks = chunkText(text, chunkSize, chunkOverlap);
+      if (!chunks.length) throw new Error('No text chunks extracted from file');
+      log(`${file.name} → ${chunks.length} chunks — embedding...`);
+
+      for (let ci = 0; ci < chunks.length; ci++) {
+        const emb = await embed(chunks[ci]);
+        vectorStore.push({
+          id: `${file.name}_${Date.now()}_${ci}`,
+          filename: file.name,
+          filesize: file.size,
+          chunkIndex: ci,
+          totalChunks: chunks.length,
+          text: chunks[ci],
+          embedding: emb,
+          addedAt: new Date().toISOString()
+        });
+
+        // update dims stat from first embedding
+        if (document.getElementById('statDims').textContent === '—')
+          document.getElementById('statDims').textContent = emb.length;
+
+        const pct = Math.round(((done + (ci + 1) / chunks.length) / total) * 100);
+        setProgress(pct, `${file.name} — chunk ${ci+1}/${chunks.length}`);
+        updateStats();
+      }
+
+      updateFileStatus(file.name, 'indexed');
+      pendingFiles = pendingFiles.filter(f => f.name !== file.name);
+      done++;
+      saveToStorage();
+      toast(`Indexed: ${file.name} (${chunks.length} chunks)`, 'success');
+      renderFileList();
+    } catch (err) {
+      updateFileStatus(file.name, 'error');
+      log(`ERROR: ${file.name} — ${err.message}`);
+      toast(`Failed: ${file.name}`, 'error');
+      done++;
+    }
+  }
+
+  showProgress(false);
+  indexing = false;
+  renderFileList();
+  updateStats();
+  syncActionButtons();
+  log(`Indexing complete — ${vectorStore.length} total chunks in archive`);
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────
+async function runSearch() {
+  const q = document.getElementById('queryInput').value.trim();
+  if (!q) return;
+  if (!ollamaOnline || !embedModelOnline) { toast('Ollama/embed model not ready', 'error'); return; }
+  if (!vectorStore.length) { toast('Index is empty — add and index files first', 'error'); return; }
+
+  document.getElementById('searchBtn').disabled = true;
+  log(`Embedding query: "${q}"`);
+
+  try {
+    const qEmb = await embed(q);
+    const topK    = parseInt(document.getElementById('topK').value);
+    const minScore = parseFloat(document.getElementById('minScore').value);
+    const groupBy = document.getElementById('groupBy').value === '1';
+
+    // Score all chunks
+    const scored = vectorStore.map(c => ({
+      ...c,
+      score: cosine(qEmb, c.embedding)
+    })).filter(c => Number.isFinite(c.score) && c.score >= minScore)
+      .sort((a, b) => b.score - a.score);
+
+    let results;
+    if (groupBy) {
+      // Best chunk per file, then sort files by their top score
+      const byFile = {};
+      for (const c of scored) {
+        if (!byFile[c.filename] || c.score > byFile[c.filename].score)
+          byFile[c.filename] = c;
+      }
+      results = Object.values(byFile).sort((a,b) => b.score - a.score).slice(0, topK);
+    } else {
+      results = scored.slice(0, topK);
+    }
+
+    renderResults(results, q);
+    log(`Query complete — ${results.length} result(s) from ${new Set(results.map(r=>r.filename)).size} file(s)`);
+  } catch (err) {
+    toast(`Search failed: ${err.message}`, 'error');
+    log(`SEARCH ERROR: ${err.message}`);
+  }
+
+  syncActionButtons();
+}
+
+// ── RENDER RESULTS ────────────────────────────────────────────────────────
+function renderResults(results, query) {
+  const area = document.getElementById('resultsArea');
+  document.getElementById('emptyState')?.remove();
+
+  if (!results.length) {
+    area.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">○</div>
+      <div class="empty-title">No Results</div>
+      <div class="empty-sub">No chunks met the minimum similarity threshold.<br>Try lowering MIN SCORE or rephrasing your query.</div>
+    </div>`;
+    return;
+  }
+
+  const fileCount = new Set(results.map(r => r.filename)).size;
+
+  area.innerHTML = `
+    <div class="results-header">
+      <div>
+        <div class="results-title">Query Results</div>
+        <div class="results-query">"${escHtml(query)}"</div>
+      </div>
+      <div class="results-count">${results.length} chunk(s) across ${fileCount} file(s)</div>
+    </div>
+    ${results.map((r, i) => resultCard(r, i, query)).join('')}
+  `;
+}
+
+function resultCard(r, i, query) {
+  const score = r.score;
+  const pct = Math.round(score * 100);
+  const scoreColor = score > 0.75 ? '#2ecc71' : score > 0.55 ? '#f0b840' : '#8a9bb0';
+  const isTop = i < 3;
+
+  // Highlight query terms in snippet
+  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+  let snippet = escHtml(r.text.substring(0, 320)) + (r.text.length > 320 ? '…' : '');
+  words.forEach(w => {
+    const re = new RegExp(`(${w})`, 'gi');
+    snippet = snippet.replace(re, '<span class="highlight">$1</span>');
+  });
+
+  const kb = (r.filesize / 1024).toFixed(1);
+  const dt = new Date(r.addedAt).toLocaleDateString();
+
+  return `<div class="result-card">
+    <div class="result-header">
+      <div class="result-rank ${isTop ? 'top' : ''}">${String(i+1).padStart(2,'0')}</div>
+      <div class="result-info">
+        <div class="result-filename">${escHtml(r.filename)}</div>
+        <div class="result-filemeta">chunk ${r.chunkIndex+1}/${r.totalChunks} &nbsp;·&nbsp; ${kb}KB &nbsp;·&nbsp; indexed ${dt}</div>
+      </div>
+      <div class="score-bar-wrap">
+        <div class="score-val" style="color:${scoreColor}">${pct}%</div>
+        <div class="score-bar">
+          <div class="score-fill" style="width:${pct}%; background:${scoreColor};"></div>
+        </div>
+      </div>
+    </div>
+    <div class="result-chunk">${snippet}</div>
+    <div class="result-footer">
+      <span>SCORE ${score.toFixed(4)}</span>
+      <span>CHUNK ${r.chunkIndex}</span>
+      <span>MODEL ${EMBED_MODEL}</span>
+    </div>
+  </div>`;
+}
+
+// ── RENDER FILE LIST ──────────────────────────────────────────────────────
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  const map = new Map();
+  const indexedFiles = [...new Set(vectorStore.map(c => c.filename))];
+  indexedFiles.forEach(f => {
+    map.set(f, {
+      name: f,
+      status: 'indexed',
+      size: vectorStore.find(c => c.filename === f)?.filesize || 0,
+      chunks: vectorStore.filter(c => c.filename === f).length
+    });
+  });
+  pendingFiles.forEach(f => {
+    const prev = map.get(f.name);
+    map.set(f.name, {
+      name: f.name,
+      size: f.size,
+      chunks: prev?.chunks || 0,
+      status: prev ? 'reindex' : 'pending'
+    });
+  });
+  const allFiles = [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!allFiles.length) {
+    list.innerHTML = `<div style="padding:20px 16px; text-align:center; font-size:9px; color:var(--text-dim); letter-spacing:2px;">NO FILES INDEXED</div>`;
+    document.getElementById('fileCount').textContent = '0 files';
+    return;
+  }
+
+  document.getElementById('fileCount').textContent = `${allFiles.length} file(s)`;
+  list.innerHTML = allFiles.map(f => `
+    <div class="file-item" id="file-${CSS.escape(f.name)}">
+      <div class="file-icon">◈</div>
+      <div class="file-info">
+        <div class="file-name">${escHtml(f.name)}</div>
+        <div class="file-meta">${(f.size/1024).toFixed(1)}KB${f.chunks ? ` · ${f.chunks} chunks` : ''}</div>
+      </div>
+      <div class="file-status ${f.status}">
+        ${f.status === 'indexed' ? 'INDEXED' : f.status === 'reindex' ? 'REINDEX' : 'QUEUED'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateFileStatus(name, status) {
+  const el = document.querySelector(`#file-${CSS.escape(name)} .file-status`);
+  if (!el) return;
+  el.className = `file-status ${status}`;
+  el.textContent = status.toUpperCase();
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────────
+function saveToStorage() {
+  fetch(STORE_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(vectorStore)
+  }).catch(() => {
+    log('WARNING: failed to persist vector store');
+  });
+}
+
+function sanitizeStore(data) {
+  if (!Array.isArray(data)) return [];
+  return data.map((entry, i) => {
+    if (!entry || typeof entry.filename !== 'string' || typeof entry.text !== 'string') return null;
+    if (!Array.isArray(entry.embedding) || !entry.embedding.length) return null;
+    const embedding = entry.embedding.map(n => Number(n));
+    if (!embedding.every(Number.isFinite)) return null;
+    return {
+      id: String(entry.id || `${entry.filename}_${entry.chunkIndex || 0}_${i}`),
+      filename: entry.filename,
+      filesize: Number(entry.filesize) || 0,
+      chunkIndex: Number(entry.chunkIndex) || 0,
+      totalChunks: Number(entry.totalChunks) || 1,
+      text: entry.text,
+      embedding,
+      addedAt: entry.addedAt || new Date().toISOString()
+    };
+  }).filter(Boolean);
+}
+
+async function loadFromStorage() {
+  try {
+    const r = await fetch(STORE_API, { signal: AbortSignal.timeout(3000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    vectorStore = sanitizeStore(d?.data || []);
+    if (vectorStore.length) log(`Restored ${vectorStore.length} chunks from storage`);
+  } catch { vectorStore = []; }
+}
+
+function exportIndex() {
+  if (!vectorStore.length) { toast('Nothing to export', 'error'); return; }
+  const blob = new Blob([JSON.stringify(vectorStore)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `amber_vector_index_${Date.now()}.json`;
+  a.click();
+  toast(`Exported ${vectorStore.length} chunks`, 'success');
+}
+
+function importIndex() { document.getElementById('importInput').click(); }
+
+function doImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = sanitizeStore(JSON.parse(ev.target.result));
+      if (!Array.isArray(data) || !data.length) throw new Error('Invalid format');
+      const merged = [...vectorStore];
+      let added = 0;
+      for (const entry of data) {
+        if (!merged.find(c => c.id === entry.id)) { merged.push(entry); added++; }
+      }
+      vectorStore = merged;
+      saveToStorage();
+      renderFileList();
+      updateStats();
+      syncActionButtons();
+      toast(`Imported ${added} new chunks`, 'success');
+      log(`Import complete — ${added} new chunks added`);
+    } catch { toast('Import failed — invalid index file', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearAll() {
+  if (!confirm('Clear entire vector archive? This cannot be undone.')) return;
+  vectorStore = [];
+  pendingFiles = [];
+  saveToStorage();
+  renderFileList();
+  updateStats();
+  document.getElementById('resultsArea').innerHTML = `<div class="empty-state" id="emptyState">
+    <div class="empty-icon">◈</div>
+    <div class="empty-title">Archive Empty</div>
+    <div class="empty-sub">DROP FILES INTO THE LEFT PANEL<br>INDEX THEM WITH mxbai-embed-large<br>THEN QUERY ACROSS YOUR ENTIRE ARCHIVE</div>
+  </div>`;
+  syncActionButtons();
+  log('Archive cleared');
+  toast('Archive cleared', 'info');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function updateStats() {
+  const files = new Set(vectorStore.map(c => c.filename)).size;
+  document.getElementById('statDocs').textContent   = files;
+  document.getElementById('statChunks').textContent = vectorStore.length;
+  const dims = vectorStore.find(c => Array.isArray(c.embedding) && c.embedding.length)?.embedding?.length;
+  document.getElementById('statDims').textContent = dims || '—';
+}
+
+function showProgress(on) {
+  document.getElementById('progressWrap').className = on ? 'progress-wrap active' : 'progress-wrap';
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent  = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+}
+
+function log(msg) {
+  document.getElementById('logLine').textContent = msg;
+  console.log('[AMBER-VS]', msg);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = `toast ${type}`; }, 3200);
+}
+</script>
+</body>
+</html>
