@@ -47,8 +47,15 @@ Industrial-grade local Ollama command center with multi-model orchestration, liv
 - PDF ingestion now includes OCR fallback (`ocrmypdf` + `tesseract`) when available.
 
 <p align="center">
-  <img src="image/README/lksjofuh3297afw9e7ywhf.png" alt="AMBER ICI analyst console UI" width="1200" />
+  <a href="image/README/feouahwofu23978.png" target="_blank" rel="noopener noreferrer">
+    <img src="image/README/feouahwofu23978.png" alt="AMBER ICI v3 workspace view 1" width="49%" />
+  </a>
+  <a href="image/README/askjhf949qhgh.png" target="_blank" rel="noopener noreferrer">
+    <img src="image/README/askjhf949qhgh.png" alt="AMBER ICI v3 workspace view 2" width="49%" />
+  </a>
 </p>
+
+<p align="center"><sub>Click either image to open full size.</sub></p>
 
 ## Core Design
 
@@ -247,6 +254,33 @@ AMBER applies context controls automatically:
   - additionally bounded by file-context budget
 
 This reduces prompt overflow and keeps runs stable as file volume increases.
+
+## v3 Memory / Token Window
+
+AMBER ICI v3 exposes CTX control in the UI and now applies it across:
+- Analyst Console
+- Parallel
+- Agents
+- Chain/Pipeline
+
+Supported CTX window options in UI:
+- `2K`, `4K`, `8K`, `16K`, `32K`
+
+Practical token/context notes:
+- The selected CTX is the max model context window target for each run.
+- Total prompt usage includes system prompt, user prompt, injected file context, and recent run content.
+- Active file context is auto-budgeted at approximately `CTX * 3` characters before prompt assembly.
+
+Approximate active file-context budget by CTX:
+- `2K` CTX: ~6,000 chars
+- `4K` CTX: ~12,000 chars
+- `8K` CTX: ~24,000 chars
+- `16K` CTX: ~48,000 chars
+- `32K` CTX: ~96,000 chars
+
+Scratchpad behavior:
+- `{{scratchpad}}` injection is tail-limited (~8k to ~20k chars)
+- Also bounded by the current CTX-derived file-context budget
 
 ## Session Stats And Telemetry
 
