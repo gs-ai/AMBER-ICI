@@ -2465,7 +2465,83 @@ function openGraph(){
 }
 function closeGraph(){document.getElementById('GO').classList.remove('show');cancelAnimationFrame(GA);}
 function resetGraph(){if(graphRebuildTimer)clearTimeout(graphRebuildTimer);S.gNodes=[];S.gEdges=[];log('GRAPH RESET','warn');}
-function exportGraphSVG(){toast('SVG EXPORT — OPEN BROWSER DEV TOOLS TO SAVE CANVAS');}
+function exportGraphSVG(){
+  if(!S.gNodes.length){toast('GRAPH EMPTY','err');return;}
+  const cv=document.getElementById('gc');
+  const W=(cv&&cv.width>0)?cv.width:1400;
+  const H=(cv&&cv.height>0)?cv.height:860;
+  const escXml=s=>String(s==null?'':s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&apos;');
+  const fmt=n=>Number.isFinite(n)?Number(n.toFixed(2)):0;
+  const edgeRows=S.gEdges.map(e=>{
+    const a=resolveNodeRef(e.from),b=resolveNodeRef(e.to);
+    if(!a||!b)return '';
+    const inferred=e.kind==='inferred';
+    const stroke=inferred?'#00c8ff':'#ff9d00';
+    const strokeOpacity=inferred?0.18:0.22;
+    const dash=inferred?'2 4':'4 6';
+    const width=inferred?Math.min(1.7,0.7+(e.score||0)*0.6):1;
+    let out=
+      `<line x1="${fmt(a.x)}" y1="${fmt(a.y)}" x2="${fmt(b.x)}" y2="${fmt(b.y)}" `+
+      `stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${fmt(width)}" stroke-dasharray="${dash}" />`;
+    if(e.label){
+      const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      out+=`<text x="${fmt(mx)}" y="${fmt(my)}" fill="#ff9d00" fill-opacity="0.45" `+
+        `font-family="'Share Tech Mono', monospace" font-size="8" text-anchor="middle">${escXml(e.label)}</text>`;
+    }
+    return out;
+  }).join('');
+  const nodeRows=S.gNodes.map(n=>{
+    const col=NC[n.type]||'#ff9d00';
+    const label=n.label.length>14?(n.label.substr(0,14)+'...'):n.label;
+    return (
+      `<g>`+
+        `<circle cx="${fmt(n.x)}" cy="${fmt(n.y)}" r="${fmt((n.r||14)*2.2)}" fill="${col}" fill-opacity="0.07" />`+
+        `<circle cx="${fmt(n.x)}" cy="${fmt(n.y)}" r="${fmt(n.r||14)}" fill="${col}" fill-opacity="0.12" stroke="${col}" stroke-width="1.5" />`+
+        `<text x="${fmt(n.x)}" y="${fmt(n.y)}" fill="#edf0f4" fill-opacity="0.92" font-family="'Share Tech Mono', monospace" font-size="9" text-anchor="middle" dominant-baseline="middle">${escXml(label)}</text>`+
+        `<text x="${fmt(n.x)}" y="${fmt(n.y+(n.r||14)+8)}" fill="${col}" fill-opacity="0.67" font-family="'Share Tech Mono', monospace" font-size="7" text-anchor="middle">${escXml(String(n.type||'').toUpperCase())}</text>`+
+      `</g>`
+    );
+  }).join('');
+  const gridX=Math.ceil(W/36);
+  const gridY=Math.ceil(H/36);
+  const gridLines=[
+    ...Array.from({length:gridX+1},(_,i)=>{
+      const x=i*36;
+      return `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#ff9d00" stroke-opacity="0.03" stroke-width="1" />`;
+    }),
+    ...Array.from({length:gridY+1},(_,i)=>{
+      const y=i*36;
+      return `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#ff9d00" stroke-opacity="0.03" stroke-width="1" />`;
+    })
+  ].join('');
+  const svg=
+    `<?xml version="1.0" encoding="UTF-8"?>\n`+
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="AMBER graph export">\n`+
+    `  <title>AMBER Entity Provenance Graph</title>\n`+
+    `  <desc>Exported ${escXml(new Date().toISOString())} | SID ${escXml(S.sid||'')}</desc>\n`+
+    `  <rect x="0" y="0" width="${W}" height="${H}" fill="#000000" />\n`+
+    `  <g id="grid">${gridLines}</g>\n`+
+    `  <g id="graph" transform="translate(${fmt(GT.x)} ${fmt(GT.y)}) scale(${fmt(GT.s)})">\n`+
+    `    <g id="edges">${edgeRows}</g>\n`+
+    `    <g id="nodes">${nodeRows}</g>\n`+
+    `  </g>\n`+
+    `</svg>\n`;
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='amber_graph_'+S.sid+'_'+stamp+'.svg';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  log('GRAPH SVG EXPORTED','ok');
+  toast('GRAPH SVG EXPORTED','ok');
+}
 
 const NC={model:'#ff9d00',entity:'#00ffaa',concept:'#00c8ff',prompt:'#aa88ff',file:'#ff4488'};
 
