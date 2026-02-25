@@ -19,10 +19,6 @@ It provides:
 
 All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`).
 
-## Repository About (GitHub)
-
-Industrial-grade local Ollama command center with multi-model orchestration, live token streaming, graph-based output correlation, investigative file ingestion, agent pipelines, and GPU telemetry. Built for local-first analysis, OSINT workflows, transcript ingestion, OCR extraction, and model chaining.
-
 ## v3 Update Highlights
 
 `v3` introduces the expanded operational workflow and storage/runtime hardening:
