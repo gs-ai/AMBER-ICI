@@ -19,6 +19,33 @@ It provides:
 
 All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`).
 
+## Repository About (GitHub)
+
+Industrial-grade local Ollama command center with multi-model orchestration, live token streaming, graph-based output correlation, investigative file ingestion, agent pipelines, and GPU telemetry. Built for local-first analysis, OSINT workflows, transcript ingestion, OCR extraction, and model chaining.
+
+## v3 Update Highlights
+
+`v3` introduces the expanded operational workflow and storage/runtime hardening:
+
+- UI identity updated to `v3`.
+- Integrated `ARCHIVE` mode in the main UI for semantic indexing/search.
+- Added standalone tools:
+  - `amber_timeline.html`
+  - `amber_vectorstore.html`
+- Disk-backed persistence moved to `state/*.json` (away from browser-only state).
+- Disk-backed uploads under `uploads/blobs`, `uploads/texts`, and `uploads/manifest.json`.
+- Agent and Chain/Pipeline enhancements:
+  - edit support
+  - drag/drop reordering
+  - loop execution controls
+- Unified STOP handling across Analyst, Parallel, Agents, and Pipeline runs.
+- CTX now applied consistently across Analyst, Parallel, Agents, and Pipeline inference calls.
+- Automatic file-context budgeting and relevance trimming for large active file context.
+- Scratchpad injection cap for `{{scratchpad}}` templates.
+- Session/token telemetry now updates during Agent and Pipeline execution (not only Analyst).
+- Graph enhancements for inferred property/similarity-based node connections.
+- PDF ingestion now includes OCR fallback (`ocrmypdf` + `tesseract`) when available.
+
 <p align="center">
   <img src="image/README/lksjofuh3297afw9e7ywhf.png" alt="AMBER ICI analyst console UI" width="1200" />
 </p>
