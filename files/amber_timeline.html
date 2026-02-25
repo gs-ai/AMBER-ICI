@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMBER // TIMELINE</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
+<style>
+:root {
+  --bg: #0a0c0f;
+  --panel: #0f1215;
+  --panel2: #111519;
+  --border: #1a2030;
+  --border2: #222d3d;
+  --gold: #c8932a;
+  --gold-dim: #6a4d15;
+  --gold-bright: #f0b840;
+  --green: #27ae60;
+  --green-bright: #2ecc71;
+  --red: #c0392b;
+  --red-bright: #e74c3c;
+  --cyan: #0891b2;
+  --cyan-bright: #22d3ee;
+  --orange: #d97706;
+  --orange-bright: #f59e0b;
+  --purple: #7c3aed;
+  --purple-bright: #a78bfa;
+  --blue: #1d4ed8;
+  --blue-bright: #60a5fa;
+  --text: #8a9bb0;
+  --text-dim: #3d5068;
+  --text-bright: #dde6f0;
+  --mono: Menlo, Consolas, "Liberation Mono", monospace;
+  --display: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  font-family: var(--mono);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none; z-index: 999;
+}
+
+/* ── TOP BAR ─────────────────────────────────────── */
+.topbar {
+  height: 48px; background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 20px;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-logo {
+  font-family: var(--display);
+  font-size: 16px; font-weight: 700;
+  letter-spacing: 6px; color: var(--gold-bright);
+}
+.topbar-sep { color: var(--text-dim); }
+.topbar-module { font-size: 10px; letter-spacing: 4px; color: var(--cyan-bright); text-transform: uppercase; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); }
+.status-dot.up { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-text { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; }
+.stat-chip { font-size: 9px; letter-spacing: 2px; padding: 2px 8px; border: 1px solid var(--border2); color: var(--text-dim); background: var(--bg); }
+.stat-chip span { color: var(--cyan-bright); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  height: calc(100vh - 48px);
+}
+
+/* ── LEFT PANEL ──────────────────────────────────── */
+.left-panel {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-section {
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.section-header {
+  padding: 9px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+}
+.section-toggle { font-size: 9px; color: var(--text-dim); }
+
+/* text input */
+.text-input-wrap { padding: 10px 12px; }
+.text-input {
+  width: 100%; height: 180px;
+  background: var(--bg); border: 1px solid var(--border2);
+  color: var(--text); font-family: var(--mono);
+  font-size: 10px; line-height: 1.6; padding: 10px;
+  resize: none; outline: none;
+  transition: border-color 0.15s;
+}
+.text-input:focus { border-color: var(--gold-dim); }
+.text-input::placeholder { color: var(--text-dim); }
+
+/* model selector */
+.model-row {
+  padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.row-label { font-size: 8px; color: var(--text-dim); letter-spacing: 2px; white-space: nowrap; }
+.row-select {
+  flex: 1; background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono);
+  font-size: 9px; padding: 4px 8px; outline: none;
+}
+.row-select option { background: var(--bg); }
+
+/* extract btn */
+.extract-area { padding: 10px 12px; }
+.btn {
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 9px 12px; border: 1px solid; cursor: pointer;
+  background: transparent; width: 100%; transition: all 0.15s;
+}
+.btn-gold { color: var(--gold-bright); border-color: var(--gold-dim); }
+.btn-gold:hover { background: rgba(200,147,42,0.08); border-color: var(--gold); }
+.btn-gold:disabled { color: var(--text-dim); border-color: var(--border); cursor: not-allowed; }
+.btn-cyan { color: var(--cyan-bright); border-color: rgba(8,145,178,0.3); font-size: 9px; }
+.btn-cyan:hover { background: rgba(8,145,178,0.08); }
+.btn-red { color: var(--red-bright); border-color: rgba(192,57,43,0.3); font-size: 9px; }
+.btn-red:hover { background: rgba(192,57,43,0.08); }
+.btn-sm { padding: 5px 10px; font-size: 8px; }
+
+/* event list */
+.events-section { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.events-header {
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.events-list { flex: 1; overflow-y: auto; }
+.events-list::-webkit-scrollbar { width: 3px; }
+.events-list::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.event-item {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(26,32,48,0.6);
+  display: flex; gap: 10px; align-items: flex-start;
+  cursor: pointer; transition: background 0.1s;
+}
+.event-item:hover { background: rgba(255,255,255,0.02); }
+.event-item.selected { background: rgba(200,147,42,0.05); border-left: 2px solid var(--gold-dim); }
+.event-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 3px; flex-shrink: 0;
+}
+.event-body { flex: 1; min-width: 0; }
+.event-date { font-size: 9px; color: var(--gold); letter-spacing: 1px; }
+.event-desc { font-size: 9px; color: var(--text); line-height: 1.5; margin-top: 2px; }
+.event-src { font-size: 8px; color: var(--text-dim); margin-top: 3px; }
+.event-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.icon-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 9px; padding: 2px 5px;
+  cursor: pointer; font-family: var(--mono);
+  transition: all 0.1s;
+}
+.icon-btn:hover { color: var(--text-bright); border-color: var(--border2); }
+.icon-btn.del:hover { color: var(--red-bright); border-color: rgba(192,57,43,0.3); }
+
+/* progress */
+.progress-wrap { display: none; padding: 0 12px 8px; }
+.progress-wrap.active { display: block; }
+.progress-label { font-size: 8px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.progress-bar { height: 2px; background: var(--border); position: relative; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--gold-bright); box-shadow: 0 0 8px var(--gold); position: absolute; left: 0; top: 0; transition: width 0.3s ease; }
+
+/* ── RIGHT PANEL — TIMELINE ──────────────────────── */
+.right-panel { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+.timeline-toolbar {
+  padding: 10px 20px;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap;
+}
+.toolbar-title {
+  font-family: var(--display);
+  font-size: 11px; font-weight: 700; letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+}
+.toolbar-spacer { flex: 1; }
+.toolbar-btn {
+  font-family: var(--mono);
+  font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 5px 10px; border: 1px solid var(--border2); cursor: pointer;
+  background: transparent; color: var(--text-dim); transition: all 0.15s;
+}
+.toolbar-btn:hover { color: var(--text-bright); border-color: var(--border); }
+.toolbar-btn.active { color: var(--gold-bright); border-color: var(--gold-dim); background: rgba(200,147,42,0.06); }
+
+.timeline-canvas { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 30px 40px; position: relative; }
+.timeline-canvas::-webkit-scrollbar { width: 3px; }
+.timeline-canvas::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* empty timeline */
+.tl-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 14px; opacity: 0.4;
+}
+.tl-empty-icon { font-size: 36px; color: var(--text-dim); }
+.tl-empty-title { font-family: var(--display); font-size: 14px; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase; }
+.tl-empty-sub { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-align: center; line-height: 2; }
+
+/* vertical timeline */
+.tl-spine {
+  position: absolute; left: 80px; top: 20px; bottom: 20px;
+  width: 1px; background: linear-gradient(180deg, transparent, var(--border2) 5%, var(--border2) 95%, transparent);
+}
+
+.tl-year-group { margin-bottom: 0; }
+.tl-year-marker {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 8px; position: relative;
+}
+.tl-year-label {
+  font-family: var(--display);
+  font-size: 22px; font-weight: 700; color: var(--text-dim);
+  letter-spacing: 2px; min-width: 60px; text-align: right;
+  flex-shrink: 0;
+}
+.tl-year-line { flex: 1; height: 1px; background: var(--border); }
+
+/* event node */
+.tl-event {
+  display: flex; align-items: flex-start; gap: 0;
+  margin-bottom: 6px; position: relative;
+  padding-left: 100px;
+  animation: fadeSlide 0.3s ease forwards;
+  opacity: 0;
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.tl-date-col {
+  position: absolute; left: 0; width: 60px;
+  text-align: right; padding-top: 10px;
+}
+.tl-date-str { font-size: 8px; color: var(--text-dim); letter-spacing: 1px; line-height: 1.4; }
+
+.tl-connector {
+  position: absolute; left: 60px; top: 17px;
+  width: 20px; height: 1px; background: var(--border2);
+}
+.tl-node {
+  position: absolute; left: 74px; top: 11px;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid; background: var(--bg);
+  transition: transform 0.15s; cursor: pointer;
+  z-index: 2;
+}
+.tl-node:hover { transform: scale(1.4); }
+
+.tl-card {
+  flex: 1;
+  background: var(--panel); border: 1px solid var(--border);
+  padding: 10px 14px;
+  transition: border-color 0.15s; cursor: pointer;
+  border-left: 3px solid transparent;
+}
+.tl-card:hover { border-color: var(--border2); }
+.tl-card.selected { border-color: var(--border2); }
+.tl-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.tl-card-date { font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+.tl-card-tag {
+  font-size: 7px; letter-spacing: 2px; padding: 1px 6px;
+  border: 1px solid; text-transform: uppercase;
+}
+.tl-card-desc { font-size: 10px; color: var(--text); line-height: 1.6; }
+.tl-card-src { font-size: 8px; color: var(--text-dim); margin-top: 5px; letter-spacing: 1px; }
+
+/* category colors */
+.cat-event    { --cc: #22d3ee; }
+.cat-person   { --cc: #a78bfa; }
+.cat-location { --cc: #2ecc71; }
+.cat-financial{ --cc: #f0b840; }
+.cat-comms    { --cc: #f59e0b; }
+.cat-action   { --cc: #e74c3c; }
+.cat-unknown  { --cc: #546e7a; }
+
+.tl-node    { border-color: var(--cc); }
+.tl-node:hover { background: var(--cc); }
+.tl-card    { border-left-color: var(--cc) !important; }
+.tl-card-date { color: var(--cc); }
+.tl-card-tag  { color: var(--cc); border-color: color-mix(in srgb, var(--cc) 40%, transparent); background: color-mix(in srgb, var(--cc) 8%, transparent); }
+.event-dot  { background: var(--cc); }
+
+/* add event form */
+.add-form {
+  display: none;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  flex-direction: column; gap: 6px;
+}
+.add-form.open { display: flex; }
+.add-input {
+  background: var(--panel); border: 1px solid var(--border2);
+  color: var(--text-bright); font-family: var(--mono);
+  font-size: 9px; padding: 5px 8px; outline: none; width: 100%;
+}
+.add-input:focus { border-color: var(--gold-dim); }
+.add-row { display: flex; gap: 6px; }
+
+/* log strip */
+.log-strip {
+  border-top: 1px solid var(--border); background: var(--bg);
+  padding: 6px 20px; font-size: 9px; color: var(--text-dim); letter-spacing: 1px;
+  height: 28px; overflow: hidden; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.log-prefix { color: var(--gold-dim); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 40px; right: 24px;
+  background: var(--panel); border: 1px solid var(--border2);
+  padding: 10px 16px; font-size: 10px; color: var(--text-bright); letter-spacing: 1px;
+  z-index: 1000; transform: translateY(20px); opacity: 0;
+  transition: all 0.2s; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left: 2px solid var(--green); }
+.toast.error   { border-left: 2px solid var(--red); }
+.toast.info    { border-left: 2px solid var(--cyan-bright); }
+
+/* detail modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--border2);
+  width: 500px; max-width: 90vw; max-height: 80vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; }
+.modal-close { background: transparent; border: none; color: var(--text-dim); font-size: 14px; cursor: pointer; }
+.modal-close:hover { color: var(--text-bright); }
+.modal-body { padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.modal-field label { font-size: 8px; color: var(--text-dim); letter-spacing: 2px; display: block; margin-bottom: 4px; }
+.modal-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border2);
+  color: var(--text-bright); font-family: var(--mono);
+  font-size: 10px; padding: 6px 10px; outline: none;
+}
+.modal-input:focus { border-color: var(--gold-dim); }
+.modal-textarea { height: 80px; resize: vertical; }
+.modal-footer {
+  padding: 10px 16px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="topbar-logo">AMBER</span>
+  <span class="topbar-sep">//</span>
+  <span class="topbar-module">Case Timeline</span>
+  <div class="topbar-right">
+    <div class="status-dot" id="ollamaDot"></div>
+    <span class="status-text" id="ollamaStatus">CHECKING...</span>
+    <div class="stat-chip">EVENTS <span id="statEvents">0</span></div>
+    <div class="stat-chip">SPAN <span id="statSpan">—</span></div>
+    <div class="stat-chip">SOURCES <span id="statSources">0</span></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+
+    <!-- Input section -->
+    <div class="panel-section">
+      <div class="section-header">
+        <span class="section-title">Input Text</span>
+        <span class="section-toggle">▾</span>
+      </div>
+      <div class="text-input-wrap">
+        <textarea class="text-input" id="inputText"
+          placeholder="Paste Analyst Console output, case notes, transcripts, reports, or any text containing dates and events..."></textarea>
+      </div>
+      <div class="model-row">
+        <span class="row-label">MODEL</span>
+        <select class="row-select" id="modelSelect">
+          <option value="huihui_ai/qwen3-abliterated:8b">qwen3-abliterated:8b</option>
+          <option value="huihui_ai/orchestrator-abliterated:8b-Q4_K_M">orchestrator:8b</option>
+          <option value="deepseek-r1:7b">deepseek-r1:7b</option>
+          <option value="nous-hermes:latest">nous-hermes</option>
+          <option value="dolphin-llama3:latest">dolphin-llama3</option>
+          <option value="qwen2.5:7b-instruct">qwen2.5:7b-instruct</option>
+        </select>
+      </div>
+      <div class="model-row" style="gap:6px; flex-wrap:wrap;">
+        <span class="row-label">SOURCE TAG</span>
+        <input class="add-input" id="sourceTag" placeholder="e.g. Interview-A, Doc-47..." style="flex:1; font-size:9px;">
+      </div>
+      <div class="extract-area" style="display:flex; gap:6px; flex-direction:column;">
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-label">
+            <span id="progressLabel">EXTRACTING...</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+        <button class="btn btn-gold" id="extractBtn" onclick="extractEvents()">◈  EXTRACT EVENTS — LLM</button>
+        <button class="btn btn-cyan btn-sm" onclick="extractRegex()">⚡  QUICK EXTRACT — REGEX</button>
+      </div>
+    </div>
+
+    <!-- Event list -->
+    <div class="events-section">
+      <div class="events-header">
+        <span class="section-title">Events — <span id="eventCount">0</span></span>
+        <div style="display:flex; gap:5px;">
+          <button class="icon-btn" onclick="toggleAddForm()" title="Add manual event">+</button>
+          <button class="icon-btn del" onclick="clearEvents()" title="Clear all">✕</button>
+        </div>
+      </div>
+
+      <!-- Manual add form -->
+      <div class="add-form" id="addForm">
+        <input class="add-input" id="manualDate" placeholder="Date (e.g. 2024-03-15, March 15 2024)">
+        <textarea class="add-input" id="manualDesc" placeholder="Event description..." style="height:50px; resize:none;"></textarea>
+        <div class="add-row">
+          <select class="row-select" id="manualCat" style="flex:1;">
+            <option value="event">EVENT</option>
+            <option value="person">PERSON</option>
+            <option value="location">LOCATION</option>
+            <option value="financial">FINANCIAL</option>
+            <option value="comms">COMMS</option>
+            <option value="action">ACTION</option>
+          </select>
+          <button class="btn btn-gold btn-sm" style="width:auto; padding:5px 12px;" onclick="addManualEvent()">ADD</button>
+        </div>
+      </div>
+
+      <div class="events-list" id="eventsList">
+        <div style="padding:20px 14px; text-align:center; font-size:9px; color:var(--text-dim); letter-spacing:2px;">
+          NO EVENTS EXTRACTED
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL — TIMELINE -->
+  <div class="right-panel">
+
+    <div class="timeline-toolbar">
+      <span class="toolbar-title">Case Chronology</span>
+      <span style="font-size:9px; color:var(--text-dim); letter-spacing:1px;" id="caseTitle">UNTITLED CASE</span>
+      <input style="background:transparent; border:none; border-bottom:1px solid var(--border); color:var(--text); font-family:var(--mono); font-size:9px; outline:none; padding:2px 4px; width:140px;" id="caseTitleInput" value="UNTITLED CASE" onchange="document.getElementById('caseTitle').textContent=this.value;saveToStorage()">
+      <div class="toolbar-spacer"></div>
+      <button class="toolbar-btn active" id="viewVertBtn" onclick="setView('vertical')">VERTICAL</button>
+      <button class="toolbar-btn" id="viewCompBtn" onclick="setView('compact')">COMPACT</button>
+      <button class="toolbar-btn" onclick="exportTimeline()">↓ EXPORT</button>
+      <button class="toolbar-btn" onclick="importTimeline()">↑ IMPORT</button>
+      <input type="file" id="importTLInput" accept=".json" style="display:none" onchange="doImport(event)">
+    </div>
+
+    <div class="timeline-canvas" id="timelineCanvas">
+      <div class="tl-empty" id="tlEmpty">
+        <div class="tl-empty-icon">⊷</div>
+        <div class="tl-empty-title">No Events Plotted</div>
+        <div class="tl-empty-sub">
+          PASTE TEXT INTO THE LEFT PANEL<br>
+          EXTRACT EVENTS VIA LLM OR REGEX<br>
+          OR ADD EVENTS MANUALLY<br>
+          CHRONOLOGY RENDERS HERE
+        </div>
+      </div>
+    </div>
+
+    <div class="log-strip">
+      <span class="log-prefix">SYS //</span>
+      <span id="logLine">CASE TIMELINE READY — PASTE TEXT AND EXTRACT EVENTS</span>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Event</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label>DATE / TIME</label>
+        <input class="modal-input" id="editDate" placeholder="e.g. 2024-03-15, March 2024, Q1 2024">
+      </div>
+      <div class="modal-field">
+        <label>DESCRIPTION</label>
+        <textarea class="modal-input modal-textarea" id="editDesc"></textarea>
+      </div>
+      <div class="modal-field">
+        <label>CATEGORY</label>
+        <select class="modal-input" id="editCat">
+          <option value="event">EVENT</option>
+          <option value="person">PERSON</option>
+          <option value="location">LOCATION</option>
+          <option value="financial">FINANCIAL</option>
+          <option value="comms">COMMS</option>
+          <option value="action">ACTION</option>
+          <option value="unknown">UNKNOWN</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>SOURCE</label>
+        <input class="modal-input" id="editSrc" placeholder="Document or source reference">
+      </div>
+      <div class="modal-field">
+        <label>CONFIDENCE</label>
+        <select class="modal-input" id="editConf">
+          <option value="confirmed">CONFIRMED</option>
+          <option value="probable">PROBABLE</option>
+          <option value="possible">POSSIBLE</option>
+          <option value="unverified">UNVERIFIED</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" style="width:auto" onclick="deleteEventFromModal()">DELETE</button>
+      <button class="btn btn-gold btn-sm" style="width:auto; padding:5px 16px;" onclick="saveEdit()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const OLLAMA = 'http://127.0.0.1:11434';
+const STORE_API = '/api/store/state/timeline_state';
+
+let events = [];       // {id, date, dateSort, desc, category, source, confidence, addedAt}
+let currentView = 'vertical';
+let editingId = null;
+const CATEGORIES = new Set(['event','person','location','financial','comms','action','unknown']);
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  await loadFromStorage();
+  checkOllama();
+  setInterval(checkOllama, 15000);
+  renderEventList();
+  renderTimeline();
+  populateModels();
+});
+
+async function checkOllama() {
+  try {
+    const r = await fetch(`${OLLAMA}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      document.getElementById('ollamaDot').className = 'status-dot up';
+      document.getElementById('ollamaStatus').textContent = 'OLLAMA UP';
+      const d = await r.json();
+      const sel = document.getElementById('modelSelect');
+      const models = (d.models||[]).map(m=>m.name);
+      // highlight available models
+      [...sel.options].forEach(o => {
+        o.text = models.includes(o.value) ? o.value : o.value + ' (not found)';
+      });
+    } else throw new Error();
+  } catch {
+    document.getElementById('ollamaDot').className = 'status-dot';
+    document.getElementById('ollamaStatus').textContent = 'OLLAMA DOWN';
+  }
+}
+
+async function populateModels() {
+  try {
+    const r = await fetch(`${OLLAMA}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    if (!r.ok) return;
+    const d = await r.json();
+    const sel = document.getElementById('modelSelect');
+    const current = sel.value;
+    const models = (d.models||[]).map(m=>m.name);
+    sel.innerHTML = '';
+    models.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      sel.appendChild(o);
+    });
+    if (models.includes(current)) sel.value = current;
+  } catch {}
+}
+
+// ── LLM EXTRACTION ────────────────────────────────────────────────────────
+async function extractEvents() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) { toast('No text to extract from', 'error'); return; }
+
+  const model = document.getElementById('modelSelect').value;
+  const source = document.getElementById('sourceTag').value.trim() || 'INPUT';
+
+  document.getElementById('extractBtn').disabled = true;
+  showProgress(true, 'Sending to model...');
+  log(`Extracting events via ${model}...`);
+
+  const prompt = `You are an investigative analyst. Extract ALL dates and events from the text below.
+
+Return ONLY a JSON array. Each object must have:
+- "date": the date/time string as found in text (e.g. "March 15 2024", "2024-03-15", "Q1 2024", "early 2023")
+- "dateSort": ISO format for sorting, best guess (e.g. "2024-03-15", "2024-01-01" for Q1)
+- "desc": concise description of what happened (1-2 sentences max)
+- "category": one of: event, person, location, financial, comms, action, unknown
+- "confidence": one of: confirmed, probable, possible, unverified
+- "confidenceScore": integer 0-100 (100 means strongest confidence)
+
+Extract every date-anchored event. If a date is approximate use your best estimate for dateSort.
+Return ONLY the JSON array, no preamble, no markdown fences.
+
+TEXT:
+${text.substring(0, 6000)}`;
+
+  try {
+    const r = await fetch(`${OLLAMA}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, prompt, stream: false, options: { temperature: 0.1 } })
+    });
+
+    if (!r.ok) throw new Error(`Model returned ${r.status}`);
+    const d = await r.json();
+    let raw = d.response.trim();
+
+    // Strip markdown fences if present
+    raw = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+    // Find the JSON array
+    const start = raw.indexOf('[');
+    const end   = raw.lastIndexOf(']');
+    if (start === -1 || end === -1) throw new Error('No JSON array in response');
+    raw = raw.substring(start, end + 1);
+
+    const extracted = JSON.parse(raw);
+    if (!Array.isArray(extracted)) throw new Error('Response is not an array');
+
+    let added = 0;
+    for (const e of extracted) {
+      if (!e.date || !e.desc) continue;
+      const confidenceScore = Math.max(0, Math.min(100, parseInt(e.confidenceScore ?? confidenceToScore(e.confidence), 10) || confidenceToScore(e.confidence)));
+      events.push({
+        id: genId(),
+        date: String(e.date).trim(),
+        dateSort: parseDate(String(e.dateSort || e.date).trim()),
+        desc: String(e.desc).trim(),
+        category: normalizeCategory(e.category),
+        source,
+        confidence: normalizeConfidence(e.confidence),
+        confidenceScore,
+        addedAt: new Date().toISOString()
+      });
+      added++;
+    }
+
+    sortEvents();
+    saveToStorage();
+    renderEventList();
+    renderTimeline();
+    updateStats();
+    toast(`Extracted ${added} event(s)`, 'success');
+    log(`LLM extraction complete — ${added} events from ${model}`);
+
+  } catch (err) {
+    toast(`Extraction failed: ${err.message}`, 'error');
+    log(`ERROR: ${err.message}`);
+    // fallback to regex
+    log('Falling back to regex extraction...');
+    extractRegex();
+  }
+
+  document.getElementById('extractBtn').disabled = false;
+  showProgress(false);
+}
+
+// ── REGEX EXTRACTION ──────────────────────────────────────────────────────
+function extractRegex() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) { toast('No text to extract from', 'error'); return; }
+  const source = document.getElementById('sourceTag').value.trim() || 'INPUT';
+
+  const patterns = [
+    // ISO dates
+    /\b(\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2})?)?)\b/g,
+    // Month Day Year
+    /\b((?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})\b/gi,
+    // Day Month Year
+    /\b(\d{1,2}(?:st|nd|rd|th)?\s+(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{4})\b/gi,
+    // Month Year
+    /\b((?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{4})\b/gi,
+    // Q1-Q4 Year
+    /\b(Q[1-4]\s+\d{4})\b/gi,
+    // Year alone (standalone 4-digit years 1900-2099)
+    /\b((?:19|20)\d{2})\b/g,
+    // MM/DD/YYYY or DD/MM/YYYY
+    /\b(\d{1,2}\/\d{1,2}\/\d{2,4})\b/g,
+  ];
+
+  const sentences = text.match(/[^.!?\n]+[.!?\n]/g) || [text];
+  const seen = new Set();
+  let added = 0;
+
+  for (const sentence of sentences) {
+    for (const pat of patterns) {
+      pat.lastIndex = 0;
+      let m;
+      while ((m = pat.exec(sentence)) !== null) {
+        const dateStr = m[1];
+        const desc = sentence.replace(m[0], '').trim().replace(/^[,;:\-\s]+/, '').substring(0, 200);
+        if (desc.length < 10) continue;
+        const key = `${dateStr}|${desc}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        events.push({
+          id: genId(),
+          date: dateStr,
+          dateSort: parseDate(dateStr),
+          desc: desc || sentence.trim().substring(0, 200),
+          category: normalizeCategory(guessCategory(sentence)),
+          source,
+          confidence: 'unverified',
+          confidenceScore: 45,
+          addedAt: new Date().toISOString()
+        });
+        added++;
+      }
+    }
+  }
+
+  if (!added) { toast('No dates found in text', 'error'); return; }
+
+  sortEvents();
+  saveToStorage();
+  renderEventList();
+  renderTimeline();
+  updateStats();
+  toast(`Regex extracted ${added} event(s)`, 'success');
+  log(`Regex extraction complete — ${added} events`);
+}
+
+function guessCategory(text) {
+  const t = text.toLowerCase();
+  if (/\$|payment|transfer|wire|bank|account|funds|money|financial|invoice/.test(t)) return 'financial';
+  if (/call|email|message|text|communication|contact|spoke|said|told/.test(t)) return 'comms';
+  if (/arrested|charged|filed|warrant|search|seized|executed/.test(t)) return 'action';
+  if (/met|meeting|location|address|at\s+the|traveled|arrived|left/.test(t)) return 'location';
+  if (/name|person|individual|subject|suspect|witness/.test(t)) return 'person';
+  return 'event';
+}
+
+function normalizeCategory(cat) {
+  const c = String(cat || '').trim().toLowerCase();
+  return CATEGORIES.has(c) ? c : 'unknown';
+}
+
+function normalizeConfidence(v) {
+  const c = String(v || '').trim().toLowerCase();
+  if (['confirmed', 'probable', 'possible', 'unverified'].includes(c)) return c;
+  return 'unverified';
+}
+
+function confidenceToScore(v) {
+  const c = normalizeConfidence(v);
+  if (c === 'confirmed') return 90;
+  if (c === 'probable') return 75;
+  if (c === 'possible') return 60;
+  return 40;
+}
+
+function parseDate(str) {
+  const months = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
+    january:0, february:1, march:2, april:3, june:5, july:6, august:7, september:8, october:9, november:10, december:11 };
+  str = str.trim();
+
+  // ISO
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.substring(0, 10);
+
+  // Q1-Q4 Year
+  const qm = str.match(/Q([1-4])\s+(\d{4})/i);
+  if (qm) return `${qm[2]}-${String((+qm[1]-1)*3+1).padStart(2,'0')}-01`;
+
+  // Year only
+  if (/^(19|20)\d{2}$/.test(str)) return `${str}-01-01`;
+
+  // Try native parse
+  const d = new Date(str);
+  if (!isNaN(d)) return d.toISOString().substring(0, 10);
+
+  return str;
+}
+
+// ── MANUAL EVENT ──────────────────────────────────────────────────────────
+function addManualEvent() {
+  const date = document.getElementById('manualDate').value.trim();
+  const desc = document.getElementById('manualDesc').value.trim();
+  if (!date || !desc) { toast('Date and description required', 'error'); return; }
+
+  const source = document.getElementById('sourceTag').value.trim() || 'MANUAL';
+  const cat = normalizeCategory(document.getElementById('manualCat').value);
+
+  events.push({
+    id: genId(), date, dateSort: parseDate(date), desc, category: cat,
+    source, confidence: 'confirmed', confidenceScore: 95, addedAt: new Date().toISOString()
+  });
+
+  document.getElementById('manualDate').value = '';
+  document.getElementById('manualDesc').value = '';
+
+  sortEvents(); saveToStorage(); renderEventList(); renderTimeline(); updateStats();
+  toast('Event added', 'success');
+}
+
+function toggleAddForm() {
+  const f = document.getElementById('addForm');
+  f.classList.toggle('open');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderEventList() {
+  const list = document.getElementById('eventsList');
+  document.getElementById('eventCount').textContent = events.length;
+
+  if (!events.length) {
+    list.innerHTML = `<div style="padding:20px 14px; text-align:center; font-size:9px; color:var(--text-dim); letter-spacing:2px;">NO EVENTS EXTRACTED</div>`;
+    return;
+  }
+
+  list.innerHTML = events.map(e => `
+    <div class="event-item cat-${e.category}" onclick="focusEvent('${e.id}')">
+      <div class="event-dot"></div>
+      <div class="event-body">
+        <div class="event-date">${escHtml(e.date)}</div>
+        <div class="event-desc">${escHtml(e.desc.substring(0, 100))}${e.desc.length>100?'…':''}</div>
+        <div class="event-src">${escHtml(e.source)} · ${e.confidence}${Number.isFinite(e.confidenceScore)?` (${e.confidenceScore}%)`:''}</div>
+      </div>
+      <div class="event-actions">
+        <button class="icon-btn" onclick="event.stopPropagation(); openEdit('${e.id}')" title="Edit">✎</button>
+        <button class="icon-btn del" onclick="event.stopPropagation(); deleteEvent('${e.id}')" title="Delete">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTimeline() {
+  const canvas = document.getElementById('timelineCanvas');
+
+  if (!events.length) {
+    canvas.innerHTML = `<div class="tl-empty" id="tlEmpty">
+      <div class="tl-empty-icon">⊷</div>
+      <div class="tl-empty-title">No Events Plotted</div>
+      <div class="tl-empty-sub">PASTE TEXT INTO THE LEFT PANEL<br>EXTRACT EVENTS VIA LLM OR REGEX<br>OR ADD EVENTS MANUALLY<br>CHRONOLOGY RENDERS HERE</div>
+    </div>`;
+    return;
+  }
+
+  // Group by year
+  const byYear = {};
+  for (const e of events) {
+    const yr = (e.dateSort || e.date).substring(0, 4) || 'UNKNOWN';
+    if (!byYear[yr]) byYear[yr] = [];
+    byYear[yr].push(e);
+  }
+
+  const years = Object.keys(byYear).sort();
+
+  let html = '<div class="tl-spine"></div>';
+  let delay = 0;
+
+  for (const yr of years) {
+    html += `<div class="tl-year-group">
+      <div class="tl-year-marker">
+        <div class="tl-year-label">${yr}</div>
+        <div class="tl-year-line"></div>
+      </div>`;
+
+    for (const e of byYear[yr]) {
+      const shortDate = formatShortDate(e.date);
+      delay += 40;
+      html += `
+        <div class="tl-event cat-${e.category}" id="tl-${e.id}" style="animation-delay:${delay}ms"
+             onclick="openEdit('${e.id}')">
+          <div class="tl-date-col"><div class="tl-date-str">${escHtml(shortDate)}</div></div>
+          <div class="tl-connector"></div>
+          <div class="tl-node" title="${escHtml(e.category)}"></div>
+          <div class="tl-card">
+            <div class="tl-card-header">
+              <span class="tl-card-date">${escHtml(e.date)}</span>
+              <span class="tl-card-tag">${e.category}</span>
+              <span style="font-size:8px; color:var(--text-dim); letter-spacing:1px; margin-left:auto;">${e.confidence}${Number.isFinite(e.confidenceScore)?` ${e.confidenceScore}%`:''}</span>
+            </div>
+            <div class="tl-card-desc">${escHtml(e.desc)}</div>
+            <div class="tl-card-src">SOURCE: ${escHtml(e.source)}</div>
+          </div>
+        </div>`;
+    }
+    html += '</div>';
+  }
+
+  canvas.innerHTML = html;
+}
+
+function formatShortDate(d) {
+  const parts = d.split(/[-\/\s]/);
+  if (parts.length >= 2 && parts[0].length === 4) return `${parts[1]}/${parts[2]||'??'}`;
+  return d.substring(0, 10);
+}
+
+function focusEvent(id) {
+  const el = document.getElementById(`tl-${id}`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('viewVertBtn').classList.toggle('active', v === 'vertical');
+  document.getElementById('viewCompBtn').classList.toggle('active', v === 'compact');
+  renderTimeline();
+}
+
+// ── EDIT MODAL ────────────────────────────────────────────────────────────
+function openEdit(id) {
+  const e = events.find(x => x.id === id);
+  if (!e) return;
+  editingId = id;
+  document.getElementById('editDate').value = e.date;
+  document.getElementById('editDesc').value = e.desc;
+  document.getElementById('editCat').value  = e.category;
+  document.getElementById('editSrc').value  = e.source;
+  document.getElementById('editConf').value = e.confidence;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
+}
+
+function saveEdit() {
+  if (!editingId) return;
+  const e = events.find(x => x.id === editingId);
+  if (!e) return;
+  e.date       = document.getElementById('editDate').value;
+  e.dateSort   = parseDate(e.date);
+  e.desc       = document.getElementById('editDesc').value;
+  e.category   = document.getElementById('editCat').value;
+  e.source     = document.getElementById('editSrc').value;
+  e.confidence = normalizeConfidence(document.getElementById('editConf').value);
+  e.confidenceScore = confidenceToScore(e.confidence);
+  sortEvents(); saveToStorage(); renderEventList(); renderTimeline(); updateStats();
+  closeModal();
+  toast('Event updated', 'success');
+}
+
+function deleteEventFromModal() {
+  if (!editingId) return;
+  deleteEvent(editingId);
+  closeModal();
+}
+
+function deleteEvent(id) {
+  events = events.filter(e => e.id !== id);
+  saveToStorage(); renderEventList(); renderTimeline(); updateStats();
+  toast('Event deleted', 'info');
+}
+
+function clearEvents() {
+  if (!confirm('Clear all events from this timeline?')) return;
+  events = [];
+  saveToStorage(); renderEventList(); renderTimeline(); updateStats();
+  toast('Timeline cleared', 'info');
+}
+
+// ── SORT ──────────────────────────────────────────────────────────────────
+function sortEvents() {
+  events.sort((a, b) => {
+    const da = a.dateSort || a.date;
+    const db = b.dateSort || b.date;
+    return da < db ? -1 : da > db ? 1 : 0;
+  });
+}
+
+function normalizeEventEntry(e) {
+  if (!e || typeof e !== 'object') return null;
+  const date = String(e.date || '').trim();
+  const desc = String(e.desc || '').trim();
+  if (!date || !desc) return null;
+  const confidence = normalizeConfidence(e.confidence);
+  return {
+    id: String(e.id || genId()),
+    date,
+    dateSort: parseDate(String(e.dateSort || date)),
+    desc,
+    category: normalizeCategory(e.category),
+    source: String(e.source || 'INPUT'),
+    confidence,
+    confidenceScore: Math.max(0, Math.min(100, parseInt(e.confidenceScore ?? confidenceToScore(confidence), 10) || confidenceToScore(confidence))),
+    addedAt: e.addedAt || new Date().toISOString()
+  };
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statEvents').textContent = events.length;
+  if (events.length >= 2) {
+    const first = events[0].dateSort?.substring(0,4) || '?';
+    const last  = events[events.length-1].dateSort?.substring(0,4) || '?';
+    document.getElementById('statSpan').textContent = first === last ? first : `${first}–${last}`;
+  } else {
+    document.getElementById('statSpan').textContent = events.length === 1 ? (events[0].dateSort?.substring(0,4)||'?') : '—';
+  }
+  const sources = new Set(events.map(e=>e.source)).size;
+  document.getElementById('statSources').textContent = sources;
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────
+function saveToStorage() {
+  const payload = {
+    case: document.getElementById('caseTitleInput').value || 'UNTITLED CASE',
+    events
+  };
+  fetch(STORE_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(() => {});
+}
+
+async function loadFromStorage() {
+  try {
+    const r = await fetch(STORE_API, { signal: AbortSignal.timeout(3000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const payload = d?.data;
+    const incoming = Array.isArray(payload) ? payload : (payload?.events || []);
+    events = (incoming || []).map(normalizeEventEntry).filter(Boolean);
+    if (payload && !Array.isArray(payload) && payload.case) {
+      document.getElementById('caseTitleInput').value = payload.case;
+      document.getElementById('caseTitle').textContent = payload.case;
+    }
+    sortEvents();
+    if (events.length) log(`Restored ${events.length} events from storage`);
+  } catch { events = []; }
+}
+
+function exportTimeline() {
+  if (!events.length) { toast('Nothing to export', 'error'); return; }
+  const blob = new Blob([JSON.stringify({ case: document.getElementById('caseTitleInput').value, events }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `amber_timeline_${Date.now()}.json`; a.click();
+  toast(`Exported ${events.length} events`, 'success');
+}
+
+function importTimeline() { document.getElementById('importTLInput').click(); }
+
+function doImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      const incoming = d.events || (Array.isArray(d) ? d : []);
+      let added = 0;
+      for (const rawEvent of incoming) {
+        const ev2 = normalizeEventEntry(rawEvent);
+        if (!ev2) continue;
+        if (!events.find(x => x.id === ev2.id)) { events.push(ev2); added++; }
+      }
+      if (d.case) {
+        document.getElementById('caseTitleInput').value = d.case;
+        document.getElementById('caseTitle').textContent = d.case;
+      }
+      sortEvents(); saveToStorage(); renderEventList(); renderTimeline(); updateStats();
+      toast(`Imported ${added} events`, 'success');
+    } catch { toast('Import failed', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function genId() { return Math.random().toString(36).substring(2, 10); }
+
+function showProgress(on, label='') {
+  document.getElementById('progressWrap').className = on ? 'progress-wrap active' : 'progress-wrap';
+  if (label) document.getElementById('progressLabel').textContent = label;
+  document.getElementById('progressFill').style.width = on ? '100%' : '0%';
+}
+
+function log(msg) { document.getElementById('logLine').textContent = msg; }
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = `toast ${type}`; }, 3200);
+}
+
+// Close modal on overlay click
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>

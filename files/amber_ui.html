@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AMBER // INVESTIGATIVE COMMAND INTERFACE v2</title>
+<title>AMBER // INVESTIGATIVE COMMAND INTERFACE v3</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
 <style>
 :root {
@@ -183,6 +183,9 @@ main{
 .pcbtn.go{border-color:var(--amber-neon);color:var(--amber-hot)}
 .pcbtn.go:hover{background:var(--amber-faint);box-shadow:0 0 10px rgba(255,184,0,.18)}
 .pcbtn:disabled{border-color:var(--steel-border)!important;color:var(--td)!important;background:transparent!important;box-shadow:none!important;cursor:not-allowed}
+.plbl{padding:6px 8px;border:1px solid var(--steel-border);border-radius:3px;color:var(--td);font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
+.pcnum{width:86px;padding:6px 8px;background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px;color:var(--tp);font-family:var(--mono);font-size:8px;letter-spacing:1px;outline:none}
+.pcnum:focus{border-color:var(--amber-dim)}
 .pcsel{flex:2;min-width:0;padding:6px;background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px;color:var(--tp);font-family:var(--mono);font-size:8px;letter-spacing:1px;outline:none}
 .pcsel:focus{border-color:var(--amber-dim)}
 .pcsel option{background:var(--steel);color:var(--tp)}
@@ -261,6 +264,31 @@ main{
 .empty-s{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;color:var(--td);padding:28px}
 .ei{width:52px;height:52px;border-radius:50%;border:2px solid var(--steel-border);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:20px;color:var(--steel-light)}
 .empty-s p{font-size:9px;letter-spacing:2px;text-transform:uppercase;text-align:center;line-height:2.3}
+
+/* Archive mode */
+.archive-mode{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column;padding:10px 13px;gap:8px;background:#000}
+.archive-mode.active{display:flex}
+.av-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.av-chip{padding:3px 8px;border:1px solid var(--steel-border);border-radius:2px;font-size:8px;letter-spacing:1px;color:var(--td)}
+.av-chip b{color:var(--amber-hot);font-weight:700}
+.av-in{flex:1;min-width:150px;background:var(--steel);border:1px solid var(--steel-border);border-radius:3px;padding:8px 10px;color:var(--tp);font-family:var(--mono);font-size:11px;outline:none}
+.av-in:focus{border-color:var(--amber-dim)}
+.av-sel{background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px;padding:7px;color:var(--tp);font-family:var(--mono);font-size:9px;outline:none}
+.av-grid{display:grid;grid-template-columns:300px 1fr;gap:8px;min-height:0;flex:1}
+.av-col{display:flex;flex-direction:column;gap:8px;min-height:0}
+.av-box{display:flex;flex-direction:column;min-height:0;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px}
+.av-title{padding:6px 8px;border-bottom:1px solid var(--steel-border);font-size:8px;letter-spacing:2px;color:var(--amber-dim)}
+.av-list{flex:1;overflow:auto;padding:6px}
+.av-item{padding:6px;border:1px solid var(--steel-border);border-radius:3px;margin-bottom:5px;background:var(--steel)}
+.av-name{font-size:9px;color:var(--tp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.av-meta{font-size:8px;color:var(--td);margin-top:2px}
+.av-snippet{font-size:9px;color:var(--tm);line-height:1.5;margin-top:4px}
+.av-actions{display:flex;gap:4px;margin-top:6px}
+.av-results{flex:1;overflow:auto;padding:6px}
+.av-card{padding:8px;border:1px solid var(--steel-border);border-radius:3px;margin-bottom:6px;background:var(--steel)}
+.av-head{display:flex;justify-content:space-between;gap:8px}
+.av-score{font-size:10px;color:var(--amber-hot)}
+.av-empty{padding:16px;text-align:center;color:var(--td);font-size:9px;letter-spacing:1px}
 
 /* ── RIGHT PANEL ── */
 .isec{padding:9px 13px;border-bottom:1px solid var(--steel-border);flex-shrink:0}
@@ -443,13 +471,14 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="dial"><span class="at">@</span></div>
     <div class="logo-text">
       <div class="title">AMBER</div>
-      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v2 // LOCAL // ZERO TELEMETRY</div>
+      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v3 // LOCAL // ZERO TELEMETRY</div>
     </div>
   </div>
   <nav class="tab-nav">
-    <button class="tab-btn active" onclick="headTab(this,'chat')">ANALYST CONSOLE</button>
-    <button class="tab-btn" onclick="headTab(this,'parallel')">PARALLEL</button>
-    <button class="tab-btn" onclick="headTab(this,'pipeline')">PIPELINE</button>
+    <button class="tab-btn active" data-tab="chat" onclick="headTab(this,'chat')">ANALYST CONSOLE</button>
+    <button class="tab-btn" data-tab="parallel" onclick="headTab(this,'parallel')">PARALLEL</button>
+    <button class="tab-btn" data-tab="pipeline" onclick="headTab(this,'pipeline')">PIPELINE</button>
+    <button class="tab-btn" data-tab="archive" onclick="headTab(this,'archive')">ARCHIVE</button>
     <button class="tab-btn" onclick="openGraph()">GRAPH ◈</button>
   </nav>
   <div class="hdr-right">
@@ -500,6 +529,10 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
         <button class="pcbtn" onclick="clrAgents()">CLEAR</button>
       </div>
       <div class="pctrl">
+        <span class="plbl">LOOPS</span>
+        <input id="ALOOPS" class="pcnum" type="number" min="1" step="1" value="1">
+      </div>
+      <div class="pctrl">
         <select id="ASV" class="pcsel"></select>
         <button class="pcbtn" onclick="saveAgentSet()">SAVE</button>
         <button class="pcbtn" onclick="loadAgentSet()">LOAD</button>
@@ -514,6 +547,10 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
         <button class="pcbtn" onclick="openNewPipeStep()">+ STEP</button>
         <button class="pcbtn" onclick="clrPipe()">CLEAR</button>
         <button class="pcbtn go" id="CRB" onclick="runPipeline()" disabled>▶ RUN CHAIN</button>
+      </div>
+      <div class="pctrl">
+        <span class="plbl">LOOPS</span>
+        <input id="CLOOPS" class="pcnum" type="number" min="1" step="1" value="1">
       </div>
       <div class="pctrl">
         <select id="CSV" class="pcsel"></select>
@@ -549,6 +586,45 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <canvas class="spark-cv" id="SC"></canvas>
     <span class="tps-val" id="TPSV">— t/s</span>
   </div>
+  <div class="archive-mode" id="AVM">
+    <div class="av-row">
+      <span class="av-chip">DOCS <b id="AVDOCS">0</b></span>
+      <span class="av-chip">CHUNKS <b id="AVCHUNKS">0</b></span>
+      <span class="av-chip">DIMS <b id="AVDIMS">—</b></span>
+      <span class="av-chip">QUEUE <b id="AVQUEUE">0</b></span>
+    </div>
+    <div class="av-row">
+      <button class="abtn2" onclick="archiveQueueActiveFiles()">QUEUE ACTIVE FILES</button>
+      <button class="abtn2" id="AVINDEX" onclick="archiveIndexQueue()">INDEX QUEUE</button>
+      <button class="abtn2" onclick="archiveExport()">EXPORT</button>
+      <button class="abtn2" onclick="document.getElementById('AVIMPORT').click()">IMPORT</button>
+      <button class="abtn2" onclick="archiveClear()">CLEAR</button>
+      <input type="file" id="AVIMPORT" accept=".json" style="display:none" onchange="archiveImport(event)">
+    </div>
+    <div class="av-row">
+      <input class="av-in" id="AVQ" placeholder="SEARCH ARCHIVE (SEMANTIC QUERY)" onkeydown="if(event.key==='Enter')archiveRunSearch()">
+      <select class="av-sel" id="AVTOPK"><option value="5">TOP 5</option><option value="10" selected>TOP 10</option><option value="20">TOP 20</option><option value="50">TOP 50</option></select>
+      <select class="av-sel" id="AVMIN"><option value="0">MIN 0.00</option><option value="0.3">MIN 0.30</option><option value="0.4">MIN 0.40</option><option value="0.5" selected>MIN 0.50</option><option value="0.6">MIN 0.60</option><option value="0.7">MIN 0.70</option></select>
+      <select class="av-sel" id="AVGBY"><option value="1" selected>GROUP FILE</option><option value="0">ALL CHUNKS</option></select>
+      <button class="abtn2" onclick="archiveRunSearch()">SEARCH</button>
+    </div>
+    <div class="av-grid">
+      <div class="av-col">
+        <div class="av-box">
+          <div class="av-title">INDEX FILES / QUEUE</div>
+          <div class="av-list" id="AVFILES"></div>
+        </div>
+        <div class="av-box">
+          <div class="av-title">TIMELINE EVENTS</div>
+          <div class="av-list" id="AVTL"></div>
+        </div>
+      </div>
+      <div class="av-box">
+        <div class="av-title">SEARCH RESULTS</div>
+        <div class="av-results" id="AVRES"></div>
+      </div>
+    </div>
+  </div>
   <div class="msgs" id="MSGS">
     <div class="empty-s" id="ES"><div class="ei">@</div><p>SELECT A MODEL FROM THE REGISTRY<br>TO BEGIN INFERENCE</p></div>
   </div>
@@ -562,6 +638,8 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="iacts">
       <span class="ihint">↵ SEND &nbsp;·&nbsp; SHIFT+↵ NEWLINE &nbsp;·&nbsp; ESC STOP &nbsp;·&nbsp; CTRL+K CLEAR</span>
       <div class="abtns2">
+        <button class="abtn2" onclick="archiveAddLastAssistant()">ADD TO ARCHIVE</button>
+        <button class="abtn2" onclick="searchArchiveFromConsole()">SEARCH ARCHIVE</button>
         <button class="abtn2" onclick="clrChat()">CLEAR</button>
         <button class="abtn2" onclick="expChat()">EXPORT</button>
         <button class="abtn2" onclick="cpyLast()">COPY LAST</button>
@@ -619,7 +697,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   </div>
   <div class="isec flex1">
     <div class="stitle"><span class="sl">SYSTEM LOG</span></div>
-    <div class="log" id="LOG"><div class="ll info">[BOOT] AMBER ICI GUI v2</div></div>
+    <div class="log" id="LOG"><div class="ll info">[BOOT] AMBER ICI GUI v3</div></div>
   </div>
 </aside>
 </main>
@@ -635,28 +713,91 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 
 <script>
 /* ═══════════════════════════════════════════════════
-   AMBER ICI GUI v2 — ALL LOCAL — ZERO TELEMETRY
+   AMBER ICI GUI v3 — ALL LOCAL — ZERO TELEMETRY
    ═══════════════════════════════════════════════════ */
 const S={
   models:[],active:null,msgs:[],streaming:false,abort:null,
   stats:{turns:0,tokIn:0,tokOut:0,tpsH:[],peakTPS:0,totalTPS:0,tpsN:0},
   files:[],agents:[],pipeline:[],
   agentSets:[],chainSets:[],
+  vStore:[],vQueue:[],vIndexing:false,vLastResults:[],
   gNodes:[],gEdges:[],
-  sid:rnd(8),checked:new Set(),scratch:''
+  sid:rnd(8),checked:new Set(),scratch:'',
+  stopRequested:false
 };
-const UI={editAgentId:null,editPipeId:null,drag:null};
+const UI={editAgentId:null,editPipeId:null,drag:null,head:'chat'};
 function rnd(n){return Math.random().toString(36).substr(2,n).toUpperCase()}
 const LOCAL_OLLAMA_DEFAULT='http://127.0.0.1:11434';
 const LOCAL_ONLY_HOSTS=new Set(['127.0.0.1','localhost','::1','[::1]']);
+const ARCHIVE_EMBED_MODEL='mxbai-embed-large:latest';
+const ARCHIVE_CHUNK_SIZE=500;
+const ARCHIVE_CHUNK_OVERLAP=50;
+const ARCHIVE_CHUNK_MAX_CHARS=1000;
+const FILE_CTX_CHAR_MULT=3;
+const FILE_CTX_CHUNK_CHARS=1200;
+const SCRATCHPAD_MIN_CHARS=8000;
+const SCRATCHPAD_MAX_CHARS=20000;
+const FILE_CTX_STOPWORDS=new Set(['the','and','for','with','from','this','that','into','over','under','have','has','had','were','was','are','but','not','you','your','their','they','them','about','after','before','between','using','use','used','file','files','input','output','agent','chain','step','loop']);
 const STORE_KEYS={
   agents:'oci_agents_v1',
   pipeline:'oci_pipeline_v1',
   agentSets:'oci_agent_sets_v1',
   chainSets:'oci_chain_sets_v1',
+  vectorStore:'oci_vector_store_v1',
   layout:'oci_layout_v1'
 };
+const LEGACY_BROWSER_STATE_KEYS=[
+  'oci_agents_v1',
+  'oci_pipeline_v1',
+  'oci_agent_sets_v1',
+  'oci_chain_sets_v1'
+];
+const SERVER_FILE_APIS={
+  list:'/api/files/list',
+  upload:'/api/files/upload',
+  context:'/api/files/context',
+  read:'/api/files/read',
+  remove:'/api/files/delete'
+};
+const REMOTE_STORE_MAP={
+  [STORE_KEYS.agents]:['state','agents_state'],
+  [STORE_KEYS.pipeline]:['state','pipeline_state'],
+  [STORE_KEYS.agentSets]:['state','agent_sets'],
+  [STORE_KEYS.chainSets]:['state','chain_sets'],
+  [STORE_KEYS.vectorStore]:['state','vector_store']
+};
+const REMOTE_STORE_CACHE={};
+function isRemoteStoreKey(key){return Object.prototype.hasOwnProperty.call(REMOTE_STORE_MAP,key);}
+function remoteStorePath(key){
+  const meta=REMOTE_STORE_MAP[key];
+  return meta?`/api/store/${meta[0]}/${meta[1]}`:null;
+}
+async function loadRemoteStores(){
+  const keys=Object.keys(REMOTE_STORE_MAP);
+  await Promise.all(keys.map(async key=>{
+    try{
+      const r=await fetch(remoteStorePath(key),{signal:AbortSignal.timeout(3000)});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const d=await r.json();
+      REMOTE_STORE_CACHE[key]=d?.data;
+    }catch(_){
+      REMOTE_STORE_CACHE[key]=null;
+    }
+  }));
+}
+function persistRemoteStore(key,value){
+  REMOTE_STORE_CACHE[key]=value;
+  fetch(remoteStorePath(key),{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(value)
+  }).catch(()=>{});
+}
 function loadStore(key,fallback){
+  if(isRemoteStoreKey(key)){
+    const v=REMOTE_STORE_CACHE[key];
+    return v==null?fallback:v;
+  }
   try{
     const raw=localStorage.getItem(key);
     if(!raw)return fallback;
@@ -665,7 +806,20 @@ function loadStore(key,fallback){
   }catch(_){return fallback;}
 }
 function saveStore(key,value){
+  if(isRemoteStoreKey(key)){persistRemoteStore(key,value);return;}
   try{localStorage.setItem(key,JSON.stringify(value));}catch(_){}
+}
+function purgeLegacyBrowserState(){
+  let removed=0;
+  LEGACY_BROWSER_STATE_KEYS.forEach(key=>{
+    try{
+      if(localStorage.getItem(key)!==null){
+        localStorage.removeItem(key);
+        removed++;
+      }
+    }catch(_){}
+  });
+  if(removed)log('CLEARED LEGACY BROWSER AGENT/CHAIN STATE: '+removed+' KEY(S)','warn');
 }
 function normAgent(a){
   if(!a||typeof a!=='object')return null;
@@ -718,10 +872,34 @@ function hydrateSavedState(){
   S.pipeline=(loadStore(STORE_KEYS.pipeline,[])||[]).map(normStep).filter(Boolean);
   S.agentSets=(loadStore(STORE_KEYS.agentSets,[])||[]).map(s=>normSet(s,'agent')).filter(Boolean);
   S.chainSets=(loadStore(STORE_KEYS.chainSets,[])||[]).map(s=>normSet(s,'chain')).filter(Boolean);
+  S.vStore=(loadStore(STORE_KEYS.vectorStore,[])||[]).map(normVecChunk).filter(Boolean);
   renderAgents();renderPipe();renderSavedSets();
+  renderArchive();
   if(S.agents.length||S.pipeline.length||S.agentSets.length||S.chainSets.length){
     log('LOADED SAVED AGENTS/CHAIN','ok');
   }
+  if(S.vStore.length)log('LOADED ARCHIVE INDEX: '+S.vStore.length+' CHUNKS','ok');
+}
+function persistArchive(){saveStore(STORE_KEYS.vectorStore,S.vStore);}
+function normVecChunk(v){
+  if(!v||typeof v!=='object')return null;
+  if(!Array.isArray(v.embedding)||!v.embedding.length)return null;
+  const emb=v.embedding.map(n=>Number(n));
+  if(!emb.every(Number.isFinite))return null;
+  const file=String(v.filename||'').trim();
+  const text=String(v.text||'');
+  if(!file||!text)return null;
+  return {
+    id:String(v.id||rnd(10)),
+    filename:file,
+    filesize:Number(v.filesize)||0,
+    chunkIndex:Number(v.chunkIndex)||0,
+    totalChunks:Number(v.totalChunks)||1,
+    text,
+    embedding:emb,
+    addedAt:v.addedAt||new Date().toISOString(),
+    source:v.source||'file'
+  };
 }
 function pxNum(v,d){const n=parseFloat(v);return Number.isFinite(n)?n:d;}
 function getMainLayout(){
@@ -824,11 +1002,14 @@ function base(){
 document.getElementById('SID').textContent='SID: '+S.sid;
 setInterval(()=>{document.getElementById('CLK').textContent=new Date().toLocaleTimeString('en-US',{hour12:false})},1000);
 
-window.addEventListener('load',()=>{
+window.addEventListener('load',async ()=>{
   document.getElementById('URL').value=normBase(document.getElementById('URL').value)||LOCAL_OLLAMA_DEFAULT;
   loadMainLayout();
   initResizers();
+  purgeLegacyBrowserState();
+  await loadRemoteStores();
   hydrateSavedState();
+  await loadServerFiles();
   syncActionAvailability();
   log('BOOT OK','ok');log('SID: '+S.sid,'info');
   connect();setInterval(refreshGPU,5000);
@@ -903,8 +1084,8 @@ function syncActionAvailability(){
   const chainReady=chainPaneOpen&&S.pipeline.length>0;
   const ar=document.getElementById('ARB');
   const cr=document.getElementById('CRB');
-  if(ar)ar.disabled=!agentsReady;
-  if(cr)cr.disabled=!chainReady;
+  if(ar)ar.disabled=S.streaming||!agentsReady;
+  if(cr)cr.disabled=S.streaming||!chainReady;
 }
 async function loadModels(){
   log('SCANNING...');
@@ -982,7 +1163,22 @@ function selModel(n,quiet=false){
 }
 
 // ── TABS ─────────────────────────────────────────────
-function headTab(btn,t){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function headTab(btn,t){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  UI.head=t;
+  const archive=t==='archive';
+  document.getElementById('AVM').classList.toggle('active',archive);
+  document.getElementById('MSGS').style.display=archive?'none':'flex';
+  document.querySelector('#CP .cinput-area').style.display=archive?'none':'block';
+  document.querySelector('#CP .tbar').style.display=archive?'none':'block';
+  document.querySelector('#CP .spark-row').style.display=archive?'none':'flex';
+  if(archive)renderArchive();
+}
+function headTabByName(t){
+  const btn=document.querySelector('.tab-btn[data-tab="'+t+'"]');
+  if(btn)headTab(btn,t);
+}
 function lTab(btn,t){
   document.querySelectorAll('.ltab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   document.querySelectorAll('.lpane').forEach(p=>p.classList.remove('active'));
@@ -1028,6 +1224,96 @@ function pushTPS(t){
   requestAnimationFrame(drawSpark);
 }
 function setMeter(p){document.getElementById('TF').style.width=Math.min(p,100)+'%'}
+function getCtxNum(){
+  const raw=document.getElementById('CTX')?.value;
+  const n=parseInt(raw,10);
+  return Number.isFinite(n)&&n>0?n:4096;
+}
+function getFileCtxBudgetChars(){return Math.max(3000,getCtxNum()*FILE_CTX_CHAR_MULT);}
+function getScratchpadTailChars(){
+  const target=Math.floor(getCtxNum()*0.6);
+  const desired=Math.max(SCRATCHPAD_MIN_CHARS,Math.min(SCRATCHPAD_MAX_CHARS,target));
+  return Math.min(getFileCtxBudgetChars(),desired);
+}
+function tailText(text,maxChars){
+  const src=String(text||'');
+  if(src.length<=maxChars)return src;
+  return src.slice(-maxChars);
+}
+function ctxTerms(text,maxTerms=40){
+  const tokens=(String(text||'').toLowerCase().match(/[a-z0-9]{3,}/g)||[])
+    .filter(t=>!FILE_CTX_STOPWORDS.has(t));
+  return [...new Set(tokens)].slice(0,maxTerms);
+}
+function splitLongCtx(text,maxChars=FILE_CTX_CHUNK_CHARS){
+  const src=String(text||'').trim();
+  if(!src)return [];
+  if(src.length<=maxChars)return [src];
+  const out=[];let rest=src;
+  while(rest.length>maxChars){
+    let cut=rest.lastIndexOf('\n\n',maxChars);
+    if(cut<Math.floor(maxChars*0.6))cut=rest.lastIndexOf('. ',maxChars);
+    if(cut<Math.floor(maxChars*0.6))cut=rest.lastIndexOf(' ',maxChars);
+    if(cut<1)cut=maxChars;
+    const chunk=rest.slice(0,cut).trim();
+    if(chunk)out.push(chunk);
+    rest=rest.slice(cut).trim();
+  }
+  if(rest)out.push(rest);
+  return out;
+}
+function trimFileContext(fc,prompt,maxChars){
+  const raw=String(fc||'');
+  if(!raw||raw.length<=maxChars)return raw;
+  const blocks=raw.split(/\n\n(?=\[FILE:\s*[^\]]+\])/g).filter(Boolean);
+  const chunks=[];
+  blocks.forEach((block,bIndex)=>{
+    let head='[FILE: UNKNOWN]';
+    let body=String(block||'');
+    const hm=body.match(/^\[FILE:\s*[^\]]+\]/);
+    if(hm){head=hm[0];body=body.slice(hm[0].length).trim();}
+    const paras=body.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
+    const source=paras.length?paras:[body.trim()].filter(Boolean);
+    source.forEach((p,pIndex)=>{
+      splitLongCtx(p).forEach((piece,cIndex)=>{
+        chunks.push({head,text:piece,bIndex,pIndex,cIndex});
+      });
+    });
+  });
+  if(!chunks.length)return raw.slice(0,maxChars);
+  const qTerms=ctxTerms(prompt,48);
+  const scored=chunks.map((chunk,idx)=>{
+    if(!qTerms.length)return {...chunk,score:0,idx};
+    const chunkTerms=new Set(ctxTerms(chunk.text,80));
+    let overlap=0;
+    qTerms.forEach(term=>{if(chunkTerms.has(term))overlap++;});
+    return {...chunk,score:overlap,idx};
+  });
+  const ranked=qTerms.length
+    ? scored.sort((a,b)=>b.score-a.score||a.bIndex-b.bIndex||a.pIndex-b.pIndex||a.idx-b.idx)
+    : scored;
+  const picked=[];let used=0;
+  for(const item of ranked){
+    const block=`${item.head}\n${item.text}`;
+    const extra=(picked.length?2:0)+block.length;
+    if(used+extra>maxChars)continue;
+    if(qTerms.length&&item.score===0&&used>Math.floor(maxChars*0.65))continue;
+    picked.push(block);
+    used+=extra;
+    if(used>=Math.floor(maxChars*0.98))break;
+  }
+  if(!picked.length){
+    let seqUsed=0;
+    for(const item of chunks){
+      const block=`${item.head}\n${item.text}`;
+      const extra=(picked.length?2:0)+block.length;
+      if(seqUsed+extra>maxChars)break;
+      picked.push(block);
+      seqUsed+=extra;
+    }
+  }
+  return picked.join('\n\n').trim();
+}
 
 // ── ANALYST CONSOLE ───────────────────────────────────
 function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px'}
@@ -1038,15 +1324,73 @@ function onKey(e){
   if((e.ctrlKey||e.metaKey)&&e.key==='g'){e.preventDefault();openGraph();}
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>').replace(/ {2}/g,'&nbsp;&nbsp;')}
-function activeFilesCtx(){
-  return S.files
-    .filter(f=>f.active)
-    .map(f=>`[FILE: ${f.name}]\n${f.content}`)
-    .join('\n\n');
+function toB64(bytes){
+  let out='';const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk){
+    out+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  }
+  return btoa(out);
 }
-function withFilesCtx(prompt){
-  const fc=activeFilesCtx();
-  return fc?fc+'\n\n'+prompt:prompt;
+async function loadServerFiles(){
+  try{
+    const r=await fetch(SERVER_FILE_APIS.list,{signal:AbortSignal.timeout(3000)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const files=Array.isArray(d.files)?d.files:[];
+    const activeIds=new Set(S.files.filter(f=>f.active).map(f=>f.id));
+    S.files=files.map(f=>({
+      id:f.id,name:f.name,size:f.size||0,ext:f.ext||'',chars:f.chars||0,active:activeIds.has(f.id)
+    }));
+    renderFiles();
+    if(UI.head==='archive')renderArchive();
+  }catch(_){}
+}
+function isAbortErr(e){
+  return !!(e&&((e.name&&e.name==='AbortError')||String(e.message||'').toLowerCase().includes('aborted')));
+}
+async function withRunGuard(label,task){
+  if(S.streaming){toast('RUN ALREADY ACTIVE','warn');return;}
+  const ctl=new AbortController();
+  S.abort=ctl;
+  S.stopRequested=false;
+  setStream(true);
+  try{
+    return await task(ctl.signal);
+  }catch(e){
+    if(isAbortErr(e)){log(label+' STOPPED','warn');return;}
+    throw e;
+  }finally{
+    if(S.abort===ctl)S.abort=null;
+    S.stopRequested=false;
+    setStream(false);
+    setMeter(0);
+  }
+}
+async function withFilesCtx(prompt,signal){
+  const ids=S.files.filter(f=>f.active).map(f=>f.id);
+  if(!ids.length)return prompt;
+  try{
+    const r=await fetch(SERVER_FILE_APIS.context,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ids}),
+      ...(signal?{signal}:{})
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const fc=String(d.context||'');
+    if(!fc)return prompt;
+    const budget=getFileCtxBudgetChars();
+    const trimmed=trimFileContext(fc,prompt,budget);
+    if(trimmed&&trimmed.length<fc.length){
+      log(`FILE CONTEXT TRIMMED ${fc.length} → ${trimmed.length} CHARS (CTX ${getCtxNum()})`,'warn');
+    }
+    return trimmed?trimmed+'\n\n'+prompt:prompt;
+  }catch(e){
+    if(isAbortErr(e))throw e;
+    toast('FILE CONTEXT LOAD FAILED','err');
+    return prompt;
+  }
 }
 
 function addMsgEl(role,content,tag='',extra=''){
@@ -1058,7 +1402,9 @@ function addMsgEl(role,content,tag='',extra=''){
   const el=document.createElement('div');
   el.className='msg '+cls;el.id=id;
   el.innerHTML=`<div class="mav">${av}</div><div class="mcontent"><div class="mhdr">${tag?`<span class="mtag">${tag}</span>`:''}<span class="mtime">${t}</span></div><div class="mbubble" id="${id}-b">${esc(content)}</div></div>`;
-  chat.appendChild(el);chat.scrollTop=9e9;return id;
+  chat.appendChild(el);chat.scrollTop=9e9;
+  if(UI.head==='archive')archiveRenderTimeline();
+  return id;
 }
 function showThink(){
   const chat=document.getElementById('MSGS');
@@ -1069,68 +1415,75 @@ function showThink(){
 }
 
 async function send(){
-  if(S.streaming)return;
   if(!canSendSingleModel()){toast('SELECT EXACTLY 1 MODEL FOR SEND','err');return;}
   const inp=document.getElementById('CI');
   const p=inp.value.trim();if(!p)return;
-  inp.value='';inp.style.height='auto';
-  const full=withFilesCtx(p);
-  S.msgs.push({role:'user',content:full});
-  addMsgEl('user',p);
-  addNode(p.substr(0,28)+'...','prompt');
-  addEdge(S.active,p.substr(0,28)+'...','PROMPT');
-  const tk=showThink();
-  setStream(true);setMeter(4);
-  const sys=document.getElementById('SYS').value;
-  const msgs=sys?[{role:'system',content:sys},...S.msgs]:[...S.msgs];
-  const seed=parseInt(document.getElementById('SEED').value);
-  const params={
-    model:S.active,messages:msgs,
-    stream:document.getElementById('ST').value==='true',
-    options:{temperature:parseFloat(document.getElementById('TI').value)||0.7,num_ctx:parseInt(document.getElementById('CTX').value),...(seed>=0?{seed}:{})}
-  };
-  if(document.getElementById('FMT').value==='json')params.format='json';
-  log('INFERENCE → '+S.active);
-  const t0=performance.now();let out='';
-  try{
-    S.abort=new AbortController();
-    const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params),signal:S.abort.signal});
-    if(!res.ok)throw new Error('HTTP '+res.status+': '+await res.text());
-    document.getElementById(tk)?.remove();
-    const mid=addMsgEl('assistant','',S.active);
-    const bub=document.getElementById(mid+'-b');
-    if(params.stream){
-      const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0;
-      const ctxN=parseInt(document.getElementById('CTX').value);
-      while(true){
-        const{done,value}=await rd.read();if(done)break;
-        buf+=dc.decode(value,{stream:true});
-        const ls=buf.split('\n');buf=ls.pop();
-        for(const line of ls){
-          if(!line.trim())continue;
-          try{const j=JSON.parse(line);
-            if(j.message?.content){out+=j.message.content;bub.innerHTML=esc(out);document.getElementById('MSGS').scrollTop=9e9;n++;setMeter(Math.min((n/ctxN)*2000,94));}
-            if(j.done&&j.eval_count){const el=(performance.now()-t0)/1000;const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
-          }catch(_){}
+  await withRunGuard('ANALYST',async runSignal=>{
+    inp.value='';inp.style.height='auto';
+    const full=await withFilesCtx(p,runSignal);
+    S.msgs.push({role:'user',content:full});
+    addMsgEl('user',p);
+    addNode(p.substr(0,28)+'...','prompt');
+    addEdge(S.active,p.substr(0,28)+'...','PROMPT');
+    const tk=showThink();
+    setMeter(4);
+    const sys=document.getElementById('SYS').value;
+    const msgs=sys?[{role:'system',content:sys},...S.msgs]:[...S.msgs];
+    const seed=parseInt(document.getElementById('SEED').value);
+    const params={
+      model:S.active,messages:msgs,
+      stream:document.getElementById('ST').value==='true',
+      options:{temperature:parseFloat(document.getElementById('TI').value)||0.7,num_ctx:getCtxNum(),...(seed>=0?{seed}:{})}
+    };
+    if(document.getElementById('FMT').value==='json')params.format='json';
+    log('INFERENCE → '+S.active);
+    const t0=performance.now();let out='';
+    try{
+      const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params),signal:runSignal});
+      if(!res.ok)throw new Error('HTTP '+res.status+': '+await res.text());
+      document.getElementById(tk)?.remove();
+      const mid=addMsgEl('assistant','',S.active);
+      const bub=document.getElementById(mid+'-b');
+      if(params.stream){
+        const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0;
+        const ctxN=getCtxNum();
+        while(true){
+          const{done,value}=await rd.read();if(done)break;
+          buf+=dc.decode(value,{stream:true});
+          const ls=buf.split('\n');buf=ls.pop();
+          for(const line of ls){
+            if(!line.trim())continue;
+            try{const j=JSON.parse(line);
+              if(j.message?.content){out+=j.message.content;bub.innerHTML=esc(out);document.getElementById('MSGS').scrollTop=9e9;n++;setMeter(Math.min((n/ctxN)*2000,94));}
+              if(j.done&&j.eval_count){const el=(performance.now()-t0)/1000;const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
+            }catch(_){}
+          }
         }
+      }else{
+        const j=await res.json();out=j.message?.content||'';bub.innerHTML=esc(out);
+        const el=(performance.now()-t0)/1000;
+        if(j.eval_count){const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
       }
-    }else{
-      const j=await res.json();out=j.message?.content||'';bub.innerHTML=esc(out);
-      const el=(performance.now()-t0)/1000;
-      if(j.eval_count){const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
+      S.msgs.push({role:'assistant',content:out});S.stats.turns++;updStats();
+      setMeter(100);setTimeout(()=>setMeter(0),700);
+      S.scratch+='\n['+S.active+']: '+out;
+      extractEnt(out);
+    }catch(e){
+      document.getElementById(tk)?.remove();
+      if(!isAbortErr(e)){addMsgEl('assistant','⚠ ERROR: '+e.message);log('ERROR: '+e.message,'err');toast('INFERENCE ERROR','err');}
+      else log('STOPPED','warn');
     }
-    S.msgs.push({role:'assistant',content:out});S.stats.turns++;updStats();
-    setMeter(100);setTimeout(()=>setMeter(0),700);
-    S.scratch+='\n['+S.active+']: '+out;
-    extractEnt(out);
-  }catch(e){
-    document.getElementById(tk)?.remove();
-    if(e.name!=='AbortError'){addMsgEl('assistant','⚠ ERROR: '+e.message);log('ERROR: '+e.message,'err');toast('INFERENCE ERROR','err');}
-    else log('STOPPED','warn');
-  }finally{setStream(false);setMeter(0);}
+  });
 }
 
-function stopStream(){if(S.abort){S.abort.abort();log('STOP SIGNAL','warn');}}
+function stopStream(){
+  if(S.abort&&!S.abort.signal.aborted){
+    S.stopRequested=true;
+    S.abort.abort();
+    log('STOP SIGNAL','warn');
+    toast('STOP REQUESTED','warn');
+  }
+}
 function setStream(v){
   S.streaming=v;
   syncActionAvailability();
@@ -1144,6 +1497,22 @@ function updStats(){
   document.getElementById('STI').textContent=S.stats.tokIn;
   document.getElementById('STO').textContent=S.stats.tokOut;
 }
+function recordRunStats(donePayload,startMs,label){
+  const evalCount=Number(donePayload?.eval_count)||0;
+  const promptEval=Number(donePayload?.prompt_eval_count)||0;
+  if(evalCount>0){
+    const elapsed=Math.max((performance.now()-startMs)/1000,0.001);
+    const tps=evalCount/elapsed;
+    pushTPS(tps);
+    S.stats.tokOut+=evalCount;
+    S.stats.tokIn+=promptEval;
+    log(`${label} — ${evalCount} tok @ ${tps.toFixed(1)} t/s`,'ok');
+  }else{
+    log(label,'ok');
+  }
+  S.stats.turns++;
+  updStats();
+}
 
 // ── PARALLEL ─────────────────────────────────────────
 async function runPar(){
@@ -1151,30 +1520,52 @@ async function runPar(){
   if(!mods.length){toast('CHECK MODELS FIRST','err');return;}
   const p=document.getElementById('CI').value.trim();
   if(!p){toast('ENTER A PROMPT FIRST','err');return;}
-  document.getElementById('CI').value='';
-  const full=withFilesCtx(p);
-  S.msgs.push({role:'user',content:full});addMsgEl('user',p);
-  log('PARALLEL: '+mods.join(', '),'warn');toast('PARALLEL: '+mods.length+' MODELS');
-  await Promise.all(mods.map(m=>parModel(m,p)));
-  log('PARALLEL COMPLETE','ok');
+  await withRunGuard('PARALLEL',async runSignal=>{
+    document.getElementById('CI').value='';
+    const full=await withFilesCtx(p,runSignal);
+    S.msgs.push({role:'user',content:full});addMsgEl('user',p);
+    log('PARALLEL: '+mods.join(', '),'warn');toast('PARALLEL: '+mods.length+' MODELS');
+    await Promise.all(mods.map(m=>parModel(m,runSignal)));
+    if(runSignal.aborted||S.stopRequested){log('PARALLEL STOPPED','warn');toast('PARALLEL STOPPED','warn');return;}
+    log('PARALLEL COMPLETE','ok');
+  });
 }
-async function parModel(model,prompt){
+async function parModel(model,runSignal){
   log('PARALLEL → '+model,'info');
   const sys=document.getElementById('SYS').value;
   const msgs=sys?[{role:'system',content:sys},...S.msgs]:[...S.msgs];
   const mid=addMsgEl('assistant','',model,'parallel');
   const bub=document.getElementById(mid+'-b');let out='';
+  const t0=performance.now();
   try{
     const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:msgs,stream:true,options:{temperature:parseFloat(document.getElementById('TI').value)||0.7}})});
+      body:JSON.stringify({model,messages:msgs,stream:true,options:{temperature:parseFloat(document.getElementById('TI').value)||0.7,num_ctx:getCtxNum()}}),signal:runSignal});
     if(!res.ok)throw new Error('HTTP '+res.status);
-    const rd=res.body.getReader();const dc=new TextDecoder();let buf='';
+    const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0,statsDone=false;
+    const ctxN=getCtxNum();
     while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
       const ls=buf.split('\n');buf=ls.pop();
-      for(const l of ls){try{const j=JSON.parse(l);if(j.message?.content){out+=j.message.content;bub.innerHTML=esc(out);document.getElementById('MSGS').scrollTop=9e9;}}catch(_){}}
+      for(const l of ls){try{
+        const j=JSON.parse(l);
+        if(j.message?.content){
+          out+=j.message.content;
+          bub.innerHTML=esc(out);
+          document.getElementById('MSGS').scrollTop=9e9;
+          n++;
+          setMeter(Math.min((n/ctxN)*2000,94));
+        }
+        if(j.done&&!statsDone){
+          recordRunStats(j,t0,'PAR '+model+' DONE');
+          statsDone=true;
+        }
+      }catch(_){}}
     }
-    log('PAR '+model+' DONE','ok');extractEnt(out,model);
-  }catch(e){bub.innerHTML='⚠ '+e.message;log('PAR '+model+' ERR: '+e.message,'err');}
+    if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'PAR '+model+' DONE');
+    extractEnt(out,model);
+  }catch(e){
+    if(isAbortErr(e)||runSignal?.aborted){bub.innerHTML='⏹ STOPPED';log('PAR '+model+' STOPPED','warn');return;}
+    bub.innerHTML='⚠ '+e.message;log('PAR '+model+' ERR: '+e.message,'err');
+  }
 }
 
 // ── FILES ─────────────────────────────────────────────
@@ -1183,31 +1574,36 @@ async function onDrop(e){e.preventDefault();document.getElementById('DZ').classL
 
 async function ingest(file){
   const ext=file.name.split('.').pop().toLowerCase();
-  let content='';
-  log('INGESTING: '+file.name,'info');
+  if(!['txt','md','pdf','docx'].includes(ext)){toast('UNSUPPORTED: .'+ext,'err');return;}
+  log('UPLOADING: '+file.name,'info');
   try{
-    if(ext==='txt'||ext==='md'){content=await file.text();}
-    else if(ext==='pdf'){content=await readPDF(file);}
-    else if(ext==='docx'){content=await readDOCX(file);}
-    else{toast('UNSUPPORTED: .'+ext,'err');return;}
-    S.files.push({id:rnd(6),name:file.name,size:file.size,ext,content,active:true});
-    renderFiles();log('LOADED + ACTIVE: '+file.name+' ('+content.length+' chars)','ok');toast('LOADED + ACTIVE: '+file.name,'ok');
+    const bytes=new Uint8Array(await file.arrayBuffer());
+    const r=await fetch(SERVER_FILE_APIS.upload,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:file.name,data_b64:toB64(bytes)})
+    });
+    let payload=null;
+    try{payload=await r.json();}catch(_){}
+    if(!r.ok)throw new Error(payload?.error||('HTTP '+r.status));
+    const entry=payload?.entry||{};
+    S.files.push({
+      id:String(entry.id||rnd(6)),
+      name:String(entry.name||file.name),
+      size:Number(entry.size)||file.size||0,
+      ext:String(entry.ext||ext),
+      chars:Number(entry.chars)||0,
+      active:true
+    });
+    renderFiles();
+    log('STORED + ACTIVE: '+file.name+' ('+(Number(entry.chars)||0)+' chars)','ok');
+    toast('STORED + ACTIVE: '+file.name,'ok');
+    if(UI.head==='archive')renderArchive();
     addNode(file.name,'file');
-  }catch(e){log('INGEST FAIL '+file.name+': '+e.message,'err');toast('FAILED: '+file.name,'err');}
-}
-async function readPDF(file){
-  const buf=await file.arrayBuffer();
-  const str=new TextDecoder('latin1').decode(new Uint8Array(buf));
-  const blocks=str.match(/BT[\s\S]*?ET/g)||[];
-  let t='';
-  for(const b of blocks){const pts=b.match(/\(([^)]*)\)\s*Tj/g)||[];for(const p of pts)t+=p.replace(/^\(/,'').replace(/\)\s*Tj$/,'')+' ';}
-  return t.trim()||'[PDF: basic extraction — server-side parser recommended for complex docs]';
-}
-async function readDOCX(file){
-  const buf=await file.arrayBuffer();
-  const str=new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(buf));
-  const parts=str.match(/<w:t[^>]*>([^<]*)<\/w:t>/g)||[];
-  return parts.map(x=>x.replace(/<[^>]+>/g,'')).join(' ').trim()||'[DOCX: basic extraction]';
+  }catch(e){
+    log('UPLOAD FAIL '+file.name+': '+e.message,'err');
+    toast('FAILED: '+file.name,'err');
+  }
 }
 function renderFiles(){
   const fl=document.getElementById('FL');
@@ -1215,13 +1611,338 @@ function renderFiles(){
   fl.innerHTML=S.files.map(f=>`
     <div class="fitem">
       <div class="ficon">${icons[f.ext]||'📄'}</div>
-      <div class="finfo"><div class="fname">${f.name}</div><div class="fmeta">${(f.size/1024).toFixed(1)}KB · ${f.content.length}ch</div></div>
+      <div class="finfo"><div class="fname">${f.name}</div><div class="fmeta">${(f.size/1024).toFixed(1)}KB · ${Number(f.chars||0)}ch</div></div>
       <button class="fibtn" onclick="togFile('${f.id}',this)" style="${f.active?'border-color:var(--amber-dim);color:var(--amber-dim)':''}">${f.active?'ACTIVE':'INJECT'}</button>
       <button class="fibtn" onclick="rmFile('${f.id}')" style="border-color:var(--danger);color:var(--danger)">✕</button>
     </div>`).join('');
 }
 function togFile(id,btn){const f=S.files.find(x=>x.id===id);if(!f)return;f.active=!f.active;btn.textContent=f.active?'ACTIVE':'INJECT';btn.style=f.active?'border-color:var(--amber-dim);color:var(--amber-dim)':'';log('FILE '+(f.active?'ACTIVE':'OFF')+': '+f.name,f.active?'ok':'warn');toast(f.name+(f.active?' ACTIVE':' OFF'));}
-function rmFile(id){S.files=S.files.filter(x=>x.id!==id);renderFiles();}
+async function rmFile(id){
+  const f=S.files.find(x=>x.id===id);
+  if(!f)return;
+  try{
+    const r=await fetch(SERVER_FILE_APIS.remove,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id})
+    });
+    if(!r.ok){
+      let msg='HTTP '+r.status;
+      try{const d=await r.json();if(d?.error)msg=d.error;}catch(_){}
+      throw new Error(msg);
+    }
+    S.files=S.files.filter(x=>x.id!==id);
+    renderFiles();
+    if(UI.head==='archive')renderArchive();
+    log('DELETED FILE: '+f.name,'warn');
+    toast('DELETED: '+f.name,'ok');
+  }catch(e){
+    log('DELETE FAIL '+f.name+': '+e.message,'err');
+    toast('DELETE FAILED: '+f.name,'err');
+    loadServerFiles();
+  }
+}
+
+// ── ARCHIVE / VECTOR STORE ───────────────────────────
+function archiveChunkText(text,size=ARCHIVE_CHUNK_SIZE,overlap=ARCHIVE_CHUNK_OVERLAP){
+  const safeSize=Math.max(120,Math.floor(Number(size)||ARCHIVE_CHUNK_SIZE));
+  const safeOverlap=Math.max(0,Math.min(Math.floor(Number(overlap)||0),safeSize-1));
+  const step=Math.max(1,safeSize-safeOverlap);
+  const words=String(text||'').split(/\s+/).filter(Boolean);
+  const out=[];
+  const splitByChars=(chunk,maxChars=ARCHIVE_CHUNK_MAX_CHARS)=>{
+    const parts=[];
+    let s=String(chunk||'').trim();
+    while(s.length>maxChars){
+      let cut=s.lastIndexOf(' ',maxChars);
+      if(cut<Math.floor(maxChars*0.6))cut=maxChars;
+      const head=s.slice(0,cut).trim();
+      if(head)parts.push(head);
+      s=s.slice(cut).trim();
+    }
+    if(s)parts.push(s);
+    return parts;
+  };
+  for(let i=0;i<words.length;i+=step){
+    const chunk=words.slice(i,i+safeSize).join(' ').trim();
+    if(!chunk)continue;
+    splitByChars(chunk).forEach(p=>out.push(p));
+  }
+  return out;
+}
+function archiveCosine(a,b){
+  if(!Array.isArray(a)||!Array.isArray(b)||!a.length||a.length!==b.length)return -1;
+  let dot=0,na=0,nb=0;
+  for(let i=0;i<a.length;i++){dot+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}
+  return dot/(Math.sqrt(na)*Math.sqrt(nb)+1e-10);
+}
+async function archiveEmbed(text){
+  const q=String(text||'').trim();
+  if(!q)throw new Error('EMPTY INPUT');
+  const b=base();
+  const parseErr=t=>{
+    try{const j=JSON.parse(t);return j?.error||t;}catch(_){return t||'UNKNOWN ERROR';}
+  };
+  const tryEndpoint=async (path,body,kind)=>{
+    const r=await fetch(b+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){
+      const t=await r.text();
+      throw new Error(kind+' HTTP '+r.status+': '+parseErr(t));
+    }
+    const d=await r.json();
+    const vec=Array.isArray(d.embeddings)?d.embeddings[0]:d.embedding;
+    if(!Array.isArray(vec)||!vec.length)throw new Error(kind+' EMPTY EMBEDDING');
+    return vec.map(Number);
+  };
+  const run=async input=>{
+    try{return await tryEndpoint('/api/embed',{model:ARCHIVE_EMBED_MODEL,input},'/api/embed');}
+    catch(e1){
+      try{return await tryEndpoint('/api/embeddings',{model:ARCHIVE_EMBED_MODEL,prompt:input},'/api/embeddings');}
+      catch(e2){throw e2?.message?new Error(e2.message):e1;}
+    }
+  };
+  try{
+    return await run(q);
+  }catch(e){
+    const msg=String(e?.message||'');
+    if(msg.toLowerCase().includes('input length exceeds the context length')&&q.length>ARCHIVE_CHUNK_MAX_CHARS){
+      const trimmed=q.slice(0,ARCHIVE_CHUNK_MAX_CHARS).trim();
+      if(trimmed&&trimmed!==q)return await run(trimmed);
+    }
+    throw e;
+  }
+}
+async function archiveQueueActiveFiles(){
+  const ids=S.files.filter(f=>f.active).map(f=>f.id);
+  if(!ids.length){toast('NO ACTIVE FILES TO QUEUE','err');return;}
+  try{
+    const r=await fetch(SERVER_FILE_APIS.read,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ids})
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const docs=Array.isArray(d.docs)?d.docs:[];
+    if(!docs.length){toast('NO FILE CONTENT FOUND','err');return;}
+    let added=0;
+    docs.forEach(doc=>{
+      if(!String(doc.text||'').trim())return;
+      if(S.vQueue.some(q=>q.fileId===doc.id))return;
+      S.vQueue.push({
+        id:rnd(8),
+        fileId:String(doc.id||''),
+        name:String(doc.name||'file'),
+        size:Number(doc.size)||Number(doc.chars)||0,
+        text:String(doc.text||''),
+        source:'file'
+      });
+      added++;
+    });
+    renderArchive();
+    if(added){log('ARCHIVE QUEUED '+added+' FILE(S)','ok');toast('QUEUED '+added+' FILE(S)','ok');}
+    else toast('FILES ALREADY QUEUED','warn');
+  }catch(e){
+    log('ARCHIVE QUEUE FAIL: '+e.message,'err');
+    toast('QUEUE FAILED','err');
+  }
+}
+async function archiveIndexDoc(doc){
+  const name=String(doc?.name||'').trim();
+  const text=String(doc?.text||'');
+  if(!name||!text.trim())throw new Error('EMPTY DOC');
+  const chunks=archiveChunkText(text);
+  if(!chunks.length)throw new Error('NO CHUNKS');
+  S.vStore=S.vStore.filter(c=>!(c.filename===name&&c.source===doc.source));
+  for(let i=0;i<chunks.length;i++){
+    const embedding=await archiveEmbed(chunks[i]);
+    S.vStore.push({
+      id:rnd(12),
+      filename:name,
+      filesize:Number(doc.size)||text.length,
+      chunkIndex:i,
+      totalChunks:chunks.length,
+      text:chunks[i],
+      embedding,
+      addedAt:new Date().toISOString(),
+      source:doc.source||'file'
+    });
+  }
+}
+async function archiveIndexQueue(){
+  if(S.vIndexing)return;
+  if(!S.vQueue.length){toast('ARCHIVE QUEUE EMPTY','err');return;}
+  S.vIndexing=true;renderArchive();
+  log('ARCHIVE INDEX START: '+S.vQueue.length+' ITEM(S)','warn');
+  while(S.vQueue.length){
+    const doc=S.vQueue.shift();
+    try{
+      await archiveIndexDoc(doc);
+      log('ARCHIVE INDEXED: '+doc.name,'ok');
+    }catch(e){
+      log('ARCHIVE INDEX FAIL '+doc.name+': '+e.message,'err');
+      toast('ARCHIVE FAIL: '+doc.name,'err');
+    }
+    renderArchive();
+  }
+  persistArchive();
+  S.vIndexing=false;
+  renderArchive();
+  toast('ARCHIVE INDEX COMPLETE','ok');
+}
+async function archiveAddLastAssistant(){
+  const last=S.msgs.filter(m=>m.role==='assistant').pop();
+  if(!last||!String(last.content||'').trim()){toast('NO ASSISTANT OUTPUT TO ARCHIVE','err');return;}
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  const model=(S.active||'model').replace(/[^a-zA-Z0-9._-]/g,'_');
+  const name='analyst_'+model+'_'+stamp+'.txt';
+  S.vIndexing=true;renderArchive();
+  try{
+    await archiveIndexDoc({name,size:last.content.length,text:last.content,source:'analyst'});
+    persistArchive();
+    renderArchive();
+    toast('ADDED TO ARCHIVE','ok');
+    log('ARCHIVE ADDED ANALYST OUTPUT','ok');
+  }catch(e){
+    toast('ARCHIVE ADD FAILED','err');
+    log('ARCHIVE ADD FAIL: '+e.message,'err');
+  }finally{
+    S.vIndexing=false;renderArchive();
+  }
+}
+function archiveRenderFiles(){
+  const el=document.getElementById('AVFILES');if(!el)return;
+  const byFile={};
+  S.vStore.forEach(c=>{
+    if(!byFile[c.filename])byFile[c.filename]={name:c.filename,size:c.filesize,chunks:0,source:c.source};
+    byFile[c.filename].chunks++;
+  });
+  const rows=[
+    ...Object.values(byFile).map(f=>({...f,state:'INDEXED'})),
+    ...S.vQueue.map(q=>({name:q.name,size:q.size,chunks:'—',source:q.source,state:'QUEUED'}))
+  ];
+  if(!rows.length){el.innerHTML='<div class="av-empty">NO ARCHIVE FILES INDEXED</div>';return;}
+  el.innerHTML=rows.map(r=>`
+    <div class="av-item">
+      <div class="av-name">${esc(r.name)}</div>
+      <div class="av-meta">${(Number(r.size||0)/1024).toFixed(1)}KB · ${r.chunks} chunks · ${r.state} · ${String(r.source||'file').toUpperCase()}</div>
+    </div>`).join('');
+}
+function archiveRenderTimeline(){
+  const el=document.getElementById('AVTL');if(!el)return;
+  const events=collectTranscript().filter(x=>x.role!=='SYSTEM').slice(-18).reverse();
+  if(!events.length){el.innerHTML='<div class="av-empty">NO SESSION EVENTS YET</div>';return;}
+  el.innerHTML=events.map((ev,i)=>`
+    <div class="av-item">
+      <div class="av-name">${esc((ev.mode||'EVENT')+' · '+(ev.tag||ev.role))}</div>
+      <div class="av-meta">${esc(ev.time||'--:--:--')}</div>
+      <div class="av-snippet">${esc((ev.content||'').slice(0,180))}${(ev.content||'').length>180?'...':''}</div>
+      <div class="av-actions"><button class="abtn2" onclick="archiveFindRelated(${i})">FIND RELATED</button></div>
+    </div>`).join('');
+}
+function archiveRenderResults(results=[],query=''){
+  const el=document.getElementById('AVRES');if(!el)return;
+  if(!results.length){
+    el.innerHTML='<div class="av-empty">'+(query?'NO RESULTS FOR "'+esc(query)+'"':'RUN AN ARCHIVE QUERY TO SEE MATCHES')+'</div>';
+    return;
+  }
+  el.innerHTML=results.map((r,i)=>{
+    const pct=Math.max(0,Math.min(100,Math.round(r.score*100)));
+    return `<div class="av-card">
+      <div class="av-head"><div class="av-name">${i+1}. ${esc(r.filename)}</div><div class="av-score">${pct}%</div></div>
+      <div class="av-meta">chunk ${r.chunkIndex+1}/${r.totalChunks} · ${esc(String(r.source||'file').toUpperCase())}</div>
+      <div class="av-snippet">${esc(r.text.slice(0,320))}${r.text.length>320?'...':''}</div>
+    </div>`;
+  }).join('');
+}
+async function archiveRunSearch(forcedQuery=''){
+  const q=(forcedQuery||document.getElementById('AVQ').value||'').trim();
+  if(!q){toast('ENTER ARCHIVE QUERY','err');return;}
+  if(!S.vStore.length){toast('ARCHIVE INDEX EMPTY','err');return;}
+  try{
+    const qEmb=await archiveEmbed(q);
+    const topK=parseInt(document.getElementById('AVTOPK').value||'10',10);
+    const min=parseFloat(document.getElementById('AVMIN').value||'0');
+    const grouped=document.getElementById('AVGBY').value==='1';
+    let scored=S.vStore.map(c=>({...c,score:archiveCosine(qEmb,c.embedding)}))
+      .filter(c=>Number.isFinite(c.score)&&c.score>=min)
+      .sort((a,b)=>b.score-a.score);
+    if(grouped){
+      const best={};
+      scored.forEach(c=>{if(!best[c.filename]||c.score>best[c.filename].score)best[c.filename]=c;});
+      scored=Object.values(best).sort((a,b)=>b.score-a.score);
+    }
+    S.vLastResults=scored.slice(0,topK);
+    archiveRenderResults(S.vLastResults,q);
+    log('ARCHIVE QUERY "'+q+'" → '+S.vLastResults.length+' RESULT(S)','ok');
+  }catch(e){
+    log('ARCHIVE SEARCH FAIL: '+e.message,'err');
+    toast('ARCHIVE SEARCH FAILED','err');
+  }
+}
+function searchArchiveFromConsole(){
+  const q=(document.getElementById('CI').value||'').trim()||prompt('ARCHIVE QUERY:','')||'';
+  if(!q.trim())return;
+  headTabByName('archive');
+  document.getElementById('AVQ').value=q.trim();
+  archiveRunSearch(q.trim());
+}
+function archiveFindRelated(i){
+  const events=collectTranscript().filter(x=>x.role!=='SYSTEM').slice(-18).reverse();
+  const ev=events[i];
+  if(!ev)return;
+  const q=(ev.tag?ev.tag+' ':'')+String(ev.content||'').slice(0,220);
+  headTabByName('archive');
+  document.getElementById('AVQ').value=q;
+  archiveRunSearch(q);
+}
+function archiveExport(){
+  if(!S.vStore.length){toast('ARCHIVE EMPTY','err');return;}
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(S.vStore)],{type:'application/json'}));
+  a.download='amber_archive_'+S.sid+'_'+Date.now()+'.json';
+  a.click();
+  toast('ARCHIVE EXPORTED','ok');
+}
+function archiveImport(ev){
+  const file=ev.target.files?.[0];
+  if(!file)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const arr=(JSON.parse(rd.result)||[]).map(normVecChunk).filter(Boolean);
+      let add=0;
+      arr.forEach(c=>{if(!S.vStore.find(x=>x.id===c.id)){S.vStore.push(c);add++;}});
+      persistArchive();
+      renderArchive();
+      toast('IMPORTED '+add+' CHUNKS','ok');
+      log('ARCHIVE IMPORTED '+add+' CHUNKS','ok');
+    }catch(_){toast('IMPORT FAILED','err');}
+  };
+  rd.readAsText(file);
+  ev.target.value='';
+}
+function archiveClear(){
+  if(!confirm('CLEAR ENTIRE ARCHIVE INDEX?'))return;
+  S.vStore=[];S.vQueue=[];S.vLastResults=[];
+  persistArchive();
+  renderArchive();
+  toast('ARCHIVE CLEARED','warn');
+}
+function renderArchive(){
+  const docs=new Set(S.vStore.map(c=>c.filename)).size;
+  const dims=S.vStore.find(c=>Array.isArray(c.embedding)&&c.embedding.length)?.embedding?.length||'—';
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('AVDOCS',docs);
+  set('AVCHUNKS',S.vStore.length);
+  set('AVDIMS',dims);
+  set('AVQUEUE',S.vQueue.length);
+  const idx=document.getElementById('AVINDEX');
+  if(idx)idx.disabled=S.vIndexing||!S.vQueue.length;
+  archiveRenderFiles();
+  archiveRenderTimeline();
+  archiveRenderResults(S.vLastResults,document.getElementById('AVQ')?.value||'');
+}
 
 // ── AGENTS ────────────────────────────────────────────
 function saveAgent(){
@@ -1339,33 +2060,82 @@ function delAgentSet(){
   persistAgentSets();renderSavedSets();
   log('AGENT SET DELETED: '+set.name,'warn');toast('AGENT SET DELETED');
 }
-async function runAgent(id){
-  const a=S.agents.find(x=>x.id===id);if(!a)return;
-  log('AGENT RUN: '+a.name,'info');a.status='running';renderAgents();
-  const input=document.getElementById('CI').value.trim()||S.scratch.slice(-400)||'Begin.';
-  const inputFull=withFilesCtx(input);
-  const msgs=[...(a.system?[{role:'system',content:a.system}]:[]),{role:'user',content:inputFull}];
-  addMsgEl('sys','[AGENT: '+a.name+'] → '+a.model,a.name,'sys');
-  try{
-    const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:0.7}})});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const mid=addMsgEl('assistant','',a.model);const bub=document.getElementById(mid+'-b');
-    const rd=res.body.getReader();const dc=new TextDecoder();let buf='',out='';
-    while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
-      const ls=buf.split('\n');buf=ls.pop();
-      for(const l of ls){try{const j=JSON.parse(l);if(j.message?.content){out+=j.message.content;bub.innerHTML=esc(out);document.getElementById('MSGS').scrollTop=9e9;}}catch(_){}}
+async function runAgent(id,runSignal){
+  const execAgent=async signal=>{
+    const a=S.agents.find(x=>x.id===id);if(!a)return;
+    log('AGENT RUN: '+a.name,'info');a.status='running';renderAgents();
+    const input=document.getElementById('CI').value.trim()||S.scratch.slice(-400)||'Begin.';
+    const inputFull=await withFilesCtx(input,signal);
+    const msgs=[...(a.system?[{role:'system',content:a.system}]:[]),{role:'user',content:inputFull}];
+    addMsgEl('sys','[AGENT: '+a.name+'] → '+a.model,a.name,'sys');
+    const ctxN=getCtxNum();
+    const t0=performance.now();
+    try{
+      const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:0.7,num_ctx:ctxN}}),signal});
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const mid=addMsgEl('assistant','',a.model);const bub=document.getElementById(mid+'-b');
+      const rd=res.body.getReader();const dc=new TextDecoder();let buf='',out='',n=0,statsDone=false;
+      while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
+        const ls=buf.split('\n');buf=ls.pop();
+        for(const l of ls){try{
+          const j=JSON.parse(l);
+          if(j.message?.content){
+            out+=j.message.content;
+            bub.innerHTML=esc(out);
+            document.getElementById('MSGS').scrollTop=9e9;
+            n++;
+            setMeter(Math.min((n/ctxN)*2000,94));
+          }
+          if(j.done&&!statsDone){
+            recordRunStats(j,t0,'AGENT '+a.name+' DONE');
+            statsDone=true;
+          }
+        }catch(_){}}
+      }
+      if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'AGENT '+a.name+' DONE');
+      if(a.feeds==='scratchpad')S.scratch+='\n['+a.name+']: '+out;
+      a.status='done';renderAgents();extractEnt(out,a.name);
+    }catch(e){
+      a.status='idle';renderAgents();
+      if(isAbortErr(e)||signal?.aborted){log('AGENT '+a.name+' STOPPED','warn');return;}
+      log('AGENT '+a.name+' ERR: '+e.message,'err');toast('AGENT ERROR','err');
     }
-    if(a.feeds==='scratchpad')S.scratch+='\n['+a.name+']: '+out;
-    a.status='done';renderAgents();log('AGENT '+a.name+' DONE','ok');extractEnt(out,a.name);
-  }catch(e){a.status='idle';renderAgents();log('AGENT '+a.name+' ERR: '+e.message,'err');toast('AGENT ERROR','err');}
+  };
+  if(runSignal)return execAgent(runSignal);
+  await withRunGuard('AGENT',async signal=>{await execAgent(signal);});
+}
+function loopCount(id,label){
+  const el=document.getElementById(id);
+  if(!el)return 1;
+  const n=Math.floor(Number(el.value));
+  if(!Number.isFinite(n)||n<1){
+    el.value='1';
+    toast(label+' MUST BE >= 1','err');
+    return null;
+  }
+  el.value=String(n);
+  return n;
 }
 async function runChain(){
   if(!S.agents.length){toast('NO AGENTS','err');return;}
-  log('CHAIN STARTING','warn');toast('RUNNING CHAIN');
-  await Promise.all(S.agents.filter(a=>a.mode==='parallel').map(a=>runAgent(a.id)));
-  for(const a of S.agents.filter(x=>x.mode==='sequential'))await runAgent(a.id);
-  log('CHAIN COMPLETE','ok');toast('CHAIN COMPLETE','ok');
+  const loops=loopCount('ALOOPS','AGENT LOOPS');
+  if(!loops)return;
+  await withRunGuard('CHAIN',async runSignal=>{
+    log('CHAIN STARTING ('+loops+' LOOP'+(loops===1?'':'S')+')','warn');
+    toast('RUNNING CHAIN x'+loops);
+    for(let lp=1;lp<=loops&&!runSignal.aborted;lp++){
+      log('CHAIN LOOP '+lp+'/'+loops,'info');
+      await Promise.all(S.agents.filter(a=>a.mode==='parallel').map(a=>runAgent(a.id,runSignal)));
+      if(runSignal.aborted)break;
+      for(const a of S.agents.filter(x=>x.mode==='sequential')){
+        if(runSignal.aborted)break;
+        await runAgent(a.id,runSignal);
+      }
+    }
+    if(runSignal.aborted||S.stopRequested){log('CHAIN STOPPED','warn');toast('CHAIN STOPPED','warn');return;}
+    log('CHAIN COMPLETE','ok');toast('CHAIN COMPLETE','ok');
+  });
 }
 
 // ── PIPELINE ──────────────────────────────────────────
@@ -1510,34 +2280,68 @@ function onCardDragEnd(e){
 }
 async function runPipeline(){
   if(!S.pipeline.length){toast('NO STEPS','err');return;}
+  const loops=loopCount('CLOOPS','CHAIN LOOPS');
+  if(!loops)return;
   const seed=document.getElementById('CI').value.trim();
   if(!seed){toast('ENTER SEED INPUT IN ANALYST CONSOLE BOX','err');return;}
-  document.getElementById('CI').value='';
-  log('PIPELINE: '+S.pipeline.length+' steps','warn');toast('PIPELINE RUNNING');
-  addMsgEl('sys','PIPELINE — '+S.pipeline.length+' STEPS — "'+seed.substr(0,36)+'"','PIPELINE','sys');
-  let input=seed;
-  for(let i=0;i<S.pipeline.length;i++){
-    const st=S.pipeline[i];
-    const pr=st.template.replace(/\{\{input\}\}/g,input).replace(/\{\{scratchpad\}\}/g,S.scratch);
-    const prFull=withFilesCtx(pr);
-    const msgs=[...(st.system?[{role:'system',content:st.system}]:[]),{role:'user',content:prFull}];
-    log('STEP '+(i+1)+': '+st.model,'info');
-    addMsgEl('sys','STEP '+(i+1)+' → '+st.model,'STEP '+(i+1),'sys');
-    const mid=addMsgEl('assistant','',st.model);const bub=document.getElementById(mid+'-b');let out='';
-    try{
-      const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:st.model,messages:msgs,stream:true,options:{temperature:0.7}})});
-      if(!res.ok)throw new Error('HTTP '+res.status);
-      const rd=res.body.getReader();const dc=new TextDecoder();let buf='';
-      while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
-        const ls=buf.split('\n');buf=ls.pop();
-        for(const l of ls){try{const j=JSON.parse(l);if(j.message?.content){out+=j.message.content;bub.innerHTML=esc(out);document.getElementById('MSGS').scrollTop=9e9;}}catch(_){}}
+  await withRunGuard('PIPELINE',async runSignal=>{
+    document.getElementById('CI').value='';
+    log('PIPELINE: '+S.pipeline.length+' steps x '+loops+' loops','warn');
+    toast('PIPELINE RUNNING x'+loops);
+    addMsgEl('sys','PIPELINE - '+S.pipeline.length+' STEPS x '+loops+' LOOPS - "'+seed.substr(0,36)+'"','PIPELINE','sys');
+    let input=seed,failed=false;
+    for(let lp=1;lp<=loops&&!failed&&!runSignal.aborted;lp++){
+      log('PIPELINE LOOP '+lp+'/'+loops,'info');
+      addMsgEl('sys','LOOP '+lp+'/'+loops,'LOOP','sys');
+      for(let i=0;i<S.pipeline.length;i++){
+        if(runSignal.aborted){failed=true;break;}
+        const st=S.pipeline[i];
+        const scratchTail=tailText(S.scratch,getScratchpadTailChars());
+        const pr=st.template.replace(/\{\{input\}\}/g,input).replace(/\{\{scratchpad\}\}/g,scratchTail);
+        const prFull=await withFilesCtx(pr,runSignal);
+        const msgs=[...(st.system?[{role:'system',content:st.system}]:[]),{role:'user',content:prFull}];
+        log('LOOP '+lp+' STEP '+(i+1)+': '+st.model,'info');
+        addMsgEl('sys','LOOP '+lp+' STEP '+(i+1)+' → '+st.model,'STEP '+(i+1),'sys');
+        const mid=addMsgEl('assistant','',st.model);const bub=document.getElementById(mid+'-b');let out='';
+        const ctxN=getCtxNum();
+        const t0=performance.now();
+        try{
+          const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({model:st.model,messages:msgs,stream:true,options:{temperature:0.7,num_ctx:ctxN}}),signal:runSignal});
+          if(!res.ok)throw new Error('HTTP '+res.status);
+          const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0,statsDone=false;
+          while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
+            const ls=buf.split('\n');buf=ls.pop();
+            for(const l of ls){try{
+              const j=JSON.parse(l);
+              if(j.message?.content){
+                out+=j.message.content;
+                bub.innerHTML=esc(out);
+                document.getElementById('MSGS').scrollTop=9e9;
+                n++;
+                setMeter(Math.min((n/ctxN)*2000,94));
+              }
+              if(j.done&&!statsDone){
+                recordRunStats(j,t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
+                statsDone=true;
+              }
+            }catch(_){}}
+          }
+          if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
+          input=out;S.scratch+='\n[LOOP '+lp+' STEP '+(i+1)+'/'+st.model+']: '+out;
+          extractEnt(out,st.model);
+        }catch(e){
+          failed=true;
+          if(isAbortErr(e)||runSignal.aborted){log('LOOP '+lp+' STEP '+(i+1)+' STOPPED','warn');break;}
+          log('LOOP '+lp+' STEP '+(i+1)+' ERR: '+e.message,'err');
+          toast('LOOP '+lp+' STEP '+(i+1)+' FAILED','err');
+          break;
+        }
       }
-      input=out;S.scratch+='\n[STEP '+(i+1)+'/'+st.model+']: '+out;
-      log('STEP '+(i+1)+' DONE','ok');extractEnt(out,st.model);
-    }catch(e){log('STEP '+(i+1)+' ERR: '+e.message,'err');toast('STEP '+(i+1)+' FAILED','err');break;}
-  }
-  log('PIPELINE COMPLETE','ok');toast('PIPELINE COMPLETE','ok');
+    }
+    if(runSignal.aborted||S.stopRequested){log('PIPELINE STOPPED','warn');toast('PIPELINE STOPPED','warn');return;}
+    if(!failed){log('PIPELINE COMPLETE','ok');toast('PIPELINE COMPLETE','ok');}
+  });
 }
 
 // ── GRAPH ─────────────────────────────────────────────
@@ -1774,6 +2578,7 @@ function clrChat(){
   S.msgs=[];S.stats={turns:0,tokIn:0,tokOut:0,tpsH:[],peakTPS:0,totalTPS:0,tpsN:0};S.scratch='';
   updStats();document.getElementById('TPSV').textContent='— t/s';document.getElementById('SPK').textContent='—';document.getElementById('SAV').textContent='—';
   document.getElementById('MSGS').innerHTML='<div class="empty-s" id="ES"><div class="ei">@</div><p>SELECT A MODEL FROM THE REGISTRY<br>TO BEGIN INFERENCE</p></div>';
+  if(UI.head==='archive')archiveRenderTimeline();
   log('SESSION CLEARED','warn');toast('ANALYST CONSOLE CLEARED');
 }
 function cpyLast(){const l=S.msgs.filter(m=>m.role==='assistant').pop();if(!l){toast('NOTHING TO COPY','err');return;}navigator.clipboard.writeText(l.content).then(()=>toast('COPIED','ok'));}

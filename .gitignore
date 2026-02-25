@@ -218,4 +218,13 @@ ollama-gui/
 *.crt
 id_rsa
 id_rsa.pub
+
+# AMBER runtime data (sensitive/local-only)
+state/*.json
+agents/*.json
+chains/*.json
+vectors/*.json
+timeline/*.json
+uploads/
 modhistory.txt
+tree.txt
