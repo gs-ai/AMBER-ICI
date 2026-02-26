@@ -269,10 +269,15 @@ AMBER ICI v3 exposes CTX control in the UI and now applies it across:
 Supported CTX window options in UI:
 - `2K`, `4K`, `8K`, `16K`, `32K`
 
-Practical token/context notes:
-- The selected CTX is the max model context window target for each run.
-- Total prompt usage includes system prompt, user prompt, injected file context, and recent run content.
-- Active file context is auto-budgeted at approximately `CTX * 3` characters before prompt assembly.
+Before vs now (context retrieval path):
+- Before (flat-only): active file text was assembled and then trimmed by keyword-overlap relevance.
+- Now (Fibonacci/fractal-first): AMBER queries fractal memory first (`beamWidth=3`, up to depth `4`, top `5` hits), then falls back to flat assembly if no fractal hits are available.
+- Prompt budgeting guardrail is unchanged: active file context is still capped at approximately `CTX * 3` characters before final prompt assembly.
+
+Expected improvement:
+- Higher relevance per injected character for larger/multi-file contexts.
+- Lower overflow pressure in many runs because low-signal blocks are less likely to be injected.
+- If fractal memory is empty (not indexed yet), behavior matches the previous flat path.
 
 Approximate active file-context budget by CTX:
 - `2K` CTX: ~6,000 chars
