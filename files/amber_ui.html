@@ -114,11 +114,19 @@ main{
 .mitem.sel{background:var(--amber-faint);border-color:var(--amber-dim)}
 .mitem.sel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber-neon);border-radius:3px 0 0 3px;box-shadow:2px 0 10px var(--amber-glow)}
 .minfo{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
-.mname{font-family:var(--ui);font-size:13px;font-weight:600;color:var(--tm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
+.mname{font-family:var(--ui);font-size:13px;font-weight:500;color:var(--tm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
 .mitem.sel .mname{color:var(--amber-hot)}
 .mmeta{font-size:9px;color:var(--td);letter-spacing:1px;transition:color .15s}
 .mtag{font-size:8px;padding:2px 5px;background:var(--steel-light);border:1px solid var(--steel-border);border-radius:2px;color:var(--td);white-space:nowrap;flex-shrink:0;transition:all .15s}
 .mitem.sel .mtag{border-color:var(--amber-dim);color:var(--amber-dim)}
+.mitem.sel.pulse{animation:mpulse 1.05s ease-in-out infinite}
+.mitem.sel.pulse::before{box-shadow:2px 0 14px var(--amber-glow)}
+@keyframes mpulse{
+  0%,100%{background:var(--amber-faint);border-color:var(--amber-dim);box-shadow:inset 0 0 0 0 rgba(255,184,0,0)}
+  50%{background:rgba(255,157,0,.14);border-color:var(--amber-neon);box-shadow:inset 0 0 0 1px rgba(255,184,0,.26),0 0 16px rgba(255,184,0,.16)}
+}
+.mgroup{margin:0 0 6px}
+.mgroup-h{font-size:8px;color:var(--td);letter-spacing:2px;text-transform:uppercase;padding:4px 7px 3px;margin:3px 2px 4px;border-bottom:1px dashed var(--steel-border)}
 .pcb{width:13px;height:13px;cursor:pointer;accent-color:var(--amber-neon);flex-shrink:0}
 .nomods{padding:18px;text-align:center;color:var(--td);font-size:10px;letter-spacing:1px;line-height:2.2}
 
@@ -471,7 +479,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="dial"><span class="at">@</span></div>
     <div class="logo-text">
       <div class="title">AMBER</div>
-      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v3 // LOCAL // ZERO TELEMETRY</div>
+      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v3 // LOCAL // ZERO TELEMETRY // FIBONACCI FRACTAL MEMORY</div>
     </div>
   </div>
   <nav class="tab-nav">
@@ -703,7 +711,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 </main>
 
 <footer>
-  <span class="ftxt">AMBER ICI LOCAL // ALL INFERENCE ON-DEVICE // ZERO TELEMETRY // NO CLOUD</span>
+  <span class="ftxt">AMBER ICI LOCAL // ALL INFERENCE ON-DEVICE // ZERO TELEMETRY // NO CLOUD // FIBONACCI FRACTAL MEMORY</span>
   <div class="fright">
     <span class="ftxt" id="SID">SID: ——————</span>
     <span class="kbd">ESC STOP</span><span class="kbd">CTRL+K CLEAR</span><span class="kbd">CTRL+G GRAPH</span>
@@ -721,6 +729,7 @@ const S={
   files:[],agents:[],pipeline:[],
   agentSets:[],chainSets:[],
   vStore:[],vQueue:[],vIndexing:false,vLastResults:[],
+  fractalStore:{},
   gNodes:[],gEdges:[],
   sid:rnd(8),checked:new Set(),scratch:'',
   stopRequested:false
@@ -729,10 +738,16 @@ const UI={editAgentId:null,editPipeId:null,drag:null,head:'chat'};
 function rnd(n){return Math.random().toString(36).substr(2,n).toUpperCase()}
 const LOCAL_OLLAMA_DEFAULT='http://127.0.0.1:11434';
 const LOCAL_ONLY_HOSTS=new Set(['127.0.0.1','localhost','::1','[::1]']);
-const ARCHIVE_EMBED_MODEL='mxbai-embed-large:latest';
+const ARCHIVE_EMBED_MODEL='embeddinggemma:latest';
 const ARCHIVE_CHUNK_SIZE=500;
 const ARCHIVE_CHUNK_OVERLAP=50;
 const ARCHIVE_CHUNK_MAX_CHARS=1000;
+const FIB_LEVELS=[144,233,377,610,987];
+const FIB_OVERLAP=[14,23,37,61,89];
+const FRACTAL_MAX_DEPTH=4;
+const FRACTAL_TOP_K=5;
+const FRACTAL_BEAM_WIDTH=3;
+const FRACTAL_MIN_CHUNK_CHARS=32;
 const FILE_CTX_CHAR_MULT=3;
 const FILE_CTX_CHUNK_CHARS=1200;
 const SCRATCHPAD_MIN_CHARS=8000;
@@ -1075,6 +1090,93 @@ function canSendSingleModel(){
   if(checkedCount===0)return true;
   return checkedCount===1&&S.checked.has(S.active);
 }
+const MODEL_CATEGORY_ORDER=['daily_general','low_guardrail','high_safety','specialty','experimental'];
+const MODEL_CATEGORY_LABELS={
+  daily_general:'Daily General',
+  low_guardrail:'Low-Guardrail',
+  high_safety:'High-Safety',
+  specialty:'Specialty',
+  experimental:'Experimental'
+};
+// Manual overrides are applied first. Add/edit entries here for deterministic placement.
+const MODEL_PROFILE_OVERRIDES={
+  'embeddinggemma:latest':{category:'specialty',priority:990},
+  'embeddinggemma':{category:'specialty',priority:990},
+  'nomic-embed-text:latest':{category:'specialty',priority:980},
+  'nomic-embed-text':{category:'specialty',priority:980},
+  'mxbai-embed-large:latest':{category:'specialty',priority:970},
+  'mxbai-embed-large':{category:'specialty',priority:970},
+  'dolphin-llama3:latest':{category:'low_guardrail',priority:930},
+  'svjack/qwen3-8b-heretic:latest':{category:'low_guardrail',priority:920},
+  'richardyoung/qwen3-14b-abliterated:latest':{category:'low_guardrail',priority:940}
+};
+const LOW_GUARDRAIL_HINTS=['abliterated','uncensored','unfiltered','heretic','dolphin','jailbreak','nsfw','raw'];
+const HIGH_GUARDRAIL_HINTS=['safe','safety','guard','guardrail','aligned','compliance','moderated','policy','instruct'];
+const SPECIALTY_HINTS=['embed','embedding','rerank','bge','e5','nomic','mxbai','coder','code','vision','whisper','tts','sql','tool','functioncall','math'];
+const EXPERIMENTAL_HINTS=['experimental','preview','alpha','beta','nightly','canary'];
+const EXPERIMENTAL_TOKEN_RE=/(^|[\\/_:-])(experimental|preview|alpha|beta|rc|dev|nightly|canary)([\\/_:-]|$)/;
+const PRIORITY_HINTS=[
+  {re:/qwen3[^\\n]*32b|qwen-?3[^\\n]*32b/i,priority:950},
+  {re:/qwen3[^\\n]*14b|qwen-?3[^\\n]*14b/i,priority:940},
+  {re:/llama[^\\n]*70b|deepseek[^\\n]*67b/i,priority:930},
+  {re:/qwen2\\.5[^\\n]*14b/i,priority:920},
+  {re:/qwen2\\.5[^\\n]*7b|llama[^\\n]*8b|qwen3[^\\n]*8b/i,priority:910}
+];
+function normalizeModelName(name){return String(name||'').trim().toLowerCase();}
+function modelTextBlob(m){
+  const nm=normalizeModelName(m?.name);
+  const fam=normalizeModelName(m?.details?.family);
+  return nm+' '+fam;
+}
+function hasAnyHint(text,hints){return hints.some(h=>text.includes(h));}
+function inferModelCategory(text){
+  if(EXPERIMENTAL_TOKEN_RE.test(text)||hasAnyHint(text,EXPERIMENTAL_HINTS))return 'experimental';
+  if(hasAnyHint(text,SPECIALTY_HINTS))return 'specialty';
+  if(hasAnyHint(text,LOW_GUARDRAIL_HINTS))return 'low_guardrail';
+  if(hasAnyHint(text,HIGH_GUARDRAIL_HINTS))return 'high_safety';
+  return 'daily_general';
+}
+function inferModelPriority(text){
+  for(const rule of PRIORITY_HINTS){if(rule.re.test(text))return rule.priority;}
+  return 0;
+}
+function modelProfile(m){
+  const rawName=String(m?.name||'');
+  const key=normalizeModelName(rawName);
+  const base=key.split(':')[0];
+  const override=MODEL_PROFILE_OVERRIDES[key]||MODEL_PROFILE_OVERRIDES[base];
+  if(override){
+    return {
+      category:override.category||'daily_general',
+      priority:Number(override.priority)||0
+    };
+  }
+  const text=modelTextBlob(m);
+  return {
+    category:inferModelCategory(text),
+    priority:inferModelPriority(text)
+  };
+}
+function categoryRank(cat){
+  const i=MODEL_CATEGORY_ORDER.indexOf(cat);
+  return i<0?MODEL_CATEGORY_ORDER.length:i;
+}
+function sortModelsForRegistry(models){
+  return [...models].sort((a,b)=>{
+    const pa=modelProfile(a),pb=modelProfile(b);
+    const ca=categoryRank(pa.category),cb=categoryRank(pb.category);
+    if(ca!==cb)return ca-cb;
+    if(pa.priority!==pb.priority)return pb.priority-pa.priority;
+    const sa=Number(a?.size)||0,sb=Number(b?.size)||0;
+    if(sa!==sb)return sa-sb;
+    return String(a?.name||'').localeCompare(String(b?.name||''),undefined,{sensitivity:'base'});
+  });
+}
+function refreshModelList(){
+  const q=(document.getElementById('MS')?.value||'').toLowerCase().trim();
+  const src=q?S.models.filter(m=>String(m.name||'').toLowerCase().includes(q)):S.models;
+  renderModels(src);
+}
 function syncActionAvailability(){
   const sb=document.getElementById('SB');
   if(sb)sb.disabled=S.streaming||!canSendSingleModel();
@@ -1100,9 +1202,12 @@ async function loadModels(){
       const only=[...S.checked][0];
       if(S.active!==only)S.active=only;
     }else if(S.checked.size>1){
-      clearActiveModel();
+      if(!S.active||!S.checked.has(S.active)){
+        const first=[...S.checked][0];
+        if(first)S.active=first;
+      }
     }
-    renderModels(S.models);
+    refreshModelList();
     if(S.active){
       document.getElementById('AMD').textContent=S.active;
       applyModelDetails(S.models.find(x=>x.name===S.active));
@@ -1117,35 +1222,56 @@ async function loadModels(){
   }catch(e){log('SCAN FAILED: '+e.message,'err');setConn(false);}
 }
 function popSelects(){
+  const ordered=sortModelsForRegistry(S.models);
   ['aModel','pModel'].forEach(id=>{
     const el=document.getElementById(id);
     el.innerHTML='<option value="">— SELECT —</option>';
-    S.models.forEach(m=>el.innerHTML+=`<option value="${m.name}">${m.name}</option>`);
+    ordered.forEach(m=>el.innerHTML+=`<option value="${m.name}">${m.name}</option>`);
   });
 }
 function renderModels(list){
   const ml=document.getElementById('ML');
   if(!list.length){ml.innerHTML='<div class="nomods">NO MODELS<br><span style="opacity:.4;font-size:8px">ollama pull &lt;model&gt;</span></div>';return;}
-  ml.innerHTML=list.map(m=>{
+  const ordered=sortModelsForRegistry(list);
+  const groups={};
+  MODEL_CATEGORY_ORDER.forEach(cat=>{groups[cat]=[];});
+  ordered.forEach(m=>{
+    const cat=modelProfile(m).category;
+    if(!groups[cat])groups[cat]=[];
+    groups[cat].push(m);
+  });
+  const renderItem=m=>{
+    const name=String(m.name||'');
+    const jsName=JSON.stringify(name);
     const sz=m.size?(m.size/1e9).toFixed(1)+'G':'?';
     const fam=(m.details?.family||'LLM').toUpperCase().substr(0,8);
-    const sel=S.active===m.name?'sel':'';
-    const chk=S.checked.has(m.name)?'checked':'';
-    return `<div class="mitem ${sel}" onclick="selModel('${m.name}')">
-      <input class="pcb" type="checkbox" ${chk} onclick="ev=event;ev.stopPropagation();togPar('${m.name}',this.checked)" title="Parallel run">
-      <div class="minfo"><div class="mname">${m.name}</div><div class="mmeta">${fam}</div></div>
+    const sel=S.active===name?'sel':'';
+    const pulse=(S.streaming&&S.checked.size>=2&&S.active===name&&S.checked.has(name))?'pulse':'';
+    const chk=S.checked.has(name)?'checked':'';
+    return `<div class="mitem ${sel} ${pulse}" onclick='selModel(${jsName})'>
+      <input class="pcb" type="checkbox" ${chk} onclick='ev=event;ev.stopPropagation();togPar(${jsName},this.checked)' title="Parallel run">
+      <div class="minfo"><div class="mname">${name}</div><div class="mmeta">${fam}</div></div>
       <span class="mtag">${sz}</span></div>`;
+  };
+  ml.innerHTML=MODEL_CATEGORY_ORDER.map(cat=>{
+    const rows=groups[cat]||[];
+    if(!rows.length)return '';
+    const label=MODEL_CATEGORY_LABELS[cat]||cat;
+    return `<div class="mgroup"><div class="mgroup-h">${label}</div>${rows.map(renderItem).join('')}</div>`;
   }).join('');
 }
-function filterM(q){renderModels(S.models.filter(m=>m.name.toLowerCase().includes(q.toLowerCase())))}
+function filterM(_q){refreshModelList()}
 function togPar(n,c){
   if(c)S.checked.add(n);else S.checked.delete(n);
   if(S.checked.size===1){
     selModel([...S.checked][0],true);
     return;
   }
-  if(S.checked.size>1)clearActiveModel();
-  renderModels(S.models);
+  if(S.checked.size>1&&(!S.active||!S.checked.has(S.active))){
+    selModel([...S.checked][0],true);
+    return;
+  }
+  refreshModelList();
   syncActionAvailability();
 }
 function selModel(n,quiet=false){
@@ -1154,7 +1280,7 @@ function selModel(n,quiet=false){
   document.getElementById('AMD').textContent=n;
   document.getElementById('ES')?.remove();
   applyModelDetails(m);
-  renderModels(S.models);
+  refreshModelList();
   syncActionAvailability();
   if(!quiet){
     log('SELECTED: '+n,'ok');toast('MODEL: '+n);
@@ -1341,6 +1467,7 @@ async function loadServerFiles(){
     S.files=files.map(f=>({
       id:f.id,name:f.name,size:f.size||0,ext:f.ext||'',chars:f.chars||0,active:activeIds.has(f.id)
     }));
+    pruneFractalStoreByFiles(S.files);
     renderFiles();
     if(UI.head==='archive')renderArchive();
   }catch(_){}
@@ -1367,8 +1494,26 @@ async function withRunGuard(label,task){
   }
 }
 async function withFilesCtx(prompt,signal){
-  const ids=S.files.filter(f=>f.active).map(f=>f.id);
+  const activeFiles=S.files.filter(f=>f.active);
+  const ids=activeFiles.map(f=>f.id);
   if(!ids.length)return prompt;
+  try{
+    const fractalCtx=await fractalQuery(prompt,activeFiles,FRACTAL_TOP_K,FRACTAL_BEAM_WIDTH);
+    if(fractalCtx){
+      const budget=getFileCtxBudgetChars();
+      const trimmed=trimFileContext(fractalCtx,prompt,budget);
+      if(trimmed&&trimmed.length<fractalCtx.length){
+        log(`FRACTAL CONTEXT TRIMMED ${fractalCtx.length} → ${trimmed.length} CHARS (CTX ${getCtxNum()})`,'warn');
+      }
+      if(trimmed){
+        log('FRACTAL CONTEXT INJECTED: '+trimmed.length+' CHARS','ok');
+        return trimmed+'\n\n'+prompt;
+      }
+    }
+  }catch(e){
+    if(isAbortErr(e))throw e;
+    log('FRACTAL QUERY FAIL: '+e.message,'warn');
+  }
   try{
     const r=await fetch(SERVER_FILE_APIS.context,{
       method:'POST',
@@ -1486,6 +1631,7 @@ function stopStream(){
 }
 function setStream(v){
   S.streaming=v;
+  refreshModelList();
   syncActionAvailability();
   document.getElementById('STPB').disabled=!v;
   const ri=document.getElementById('RI');
@@ -1632,6 +1778,7 @@ async function rmFile(id){
       throw new Error(msg);
     }
     S.files=S.files.filter(x=>x.id!==id);
+    delete S.fractalStore['file:'+id];
     renderFiles();
     if(UI.head==='archive')renderArchive();
     log('DELETED FILE: '+f.name,'warn');
@@ -1641,6 +1788,189 @@ async function rmFile(id){
     toast('DELETE FAILED: '+f.name,'err');
     loadServerFiles();
   }
+}
+
+function fractalStoreKey(source,fileId,name){
+  const src=String(source||'file');
+  if(src==='file')return 'file:'+String(fileId||name||'UNKNOWN');
+  return src+':'+String(name||fileId||'UNKNOWN');
+}
+function pruneFractalStoreByFiles(files){
+  const keep=new Set((files||[]).map(f=>String(f.id||'')));
+  Object.keys(S.fractalStore||{}).forEach(key=>{
+    const entry=S.fractalStore[key];
+    if(!entry||entry.source!=='file')return;
+    if(!keep.has(String(entry.fileId||'')))delete S.fractalStore[key];
+  });
+}
+function getFractalLevelDefs(){
+  const depth=Math.max(1,Math.min(FRACTAL_MAX_DEPTH,FIB_LEVELS.length,FIB_OVERLAP.length));
+  return {
+    depth,
+    sizes:FIB_LEVELS.slice(0,depth).reverse(),
+    overlaps:FIB_OVERLAP.slice(0,depth).reverse()
+  };
+}
+function fibChunkText(text,depth=0,offset=0){
+  const src=String(text||'');
+  const defs=getFractalLevelDefs();
+  if(!src.trim()||depth>=defs.depth)return [];
+  const size=Math.max(64,Math.floor(defs.sizes[depth]||144));
+  const overlap=Math.max(0,Math.min(Math.floor(defs.overlaps[depth]||0),size-1));
+  const step=Math.max(1,size-overlap);
+  const chunks=[];
+  for(let i=0;i<src.length;i+=step){
+    const raw=src.slice(i,i+size);
+    const chunk=raw.trim();
+    if(chunk.length<FRACTAL_MIN_CHUNK_CHARS)continue;
+    chunks.push({
+      id:'',
+      depth,
+      size,
+      start:offset+i,
+      end:Math.min(offset+i+size,offset+src.length),
+      text:chunk,
+      children:[],
+      centroid:null,
+      embedding:null
+    });
+  }
+  if(!chunks.length&&src.trim().length>=FRACTAL_MIN_CHUNK_CHARS){
+    chunks.push({
+      id:'',
+      depth,
+      size,
+      start:offset,
+      end:offset+src.length,
+      text:src.trim(),
+      children:[],
+      centroid:null,
+      embedding:null
+    });
+  }
+  return chunks;
+}
+function buildFractalTree(text,depth=0,offset=0,parentId='F'){
+  const defs=getFractalLevelDefs();
+  if(depth>=defs.depth)return [];
+  const chunks=fibChunkText(text,depth,offset);
+  chunks.forEach((chunk,idx)=>{
+    chunk.id=`${parentId}-${depth}-${idx}-${chunk.start}`;
+    if(depth<defs.depth-1){
+      chunk.children=buildFractalTree(chunk.text,depth+1,chunk.start,chunk.id);
+    }
+  });
+  return chunks;
+}
+function countFractalNodes(nodes){
+  return (nodes||[]).reduce((n,node)=>n+1+countFractalNodes(node.children||[]),0);
+}
+function fractalCentroid(vectors){
+  if(!vectors.length)return [];
+  const first=vectors.find(v=>Array.isArray(v)&&v.length);
+  if(!first)return [];
+  const dim=first.length;
+  const sum=new Array(dim).fill(0);
+  let count=0;
+  vectors.forEach(vec=>{
+    if(!Array.isArray(vec)||vec.length!==dim)return;
+    count++;
+    for(let i=0;i<dim;i++)sum[i]+=Number(vec[i])||0;
+  });
+  if(!count)return [];
+  const avg=sum.map(v=>v/count);
+  const mag=Math.sqrt(avg.reduce((acc,v)=>acc+v*v,0))||1;
+  return avg.map(v=>v/mag);
+}
+function fractalNodeVector(node){
+  if(Array.isArray(node?.centroid)&&node.centroid.length)return node.centroid;
+  if(Array.isArray(node?.embedding)&&node.embedding.length)return node.embedding;
+  return null;
+}
+async function embedFractalNode(node){
+  if(!node||typeof node!=='object')return null;
+  const kids=Array.isArray(node.children)?node.children:[];
+  if(kids.length){
+    for(const child of kids)await embedFractalNode(child);
+    const childVecs=kids.map(fractalNodeVector).filter(v=>Array.isArray(v)&&v.length);
+    if(childVecs.length){
+      node.centroid=fractalCentroid(childVecs);
+      return node.centroid;
+    }
+  }
+  node.embedding=await archiveEmbed(node.text);
+  node.centroid=node.embedding;
+  return node.embedding;
+}
+async function indexFractalDoc(doc){
+  const text=String(doc?.text||'');
+  const name=String(doc?.name||doc?.filename||'').trim();
+  if(!text.trim()||!name)return 0;
+  const source=String(doc?.source||'file');
+  const fileId=String(doc?.fileId||doc?.id||name);
+  const roots=buildFractalTree(text,0,0,'R');
+  if(!roots.length)return 0;
+  for(const root of roots)await embedFractalNode(root);
+  const nodeCount=countFractalNodes(roots);
+  const key=fractalStoreKey(source,fileId,name);
+  S.fractalStore[key]={
+    key,source,fileId,name,
+    indexedAt:new Date().toISOString(),
+    charCount:text.length,
+    nodeCount,
+    roots
+  };
+  return nodeCount;
+}
+function fractalSearch(roots,queryEmbedding,topK=5,beamWidth=3){
+  if(!Array.isArray(roots)||!roots.length||!Array.isArray(queryEmbedding)||!queryEmbedding.length)return [];
+  const out=[];
+  const seen=new Set();
+  const drill=nodes=>{
+    if(!Array.isArray(nodes)||!nodes.length)return;
+    const scored=nodes.map(node=>{
+      const vec=fractalNodeVector(node);
+      const score=(Array.isArray(vec)&&vec.length===queryEmbedding.length)?archiveCosine(queryEmbedding,vec):-1;
+      return {node,score};
+    }).filter(x=>Number.isFinite(x.score)&&x.score>-1)
+      .sort((a,b)=>b.score-a.score)
+      .slice(0,Math.max(1,beamWidth));
+    scored.forEach(({node,score})=>{
+      const id=String(node.id||`${node.depth}:${node.start}:${node.end}`);
+      if(!seen.has(id)){
+        const branchPenalty=(node.children&&node.children.length)?0.86:1;
+        out.push({text:node.text,score:score*branchPenalty,depth:node.depth,id});
+        seen.add(id);
+      }
+      if(node.children&&node.children.length)drill(node.children);
+    });
+  };
+  drill(roots);
+  return out.sort((a,b)=>b.score-a.score).slice(0,Math.max(1,topK));
+}
+async function fractalQuery(prompt,activeFiles=[],topK=FRACTAL_TOP_K,beamWidth=FRACTAL_BEAM_WIDTH){
+  const q=String(prompt||'').trim();
+  if(!q)return '';
+  const allEntries=Object.values(S.fractalStore||{});
+  if(!allEntries.length)return '';
+  const activeIds=new Set((activeFiles||[]).map(f=>String(f.id||'')));
+  const entries=activeIds.size
+    ? allEntries.filter(e=>e&&e.source==='file'&&activeIds.has(String(e.fileId||'')))
+    : allEntries.filter(Boolean);
+  if(!entries.length)return '';
+  const qEmbed=await archiveEmbed(q);
+  const hits=[];
+  entries.forEach(entry=>{
+    const perDoc=fractalSearch(entry.roots,qEmbed,Math.max(topK,6),beamWidth);
+    perDoc.forEach(h=>hits.push({...h,filename:entry.name,source:entry.source}));
+  });
+  if(!hits.length)return '';
+  const top=hits.sort((a,b)=>b.score-a.score).slice(0,Math.max(1,topK));
+  const ctx=top.map(r=>
+    `[FILE: ${r.filename} | DEPTH: ${r.depth} | SCORE: ${r.score.toFixed(3)}]\n${r.text}`
+  ).join('\n\n');
+  log(`FRACTAL RETRIEVED ${top.length} CHUNKS (DEPTHS: ${top.map(r=>r.depth).join(',')})`,'ok');
+  return ctx;
 }
 
 // ── ARCHIVE / VECTOR STORE ───────────────────────────
@@ -1767,6 +2097,20 @@ async function archiveIndexDoc(doc){
       addedAt:new Date().toISOString(),
       source:doc.source||'file'
     });
+  }
+  if((doc.source||'file')==='file'){
+    try{
+      const n=await indexFractalDoc({
+        id:doc.id||doc.fileId||name,
+        fileId:doc.fileId||doc.id||name,
+        name,
+        text,
+        source:'file'
+      });
+      if(n>0)log('FRACTAL INDEXED: '+name+' ('+n+' NODES)','info');
+    }catch(e){
+      log('FRACTAL INDEX SKIPPED '+name+': '+e.message,'warn');
+    }
   }
 }
 async function archiveIndexQueue(){
@@ -1925,6 +2269,7 @@ function archiveImport(ev){
 function archiveClear(){
   if(!confirm('CLEAR ENTIRE ARCHIVE INDEX?'))return;
   S.vStore=[];S.vQueue=[];S.vLastResults=[];
+  S.fractalStore={};
   persistArchive();
   renderArchive();
   toast('ARCHIVE CLEARED','warn');

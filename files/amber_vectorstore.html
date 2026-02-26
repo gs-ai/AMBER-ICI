@@ -489,7 +489,7 @@ body::before {
         <div class="empty-title">Archive Empty</div>
         <div class="empty-sub">
           DROP FILES INTO THE LEFT PANEL<br>
-          INDEX THEM WITH mxbai-embed-large<br>
+          INDEX THEM WITH embeddinggemma<br>
           THEN QUERY ACROSS YOUR ENTIRE ARCHIVE
         </div>
       </div>
@@ -498,7 +498,7 @@ body::before {
     <!-- Log strip -->
     <div class="log-strip">
       <span class="log-prefix">SYS //</span>
-      <span id="logLine">VECTOR ARCHIVE READY — mxbai-embed-large @ 127.0.0.1:11434</span>
+      <span id="logLine">VECTOR ARCHIVE READY — embeddinggemma @ 127.0.0.1:11434</span>
     </div>
   </div>
 </div>
@@ -509,7 +509,7 @@ body::before {
 <script>
 // ── CONFIG ───────────────────────────────────────────────────────────────
 const OLLAMA = 'http://127.0.0.1:11434';
-const EMBED_MODEL = 'mxbai-embed-large:latest';
+const EMBED_MODEL = 'embeddinggemma:latest';
 const STORE_API = '/api/store/state/vector_store';
 const MAX_FILE_MB = 25;
 
@@ -539,7 +539,10 @@ async function checkOllama() {
     const d = await r.json();
     const models = (d.models || []).map(m => String(m.name || ''));
     ollamaOnline = true;
-    embedModelOnline = models.includes(EMBED_MODEL) || models.some(m => m.startsWith('mxbai-embed-large:'));
+    embedModelOnline =
+      models.includes(EMBED_MODEL) ||
+      models.includes('embeddinggemma') ||
+      models.some(m => m.startsWith('embeddinggemma:'));
     document.getElementById('ollamaDot').className = 'status-dot up';
     document.getElementById('ollamaStatus').textContent = embedModelOnline ? 'READY' : 'EMBED MODEL MISSING';
     if (!embedModelOnline) log(`Missing embed model: ${EMBED_MODEL}`);
@@ -1018,7 +1021,7 @@ function clearAll() {
   document.getElementById('resultsArea').innerHTML = `<div class="empty-state" id="emptyState">
     <div class="empty-icon">◈</div>
     <div class="empty-title">Archive Empty</div>
-    <div class="empty-sub">DROP FILES INTO THE LEFT PANEL<br>INDEX THEM WITH mxbai-embed-large<br>THEN QUERY ACROSS YOUR ENTIRE ARCHIVE</div>
+    <div class="empty-sub">DROP FILES INTO THE LEFT PANEL<br>INDEX THEM WITH embeddinggemma<br>THEN QUERY ACROSS YOUR ENTIRE ARCHIVE</div>
   </div>`;
   syncActionButtons();
   log('Archive cleared');
