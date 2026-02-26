@@ -12,6 +12,7 @@ It provides:
 - Agent orchestration with loops
 - Chain/Pipeline execution with loops
 - Integrated local Archive (semantic vector index/search)
+- Fibonacci fractal memory retrieval for active-file context injection
 - Graph correlation view
 - Local file ingestion with PDF/DOCX/TXT/MD extraction
 - OCR fallback for PDFs (when OCR dependencies are installed)
@@ -41,6 +42,7 @@ All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`
 - Session/token telemetry now updates during Agent and Pipeline execution (not only Analyst).
 - Graph enhancements for inferred property/similarity-based node connections.
 - PDF ingestion now includes OCR fallback (`ocrmypdf` + `tesseract`) when available.
+- Added Fibonacci fractal memory indexing/retrieval path for active file context.
 
 <p align="center">
   <a href="image/README/feouahwofu23978.png" target="_blank" rel="noopener noreferrer">
@@ -60,6 +62,7 @@ All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`
 - Disk-backed uploads (`uploads/blobs`, `uploads/texts`, `uploads/manifest.json`)
 - Unified STOP control for active runs
 - CTX-driven prompt budget applied across Analyst, Parallel, Agents, and Pipeline
+- Hierarchical Fibonacci fractal memory retrieval with beam-search routing (when available)
 
 ## Requirements
 
@@ -67,7 +70,7 @@ All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`
 - Ollama installed and running locally
 - Node/npm (only used to run convenience scripts)
 - Required embed model for archive/index features:
-  - `mxbai-embed-large:latest`
+  - `embeddinggemma:latest`
 
 OCR support for scanned/visual PDFs:
 - `ocrmypdf`
@@ -95,7 +98,7 @@ ollama serve
 Required for Archive indexing/search:
 
 ```bash
-ollama pull mxbai-embed-large:latest
+ollama pull embeddinggemma:latest
 ```
 
 Pull any generation models you plan to use (examples):
@@ -213,10 +216,11 @@ Ordered step execution using templates.
 Local semantic archive in the main UI.
 
 - Queue active files
-- Index queued files with `mxbai-embed-large:latest`
+- Index queued files with `embeddinggemma:latest`
 - Search by semantic similarity
 - Export/import archive JSON
 - Add last assistant output to archive directly
+- File-source archive indexing also builds a Fibonacci fractal memory tree in runtime state
 
 ## File Ingestion
 
@@ -241,6 +245,9 @@ PDF extraction behavior:
 AMBER applies context controls automatically:
 
 - CTX applies to Analyst, Parallel, Agents, and Pipeline requests
+- Active file-context injection path:
+  - first tries Fibonacci fractal retrieval against active file entries (when fractal store is available)
+  - falls back to flat file-context assembly if no fractal hits are available
 - Active file context budget is capped to approximately:
   - `maxChars = CTX * 3`
 - If active file context exceeds budget:
@@ -343,7 +350,7 @@ rm -f uploads/manifest.json
 ### Archive indexing fails with HTTP 500
 
 Check:
-- Embed model present: `ollama pull mxbai-embed-large:latest`
+- Embed model present: `ollama pull embeddinggemma:latest`
 - Ollama running and reachable at `127.0.0.1:11434`
 - PDF is text-extractable or OCR dependencies are installed
 
