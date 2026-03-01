@@ -105,7 +105,7 @@ def find_gui_file(hint=None):
 
 class SilentHandler(http.server.SimpleHTTPRequestHandler):
     """Serve files silently (no request logs)."""
-    def log_message(self, *_):
+    def log_message(self, format, *args):
         pass
 
     def _send_json(self, status_code, payload):
