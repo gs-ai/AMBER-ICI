@@ -33,6 +33,10 @@
   --left-w:      262px;
   --right-w:     286px;
   --splitter-w:  12px;
+  --input-h:     146px;
+  --av-left-w:   320px;
+  --av-top-h:    170px;
+  --splitter-h:  10px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#000000;font-family:var(--mono);color:var(--tp);overflow:hidden}
@@ -83,6 +87,12 @@ main{
 .splitter:hover::before,.splitter.active::before{background:var(--amber-dim);box-shadow:0 0 8px rgba(255,157,0,.25)}
 .splitter:hover::after,.splitter.active::after{border-color:var(--steel-border);background:var(--steel-mid)}
 .resizing,.resizing *{cursor:col-resize!important;user-select:none!important}
+.splitter-h{position:relative;height:var(--splitter-h);cursor:row-resize;touch-action:none;flex-shrink:0}
+.splitter-h::before{content:'';position:absolute;top:50%;left:14px;right:14px;height:1px;background:var(--steel-border);transform:translateY(-50%);transition:all .15s}
+.splitter-h::after{content:'';position:absolute;left:50%;top:50%;width:22px;height:18px;transform:translate(-50%,-50%);border:1px solid transparent;border-radius:3px;background:transparent;transition:all .15s}
+.splitter-h:hover::before,.splitter-h.active::before{background:var(--amber-dim);box-shadow:0 0 8px rgba(255,157,0,.25)}
+.splitter-h:hover::after,.splitter-h.active::after{border-color:var(--steel-border);background:var(--steel-mid)}
+.resizing-y,.resizing-y *{cursor:row-resize!important;user-select:none!important}
 .phdr{padding:8px 13px;border-bottom:1px solid var(--steel-border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .ptitle{font-family:var(--display);font-size:9px;letter-spacing:3px;color:var(--amber-neon);text-transform:uppercase;text-shadow:0 0 8px var(--amber-glow)}
 .pbadge{font-size:9px;padding:2px 7px;border:1px solid var(--steel-border);border-radius:2px;color:var(--td);letter-spacing:1px}
@@ -255,6 +265,12 @@ main{
 
 /* Input */
 .cinput-area{padding:9px 13px;border-top:1px solid var(--steel-border);background:var(--steel-mid);flex-shrink:0}
+.cinput-area{height:var(--input-h);min-height:96px;max-height:48vh;display:flex;flex-direction:column}
+.runflow{display:flex;align-items:center;gap:7px;padding:5px 8px;margin-bottom:6px;background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px}
+.runflow .k{font-size:8px;letter-spacing:1.8px;color:var(--td);text-transform:uppercase;white-space:nowrap}
+.runflow .v{font-size:9px;letter-spacing:1px;color:var(--tm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.runflow.live{border-color:var(--amber-dim);box-shadow:inset 0 0 0 1px rgba(255,157,0,.16)}
+.runflow.live .v{color:var(--amber-hot)}
 .irow{display:flex;gap:7px;align-items:flex-end}
 .cinput{flex:1;background:var(--steel);border:1px solid var(--steel-border);border-radius:3px;padding:8px 12px;color:var(--tp);font-family:var(--mono);font-size:13px;outline:none;resize:none;min-height:40px;max-height:130px;line-height:1.55;transition:border-color .2s,box-shadow .2s}
 .cinput:focus{border-color:var(--amber-dim);box-shadow:0 0 14px rgba(255,184,0,.11),inset 0 0 4px rgba(255,184,0,.03)}
@@ -282,9 +298,11 @@ main{
 .av-in{flex:1;min-width:150px;background:var(--steel);border:1px solid var(--steel-border);border-radius:3px;padding:8px 10px;color:var(--tp);font-family:var(--mono);font-size:11px;outline:none}
 .av-in:focus{border-color:var(--amber-dim)}
 .av-sel{background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px;padding:7px;color:var(--tp);font-family:var(--mono);font-size:9px;outline:none}
-.av-grid{display:grid;grid-template-columns:300px 1fr;gap:8px;min-height:0;flex:1}
-.av-col{display:flex;flex-direction:column;gap:8px;min-height:0}
+.av-grid{display:grid;grid-template-columns:var(--av-left-w) var(--splitter-w) minmax(260px,1fr);gap:0;min-height:0;flex:1}
+.av-col{display:grid;grid-template-rows:var(--av-top-h) var(--splitter-h) minmax(180px,1fr);gap:0;min-height:0;overflow:hidden}
 .av-box{display:flex;flex-direction:column;min-height:0;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px}
+.av-splitter-v{margin:0 4px}
+.av-splitter-h{margin:4px 0}
 .av-title{padding:6px 8px;border-bottom:1px solid var(--steel-border);font-size:8px;letter-spacing:2px;color:var(--amber-dim)}
 .av-list{flex:1;overflow:auto;padding:6px}
 .av-item{padding:6px;border:1px solid var(--steel-border);border-radius:3px;margin-bottom:5px;background:var(--steel)}
@@ -583,6 +601,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   <div class="cpills">
     <div class="cp"><span class="l">TEMP</span><input type="number" id="TI" value="0.7" min="0" max="2" step="0.1" style="width:34px" oninput="syncDial()"></div>
     <div class="cp"><span class="l">CTX</span><select id="CTX"><option value="2048">2K</option><option value="4096" selected>4K</option><option value="8192">8K</option><option value="16384">16K</option><option value="32768">32K</option></select></div>
+    <div class="cp"><span class="l">MEM</span><select id="MEMMODE"><option value="fast">FAST</option><option value="hybrid" selected>HYBRID</option><option value="deep">DEEP</option></select></div>
     <div class="cp"><span class="l">FMT</span><select id="FMT"><option value="">TEXT</option><option value="json">JSON</option></select></div>
     <div class="cp"><span class="l">STREAM</span><select id="ST"><option value="true">ON</option><option value="false">OFF</option></select></div>
     <div class="cp"><span class="l">SEED</span><input type="number" id="SEED" value="-1" min="-1" max="99999" style="width:48px"></div>
@@ -622,11 +641,13 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
           <div class="av-title">INDEX FILES / QUEUE</div>
           <div class="av-list" id="AVFILES"></div>
         </div>
+        <div class="splitter-h av-splitter-h" id="SP-AV-T" role="separator" aria-orientation="horizontal" aria-label="Resize archive left stack"></div>
         <div class="av-box">
           <div class="av-title">TIMELINE EVENTS</div>
           <div class="av-list" id="AVTL"></div>
         </div>
       </div>
+      <div class="splitter av-splitter-v" id="SP-AV-L" role="separator" aria-orientation="vertical" aria-label="Resize archive columns"></div>
       <div class="av-box">
         <div class="av-title">SEARCH RESULTS</div>
         <div class="av-results" id="AVRES"></div>
@@ -636,7 +657,9 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   <div class="msgs" id="MSGS">
     <div class="empty-s" id="ES"><div class="ei">@</div><p>SELECT A MODEL FROM THE REGISTRY<br>TO BEGIN INFERENCE</p></div>
   </div>
+  <div class="splitter-h" id="SP-C" role="separator" aria-orientation="horizontal" aria-label="Resize console input"></div>
   <div class="cinput-area">
+    <div class="runflow" id="RFS"><span class="k">ACTIVE FLOW</span><span class="v" id="RFV">ANALYST CONSOLE</span></div>
     <div class="irow">
       <textarea class="cinput" id="CI" placeholder="ENTER PROMPT // SHIFT+ENTER NEWLINE // ESC STOP" rows="1"
         onkeydown="onKey(event)" oninput="autoR(this)"></textarea>
@@ -752,6 +775,12 @@ const FILE_CTX_CHAR_MULT=3;
 const FILE_CTX_CHUNK_CHARS=1200;
 const SCRATCHPAD_MIN_CHARS=8000;
 const SCRATCHPAD_MAX_CHARS=20000;
+const MEMORY_PROFILE_KEY='oci_memory_profile_v1';
+const MEMORY_PROFILES={
+  fast:{topK:4,beamWidth:2,charMult:2.6,minPerFile:1,maxPerFile:2},
+  hybrid:{topK:6,beamWidth:3,charMult:3.2,minPerFile:1,maxPerFile:3},
+  deep:{topK:10,beamWidth:4,charMult:4.0,minPerFile:1,maxPerFile:4}
+};
 const FILE_CTX_STOPWORDS=new Set(['the','and','for','with','from','this','that','into','over','under','have','has','had','were','was','are','but','not','you','your','their','they','them','about','after','before','between','using','use','used','file','files','input','output','agent','chain','step','loop']);
 const STORE_KEYS={
   agents:'oci_agents_v1',
@@ -823,6 +852,22 @@ function loadStore(key,fallback){
 function saveStore(key,value){
   if(isRemoteStoreKey(key)){persistRemoteStore(key,value);return;}
   try{localStorage.setItem(key,JSON.stringify(value));}catch(_){}
+}
+function getMemoryProfile(){
+  const el=document.getElementById('MEMMODE');
+  const key=String(el?.value||'hybrid').toLowerCase();
+  return MEMORY_PROFILES[key]||MEMORY_PROFILES.hybrid;
+}
+function initMemoryMode(){
+  const el=document.getElementById('MEMMODE');
+  if(!el)return;
+  const saved=String(loadStore(MEMORY_PROFILE_KEY,'hybrid')||'hybrid').toLowerCase();
+  el.value=MEMORY_PROFILES[saved]?saved:'hybrid';
+  el.addEventListener('change',()=>{
+    const mode=String(el.value||'hybrid').toLowerCase();
+    saveStore(MEMORY_PROFILE_KEY,mode);
+    log('MEMORY MODE: '+mode.toUpperCase(),'info');
+  });
 }
 function purgeLegacyBrowserState(){
   let removed=0;
@@ -922,13 +967,21 @@ function getMainLayout(){
   return {
     left:pxNum(cs.getPropertyValue('--left-w'),262),
     right:pxNum(cs.getPropertyValue('--right-w'),286),
-    split:pxNum(cs.getPropertyValue('--splitter-w'),12)
+    split:pxNum(cs.getPropertyValue('--splitter-w'),12),
+    splitH:pxNum(cs.getPropertyValue('--splitter-h'),10),
+    inputH:pxNum(cs.getPropertyValue('--input-h'),146),
+    avLeft:pxNum(cs.getPropertyValue('--av-left-w'),320),
+    avTop:pxNum(cs.getPropertyValue('--av-top-h'),170)
   };
+}
+function saveLayoutState(partial){
+  const prev=loadStore(STORE_KEYS.layout,{})||{};
+  saveStore(STORE_KEYS.layout,{...prev,...partial});
 }
 function setMainLayout(left,right,persist=true){
   document.documentElement.style.setProperty('--left-w',left+'px');
   document.documentElement.style.setProperty('--right-w',right+'px');
-  if(persist)saveStore(STORE_KEYS.layout,{left,right});
+  if(persist)saveLayoutState({left,right});
 }
 function clampLayout(left,right){
   const main=document.querySelector('main');
@@ -942,18 +995,65 @@ function clampLayout(left,right){
   const clRight=Math.min(Math.max(right,minRight),maxRight);
   return {left:clLeft,right:clRight};
 }
+function clampInputHeight(inputH){
+  const cp=document.getElementById('CP');
+  if(!cp)return inputH;
+  const rect=cp.getBoundingClientRect();
+  const minInput=96;
+  const maxInput=Math.max(minInput,Math.floor(rect.height*0.55));
+  return Math.min(Math.max(inputH,minInput),maxInput);
+}
+function clampArchiveLayout(avLeft,avTop){
+  let left=avLeft,top=avTop;
+  const grid=document.querySelector('#AVM .av-grid');
+  if(grid){
+    const rect=grid.getBoundingClientRect();
+    if(rect.width>0){
+      const minLeft=220,minResults=260;
+      const split=getMainLayout().split;
+      const maxLeft=Math.max(minLeft,rect.width-minResults-split);
+      left=Math.min(Math.max(left,minLeft),maxLeft);
+    }
+  }
+  const col=document.querySelector('#AVM .av-col');
+  if(col){
+    const rect=col.getBoundingClientRect();
+    if(rect.height>0){
+      const minTop=110,minBottom=180;
+      const splitH=getMainLayout().splitH;
+      const maxTop=Math.max(minTop,rect.height-minBottom-splitH);
+      top=Math.min(Math.max(top,minTop),maxTop);
+    }
+  }
+  return {left,top};
+}
+function setSecondaryLayout(inputH,avLeft,avTop,persist=true){
+  const clInput=clampInputHeight(inputH);
+  const clArchive=clampArchiveLayout(avLeft,avTop);
+  document.documentElement.style.setProperty('--input-h',clInput+'px');
+  document.documentElement.style.setProperty('--av-left-w',clArchive.left+'px');
+  document.documentElement.style.setProperty('--av-top-h',clArchive.top+'px');
+  if(persist)saveLayoutState({inputH:clInput,avLeft:clArchive.left,avTop:clArchive.top});
+}
 function loadMainLayout(){
   const saved=loadStore(STORE_KEYS.layout,null);
   const base=getMainLayout();
   const left=pxNum(saved?.left,base.left);
   const right=pxNum(saved?.right,base.right);
+  const inputH=pxNum(saved?.inputH,base.inputH);
+  const avLeft=pxNum(saved?.avLeft,base.avLeft);
+  const avTop=pxNum(saved?.avTop,base.avTop);
   const c=clampLayout(left,right);
   setMainLayout(c.left,c.right,false);
+  setSecondaryLayout(inputH,avLeft,avTop,false);
 }
 function initResizers(){
   const main=document.querySelector('main');
   const leftSp=document.getElementById('SP-L');
   const rightSp=document.getElementById('SP-R');
+  const centerSp=document.getElementById('SP-C');
+  const avLeftSp=document.getElementById('SP-AV-L');
+  const avTopSp=document.getElementById('SP-AV-T');
   if(!main||!leftSp||!rightSp)return;
   const start=(which,e)=>{
     e.preventDefault();
@@ -978,21 +1078,96 @@ function initResizers(){
       window.removeEventListener('pointermove',onMove);
       window.removeEventListener('pointerup',onUp);
       const c=getMainLayout();
-      saveStore(STORE_KEYS.layout,{left:c.left,right:c.right});
+      saveLayoutState({left:c.left,right:c.right});
     };
     document.body.classList.add('resizing');
     (which==='left'?leftSp:rightSp).classList.add('active');
     window.addEventListener('pointermove',onMove);
     window.addEventListener('pointerup',onUp);
   };
+  const startY=(el,onMove)=>{
+    const onUp=()=>{
+      document.body.classList.remove('resizing-y');
+      el.classList.remove('active');
+      window.removeEventListener('pointermove',onMove);
+      window.removeEventListener('pointerup',onUp);
+      const c=getMainLayout();
+      saveLayoutState({inputH:c.inputH,avLeft:c.avLeft,avTop:c.avTop});
+    };
+    document.body.classList.add('resizing-y');
+    el.classList.add('active');
+    window.addEventListener('pointermove',onMove);
+    window.addEventListener('pointerup',onUp);
+  };
+  const startX=(el,onMove)=>{
+    const onUp=()=>{
+      document.body.classList.remove('resizing');
+      el.classList.remove('active');
+      window.removeEventListener('pointermove',onMove);
+      window.removeEventListener('pointerup',onUp);
+      const c=getMainLayout();
+      saveLayoutState({inputH:c.inputH,avLeft:c.avLeft,avTop:c.avTop});
+    };
+    document.body.classList.add('resizing');
+    el.classList.add('active');
+    window.addEventListener('pointermove',onMove);
+    window.addEventListener('pointerup',onUp);
+  };
   leftSp.addEventListener('pointerdown',e=>start('left',e));
   rightSp.addEventListener('pointerdown',e=>start('right',e));
-  const resetLayout=()=>setMainLayout(262,286,true);
+  if(centerSp){
+    centerSp.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      startY(centerSp,ev=>{
+        const cp=document.getElementById('CP');
+        if(!cp)return;
+        const rect=cp.getBoundingClientRect();
+        const raw=rect.bottom-ev.clientY;
+        const c=getMainLayout();
+        setSecondaryLayout(raw,c.avLeft,c.avTop,false);
+      });
+    });
+  }
+  if(avLeftSp){
+    avLeftSp.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      startX(avLeftSp,ev=>{
+        const grid=document.querySelector('#AVM .av-grid');
+        if(!grid)return;
+        const rect=grid.getBoundingClientRect();
+        const raw=ev.clientX-rect.left;
+        const c=getMainLayout();
+        setSecondaryLayout(c.inputH,raw,c.avTop,false);
+      });
+    });
+  }
+  if(avTopSp){
+    avTopSp.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      startY(avTopSp,ev=>{
+        const col=document.querySelector('#AVM .av-col');
+        if(!col)return;
+        const rect=col.getBoundingClientRect();
+        const raw=ev.clientY-rect.top;
+        const c=getMainLayout();
+        setSecondaryLayout(c.inputH,c.avLeft,raw,false);
+      });
+    });
+  }
+  const resetLayout=()=>{
+    setMainLayout(262,286,true);
+    setSecondaryLayout(146,320,170,true);
+  };
   leftSp.addEventListener('dblclick',resetLayout);
   rightSp.addEventListener('dblclick',resetLayout);
+  centerSp?.addEventListener('dblclick',resetLayout);
+  avLeftSp?.addEventListener('dblclick',resetLayout);
+  avTopSp?.addEventListener('dblclick',resetLayout);
   window.addEventListener('resize',()=>{
-    const c=clampLayout(getMainLayout().left,getMainLayout().right);
+    const now=getMainLayout();
+    const c=clampLayout(now.left,now.right);
     setMainLayout(c.left,c.right,false);
+    setSecondaryLayout(now.inputH,now.avLeft,now.avTop,false);
   });
 }
 function normBase(raw){
@@ -1021,11 +1196,13 @@ window.addEventListener('load',async ()=>{
   document.getElementById('URL').value=normBase(document.getElementById('URL').value)||LOCAL_OLLAMA_DEFAULT;
   loadMainLayout();
   initResizers();
+  initMemoryMode();
   purgeLegacyBrowserState();
   await loadRemoteStores();
   hydrateSavedState();
   await loadServerFiles();
   syncActionAvailability();
+  syncRunFlowDisplay();
   log('BOOT OK','ok');log('SID: '+S.sid,'info');
   connect();setInterval(refreshGPU,5000);
 });
@@ -1081,8 +1258,68 @@ function applyModelDetails(m){
 }
 function clearActiveModel(){
   S.active=null;
-  document.getElementById('AMD').textContent='— NONE —';
-  clearModelDetails();
+  syncDisplayedModel();
+}
+const RUN_MODEL_STACK=[];
+const RUN_FLOW_STACK=[];
+function syncRunFlowDisplay(){
+  const row=document.getElementById('RFS');
+  const val=document.getElementById('RFV');
+  if(!row||!val)return;
+  if(!RUN_FLOW_STACK.length){
+    row.classList.remove('live');
+    val.textContent='ANALYST CONSOLE';
+    return;
+  }
+  const top=RUN_FLOW_STACK[RUN_FLOW_STACK.length-1];
+  row.classList.add('live');
+  val.textContent=String(top.label||'ANALYST CONSOLE');
+}
+function pushRunFlow(label){
+  const txt=String(label||'').trim();
+  if(!txt)return null;
+  const token='RF'+rnd(8);
+  RUN_FLOW_STACK.push({token,label:txt});
+  syncRunFlowDisplay();
+  return token;
+}
+function popRunFlow(token){
+  if(!token)return;
+  const i=RUN_FLOW_STACK.findIndex(x=>x.token===token);
+  if(i>=0)RUN_FLOW_STACK.splice(i,1);
+  syncRunFlowDisplay();
+}
+function setDisplayedModel(name){
+  const val=String(name||'').trim();
+  if(!val){
+    document.getElementById('AMD').textContent='— NONE —';
+    clearModelDetails();
+    return;
+  }
+  document.getElementById('AMD').textContent=val;
+  document.getElementById('ES')?.remove();
+  const m=S.models.find(x=>x.name===val)||{name:val,size:0,details:{}};
+  applyModelDetails(m);
+}
+function syncDisplayedModel(){
+  const running=RUN_MODEL_STACK.length?RUN_MODEL_STACK[RUN_MODEL_STACK.length-1].model:'';
+  if(running){setDisplayedModel(running);return;}
+  if(S.active){setDisplayedModel(S.active);return;}
+  setDisplayedModel('');
+}
+function pushRunningModel(name){
+  const model=String(name||'').trim();
+  if(!model)return null;
+  const token='RM'+rnd(8);
+  RUN_MODEL_STACK.push({token,model});
+  syncDisplayedModel();
+  return token;
+}
+function popRunningModel(token){
+  if(!token)return;
+  const i=RUN_MODEL_STACK.findIndex(x=>x.token===token);
+  if(i>=0)RUN_MODEL_STACK.splice(i,1);
+  syncDisplayedModel();
 }
 function canSendSingleModel(){
   const checkedCount=S.checked.size;
@@ -1208,13 +1445,7 @@ async function loadModels(){
       }
     }
     refreshModelList();
-    if(S.active){
-      document.getElementById('AMD').textContent=S.active;
-      applyModelDetails(S.models.find(x=>x.name===S.active));
-      document.getElementById('ES')?.remove();
-    }else{
-      clearModelDetails();
-    }
+    syncDisplayedModel();
     syncActionAvailability();
     document.getElementById('MC').textContent=S.models.length+' LOCAL';
     log('FOUND '+S.models.length+' MODEL(S)','ok');
@@ -1276,10 +1507,7 @@ function togPar(n,c){
 }
 function selModel(n,quiet=false){
   S.active=n;
-  const m=S.models.find(x=>x.name===n);
-  document.getElementById('AMD').textContent=n;
-  document.getElementById('ES')?.remove();
-  applyModelDetails(m);
+  syncDisplayedModel();
   refreshModelList();
   syncActionAvailability();
   if(!quiet){
@@ -1296,6 +1524,7 @@ function headTab(btn,t){
   const archive=t==='archive';
   document.getElementById('AVM').classList.toggle('active',archive);
   document.getElementById('MSGS').style.display=archive?'none':'flex';
+  document.getElementById('SP-C').style.display=archive?'none':'block';
   document.querySelector('#CP .cinput-area').style.display=archive?'none':'block';
   document.querySelector('#CP .tbar').style.display=archive?'none':'block';
   document.querySelector('#CP .spark-row').style.display=archive?'none':'flex';
@@ -1355,7 +1584,10 @@ function getCtxNum(){
   const n=parseInt(raw,10);
   return Number.isFinite(n)&&n>0?n:4096;
 }
-function getFileCtxBudgetChars(){return Math.max(3000,getCtxNum()*FILE_CTX_CHAR_MULT);}
+function getFileCtxBudgetChars(){
+  const mult=Number(getMemoryProfile().charMult)||FILE_CTX_CHAR_MULT;
+  return Math.max(3000,Math.floor(getCtxNum()*mult));
+}
 function getScratchpadTailChars(){
   const target=Math.floor(getCtxNum()*0.6);
   const desired=Math.max(SCRATCHPAD_MIN_CHARS,Math.min(SCRATCHPAD_MAX_CHARS,target));
@@ -1497,8 +1729,9 @@ async function withFilesCtx(prompt,signal){
   const activeFiles=S.files.filter(f=>f.active);
   const ids=activeFiles.map(f=>f.id);
   if(!ids.length)return prompt;
+  const memProfile=getMemoryProfile();
   try{
-    const fractalCtx=await fractalQuery(prompt,activeFiles,FRACTAL_TOP_K,FRACTAL_BEAM_WIDTH);
+    const fractalCtx=await fractalQuery(prompt,activeFiles,memProfile);
     if(fractalCtx){
       const budget=getFileCtxBudgetChars();
       const trimmed=trimFileContext(fractalCtx,prompt,budget);
@@ -1568,8 +1801,9 @@ async function send(){
     const full=await withFilesCtx(p,runSignal);
     S.msgs.push({role:'user',content:full});
     addMsgEl('user',p);
-    addNode(p.substr(0,28)+'...','prompt');
-    addEdge(S.active,p.substr(0,28)+'...','PROMPT');
+    const modelNode=addNode(S.active,'model');
+    const promptNode=addNode(p.substr(0,28)+'...','prompt');
+    addEdge(modelNode,promptNode,'PROMPT');
     const tk=showThink();
     setMeter(4);
     const sys=document.getElementById('SYS').value;
@@ -1581,6 +1815,7 @@ async function send(){
       options:{temperature:parseFloat(document.getElementById('TI').value)||0.7,num_ctx:getCtxNum(),...(seed>=0?{seed}:{})}
     };
     if(document.getElementById('FMT').value==='json')params.format='json';
+    const runToken=pushRunningModel(S.active);
     log('INFERENCE → '+S.active);
     const t0=performance.now();let out='';
     try{
@@ -1612,11 +1847,13 @@ async function send(){
       S.msgs.push({role:'assistant',content:out});S.stats.turns++;updStats();
       setMeter(100);setTimeout(()=>setMeter(0),700);
       S.scratch+='\n['+S.active+']: '+out;
-      extractEnt(out);
+      extractEnt(out,S.active);
     }catch(e){
       document.getElementById(tk)?.remove();
       if(!isAbortErr(e)){addMsgEl('assistant','⚠ ERROR: '+e.message);log('ERROR: '+e.message,'err');toast('INFERENCE ERROR','err');}
       else log('STOPPED','warn');
+    }finally{
+      popRunningModel(runToken);
     }
   });
 }
@@ -1670,6 +1907,11 @@ async function runPar(){
     document.getElementById('CI').value='';
     const full=await withFilesCtx(p,runSignal);
     S.msgs.push({role:'user',content:full});addMsgEl('user',p);
+    const promptNode=addNode(p.substr(0,28)+'...','prompt');
+    mods.forEach(m=>{
+      const modelNode=addNode(m,'model');
+      addEdge(modelNode,promptNode,'PROMPT');
+    });
     log('PARALLEL: '+mods.join(', '),'warn');toast('PARALLEL: '+mods.length+' MODELS');
     await Promise.all(mods.map(m=>parModel(m,runSignal)));
     if(runSignal.aborted||S.stopRequested){log('PARALLEL STOPPED','warn');toast('PARALLEL STOPPED','warn');return;}
@@ -1678,6 +1920,8 @@ async function runPar(){
 }
 async function parModel(model,runSignal){
   log('PARALLEL → '+model,'info');
+  const runToken=pushRunningModel(model);
+  addNode(model,'model');
   const sys=document.getElementById('SYS').value;
   const msgs=sys?[{role:'system',content:sys},...S.msgs]:[...S.msgs];
   const mid=addMsgEl('assistant','',model,'parallel');
@@ -1711,6 +1955,8 @@ async function parModel(model,runSignal){
   }catch(e){
     if(isAbortErr(e)||runSignal?.aborted){bub.innerHTML='⏹ STOPPED';log('PAR '+model+' STOPPED','warn');return;}
     bub.innerHTML='⚠ '+e.message;log('PAR '+model+' ERR: '+e.message,'err');
+  }finally{
+    popRunningModel(runToken);
   }
 }
 
@@ -1948,7 +2194,56 @@ function fractalSearch(roots,queryEmbedding,topK=5,beamWidth=3){
   drill(roots);
   return out.sort((a,b)=>b.score-a.score).slice(0,Math.max(1,topK));
 }
-async function fractalQuery(prompt,activeFiles=[],topK=FRACTAL_TOP_K,beamWidth=FRACTAL_BEAM_WIDTH){
+function pickFractalHits(hits,topK,profile){
+  const sorted=[...(hits||[])].sort((a,b)=>b.score-a.score);
+  if(!sorted.length)return [];
+  const minPerFile=Math.max(0,Math.floor(Number(profile?.minPerFile)||0));
+  const maxPerFile=Math.max(1,Math.floor(Number(profile?.maxPerFile)||3));
+  const byFile=new Map();
+  sorted.forEach(hit=>{
+    const fileKey=String(hit.filename||'UNKNOWN');
+    if(!byFile.has(fileKey))byFile.set(fileKey,[]);
+    byFile.get(fileKey).push(hit);
+  });
+  const picked=[];
+  const usedByFile=new Map();
+  const usedKeys=new Set();
+  const hitKey=hit=>`${hit.filename||''}|${hit.id||''}|${hit.depth||''}|${Number(hit.score||0).toFixed(6)}`;
+  const tryAdd=hit=>{
+    if(!hit)return false;
+    const fileKey=String(hit.filename||'UNKNOWN');
+    const used=usedByFile.get(fileKey)||0;
+    if(used>=maxPerFile)return false;
+    const key=hitKey(hit);
+    if(usedKeys.has(key))return false;
+    picked.push(hit);
+    usedByFile.set(fileKey,used+1);
+    usedKeys.add(key);
+    return true;
+  };
+  if(minPerFile>0){
+    const fileKeys=[...byFile.keys()];
+    for(let pass=0;pass<minPerFile&&picked.length<topK;pass++){
+      for(const fileKey of fileKeys){
+        const arr=byFile.get(fileKey)||[];
+        const idx=usedByFile.get(fileKey)||0;
+        if(idx>=arr.length)continue;
+        tryAdd(arr[idx]);
+        if(picked.length>=topK)break;
+      }
+    }
+  }
+  if(picked.length<topK){
+    for(const hit of sorted){
+      if(tryAdd(hit)&&picked.length>=topK)break;
+    }
+  }
+  return picked;
+}
+async function fractalQuery(prompt,activeFiles=[],profile=null){
+  const cfg=(profile&&typeof profile==='object')?profile:getMemoryProfile();
+  const topK=Math.max(1,Math.floor(Number(cfg.topK)||FRACTAL_TOP_K));
+  const beamWidth=Math.max(1,Math.floor(Number(cfg.beamWidth)||FRACTAL_BEAM_WIDTH));
   const q=String(prompt||'').trim();
   if(!q)return '';
   const allEntries=Object.values(S.fractalStore||{});
@@ -1965,11 +2260,12 @@ async function fractalQuery(prompt,activeFiles=[],topK=FRACTAL_TOP_K,beamWidth=F
     perDoc.forEach(h=>hits.push({...h,filename:entry.name,source:entry.source}));
   });
   if(!hits.length)return '';
-  const top=hits.sort((a,b)=>b.score-a.score).slice(0,Math.max(1,topK));
+  const top=pickFractalHits(hits,topK,cfg);
   const ctx=top.map(r=>
     `[FILE: ${r.filename} | DEPTH: ${r.depth} | SCORE: ${r.score.toFixed(3)}]\n${r.text}`
   ).join('\n\n');
-  log(`FRACTAL RETRIEVED ${top.length} CHUNKS (DEPTHS: ${top.map(r=>r.depth).join(',')})`,'ok');
+  const mode=String(document.getElementById('MEMMODE')?.value||'hybrid').toUpperCase();
+  log(`FRACTAL RETRIEVED ${top.length} CHUNKS (DEPTHS: ${top.map(r=>r.depth).join(',')}) [${mode}]`,'ok');
   return ctx;
 }
 
@@ -2405,16 +2701,23 @@ function delAgentSet(){
   persistAgentSets();renderSavedSets();
   log('AGENT SET DELETED: '+set.name,'warn');toast('AGENT SET DELETED');
 }
-async function runAgent(id,runSignal){
+async function runAgent(id,runSignal,flowCtx=''){
   const execAgent=async signal=>{
     const a=S.agents.find(x=>x.id===id);if(!a)return;
+    const modelNode=addNode(a.model,'model');
+    const agentNode=addNode(a.name,'concept');
     log('AGENT RUN: '+a.name,'info');a.status='running';renderAgents();
     const input=document.getElementById('CI').value.trim()||S.scratch.slice(-400)||'Begin.';
+    const promptNode=addNode(input.substr(0,28)+'...','prompt');
+    addEdge(modelNode,agentNode,'AGENT');
+    addEdge(agentNode,promptNode,'PROMPT');
     const inputFull=await withFilesCtx(input,signal);
     const msgs=[...(a.system?[{role:'system',content:a.system}]:[]),{role:'user',content:inputFull}];
     addMsgEl('sys','[AGENT: '+a.name+'] → '+a.model,a.name,'sys');
     const ctxN=getCtxNum();
     const t0=performance.now();
+    const runToken=pushRunningModel(a.model);
+    const flowToken=pushRunFlow((flowCtx?flowCtx+' · ':'')+'AGENT '+a.name);
     try{
       const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:0.7,num_ctx:ctxN}}),signal});
@@ -2440,11 +2743,14 @@ async function runAgent(id,runSignal){
       }
       if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'AGENT '+a.name+' DONE');
       if(a.feeds==='scratchpad')S.scratch+='\n['+a.name+']: '+out;
-      a.status='done';renderAgents();extractEnt(out,a.name);
+      a.status='done';renderAgents();extractEnt(out,a.model);
     }catch(e){
       a.status='idle';renderAgents();
       if(isAbortErr(e)||signal?.aborted){log('AGENT '+a.name+' STOPPED','warn');return;}
       log('AGENT '+a.name+' ERR: '+e.message,'err');toast('AGENT ERROR','err');
+    }finally{
+      popRunFlow(flowToken);
+      popRunningModel(runToken);
     }
   };
   if(runSignal)return execAgent(runSignal);
@@ -2467,19 +2773,25 @@ async function runChain(){
   const loops=loopCount('ALOOPS','AGENT LOOPS');
   if(!loops)return;
   await withRunGuard('CHAIN',async runSignal=>{
+    const chainToken=pushRunFlow('CHAIN · '+S.agents.length+' AGENTS · '+loops+' LOOPS');
     log('CHAIN STARTING ('+loops+' LOOP'+(loops===1?'':'S')+')','warn');
     toast('RUNNING CHAIN x'+loops);
-    for(let lp=1;lp<=loops&&!runSignal.aborted;lp++){
-      log('CHAIN LOOP '+lp+'/'+loops,'info');
-      await Promise.all(S.agents.filter(a=>a.mode==='parallel').map(a=>runAgent(a.id,runSignal)));
-      if(runSignal.aborted)break;
-      for(const a of S.agents.filter(x=>x.mode==='sequential')){
+    try{
+      for(let lp=1;lp<=loops&&!runSignal.aborted;lp++){
+        log('CHAIN LOOP '+lp+'/'+loops,'info');
+        const flowPrefix='CHAIN LOOP '+lp+'/'+loops;
+        await Promise.all(S.agents.filter(a=>a.mode==='parallel').map(a=>runAgent(a.id,runSignal,flowPrefix)));
         if(runSignal.aborted)break;
-        await runAgent(a.id,runSignal);
+        for(const a of S.agents.filter(x=>x.mode==='sequential')){
+          if(runSignal.aborted)break;
+          await runAgent(a.id,runSignal,flowPrefix);
+        }
       }
+      if(runSignal.aborted||S.stopRequested){log('CHAIN STOPPED','warn');toast('CHAIN STOPPED','warn');return;}
+      log('CHAIN COMPLETE','ok');toast('CHAIN COMPLETE','ok');
+    }finally{
+      popRunFlow(chainToken);
     }
-    if(runSignal.aborted||S.stopRequested){log('CHAIN STOPPED','warn');toast('CHAIN STOPPED','warn');return;}
-    log('CHAIN COMPLETE','ok');toast('CHAIN COMPLETE','ok');
   });
 }
 
@@ -2630,62 +2942,75 @@ async function runPipeline(){
   const seed=document.getElementById('CI').value.trim();
   if(!seed){toast('ENTER SEED INPUT IN ANALYST CONSOLE BOX','err');return;}
   await withRunGuard('PIPELINE',async runSignal=>{
+    const pipeToken=pushRunFlow('PIPELINE · '+S.pipeline.length+' STEPS · '+loops+' LOOPS');
     document.getElementById('CI').value='';
     log('PIPELINE: '+S.pipeline.length+' steps x '+loops+' loops','warn');
     toast('PIPELINE RUNNING x'+loops);
     addMsgEl('sys','PIPELINE - '+S.pipeline.length+' STEPS x '+loops+' LOOPS - "'+seed.substr(0,36)+'"','PIPELINE','sys');
     let input=seed,failed=false;
-    for(let lp=1;lp<=loops&&!failed&&!runSignal.aborted;lp++){
-      log('PIPELINE LOOP '+lp+'/'+loops,'info');
-      addMsgEl('sys','LOOP '+lp+'/'+loops,'LOOP','sys');
-      for(let i=0;i<S.pipeline.length;i++){
-        if(runSignal.aborted){failed=true;break;}
-        const st=S.pipeline[i];
-        const scratchTail=tailText(S.scratch,getScratchpadTailChars());
-        const pr=st.template.replace(/\{\{input\}\}/g,input).replace(/\{\{scratchpad\}\}/g,scratchTail);
-        const prFull=await withFilesCtx(pr,runSignal);
-        const msgs=[...(st.system?[{role:'system',content:st.system}]:[]),{role:'user',content:prFull}];
-        log('LOOP '+lp+' STEP '+(i+1)+': '+st.model,'info');
-        addMsgEl('sys','LOOP '+lp+' STEP '+(i+1)+' → '+st.model,'STEP '+(i+1),'sys');
-        const mid=addMsgEl('assistant','',st.model);const bub=document.getElementById(mid+'-b');let out='';
-        const ctxN=getCtxNum();
-        const t0=performance.now();
-        try{
-          const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({model:st.model,messages:msgs,stream:true,options:{temperature:0.7,num_ctx:ctxN}}),signal:runSignal});
-          if(!res.ok)throw new Error('HTTP '+res.status);
-          const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0,statsDone=false;
-          while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
-            const ls=buf.split('\n');buf=ls.pop();
-            for(const l of ls){try{
-              const j=JSON.parse(l);
-              if(j.message?.content){
-                out+=j.message.content;
-                bub.innerHTML=esc(out);
-                document.getElementById('MSGS').scrollTop=9e9;
-                n++;
-                setMeter(Math.min((n/ctxN)*2000,94));
-              }
-              if(j.done&&!statsDone){
-                recordRunStats(j,t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
-                statsDone=true;
-              }
-            }catch(_){}}
+    try{
+      for(let lp=1;lp<=loops&&!failed&&!runSignal.aborted;lp++){
+        log('PIPELINE LOOP '+lp+'/'+loops,'info');
+        addMsgEl('sys','LOOP '+lp+'/'+loops,'LOOP','sys');
+        for(let i=0;i<S.pipeline.length;i++){
+          if(runSignal.aborted){failed=true;break;}
+          const st=S.pipeline[i];
+          const modelNode=addNode(st.model,'model');
+          const promptNode=addNode(input.substr(0,28)+'...','prompt');
+          addEdge(modelNode,promptNode,'STEP '+(i+1));
+          const scratchTail=tailText(S.scratch,getScratchpadTailChars());
+          const pr=st.template.replace(/\{\{input\}\}/g,input).replace(/\{\{scratchpad\}\}/g,scratchTail);
+          const prFull=await withFilesCtx(pr,runSignal);
+          const msgs=[...(st.system?[{role:'system',content:st.system}]:[]),{role:'user',content:prFull}];
+          const runToken=pushRunningModel(st.model);
+          const flowToken=pushRunFlow('PIPELINE LOOP '+lp+'/'+loops+' · STEP '+(i+1)+'/'+S.pipeline.length+' · '+st.model);
+          log('LOOP '+lp+' STEP '+(i+1)+': '+st.model,'info');
+          addMsgEl('sys','LOOP '+lp+' STEP '+(i+1)+' → '+st.model,'STEP '+(i+1),'sys');
+          const mid=addMsgEl('assistant','',st.model);const bub=document.getElementById(mid+'-b');let out='';
+          const ctxN=getCtxNum();
+          const t0=performance.now();
+          try{
+            const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({model:st.model,messages:msgs,stream:true,options:{temperature:0.7,num_ctx:ctxN}}),signal:runSignal});
+            if(!res.ok)throw new Error('HTTP '+res.status);
+            const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0,statsDone=false;
+            while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
+              const ls=buf.split('\n');buf=ls.pop();
+              for(const l of ls){try{
+                const j=JSON.parse(l);
+                if(j.message?.content){
+                  out+=j.message.content;
+                  bub.innerHTML=esc(out);
+                  document.getElementById('MSGS').scrollTop=9e9;
+                  n++;
+                  setMeter(Math.min((n/ctxN)*2000,94));
+                }
+                if(j.done&&!statsDone){
+                  recordRunStats(j,t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
+                  statsDone=true;
+                }
+              }catch(_){}}
+            }
+            if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
+            input=out;S.scratch+='\n[LOOP '+lp+' STEP '+(i+1)+'/'+st.model+']: '+out;
+            extractEnt(out,st.model);
+          }catch(e){
+            failed=true;
+            if(isAbortErr(e)||runSignal.aborted){log('LOOP '+lp+' STEP '+(i+1)+' STOPPED','warn');break;}
+            log('LOOP '+lp+' STEP '+(i+1)+' ERR: '+e.message,'err');
+            toast('LOOP '+lp+' STEP '+(i+1)+' FAILED','err');
+            break;
+          }finally{
+            popRunFlow(flowToken);
+            popRunningModel(runToken);
           }
-          if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
-          input=out;S.scratch+='\n[LOOP '+lp+' STEP '+(i+1)+'/'+st.model+']: '+out;
-          extractEnt(out,st.model);
-        }catch(e){
-          failed=true;
-          if(isAbortErr(e)||runSignal.aborted){log('LOOP '+lp+' STEP '+(i+1)+' STOPPED','warn');break;}
-          log('LOOP '+lp+' STEP '+(i+1)+' ERR: '+e.message,'err');
-          toast('LOOP '+lp+' STEP '+(i+1)+' FAILED','err');
-          break;
         }
       }
+      if(runSignal.aborted||S.stopRequested){log('PIPELINE STOPPED','warn');toast('PIPELINE STOPPED','warn');return;}
+      if(!failed){log('PIPELINE COMPLETE','ok');toast('PIPELINE COMPLETE','ok');}
+    }finally{
+      popRunFlow(pipeToken);
     }
-    if(runSignal.aborted||S.stopRequested){log('PIPELINE STOPPED','warn');toast('PIPELINE STOPPED','warn');return;}
-    if(!failed){log('PIPELINE COMPLETE','ok');toast('PIPELINE COMPLETE','ok');}
   });
 }
 
@@ -2798,9 +3123,57 @@ function addEdge(from,to,label='',opts={}){
   }
   if(opts.rebuild!==false&&kind!=='inferred')queueGraphRebuild();
 }
+function graphSourceType(src){
+  const raw=String(src||'').trim();
+  if(!raw)return 'concept';
+  if(S.models.some(m=>m.name===raw))return 'model';
+  if(S.agents.some(a=>a.name===raw))return 'concept';
+  if(/[/:]/.test(raw))return 'model';
+  return 'concept';
+}
+function sanitizeGraphToken(token){
+  const t=String(token||'')
+    .replace(/^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$/g,'')
+    .trim();
+  if(t.length<3)return '';
+  if(/^\d+$/.test(t))return '';
+  if(GRAPH_STOPWORDS.has(t.toLowerCase()))return '';
+  return t;
+}
 function extractEnt(text,src=''){
-  const caps=(text.match(/\b[A-Z][A-Za-z]{3,}\b/g)||[]).slice(0,6);
-  caps.forEach(e=>{addNode(e,'entity');if(src)addEdge(src,e,'↗');});
+  const body=String(text||'');
+  const srcId=src?addNode(src,graphSourceType(src)):null;
+  const cased=body.match(/\b[A-Z][A-Za-z0-9_]{2,}\b/g)||[];
+  const upper=body.match(/\b[A-Z]{3,}\b/g)||[];
+  const importTerms=[];
+  const importRe=/(?:from|import)\s+([A-Za-z0-9_.]+)/g;
+  let m;
+  while((m=importRe.exec(body))!==null){
+    const seg=String(m[1]||'').split('.').pop();
+    if(seg)importTerms.push(seg);
+  }
+  const terms=[];
+  const seen=new Set();
+  [...cased,...upper,...importTerms].forEach(raw=>{
+    const tok=sanitizeGraphToken(raw);
+    if(!tok)return;
+    const key=tok.toLowerCase();
+    if(seen.has(key))return;
+    seen.add(key);
+    terms.push(tok);
+  });
+  if(!terms.length){
+    const fallback=sanitizeGraphToken(body.replace(/\s+/g,' ').trim().split(' ').slice(0,5).join(' '));
+    if(fallback){
+      const nid=addNode(fallback,'concept');
+      if(srcId)addEdge(srcId,nid,'↗');
+    }
+    return;
+  }
+  terms.slice(0,10).forEach(e=>{
+    const eid=addNode(e,'entity');
+    if(srcId)addEdge(srcId,eid,'↗');
+  });
 }
 
 let GC,GA,GT={x:0,y:0,s:1},GD=null;
