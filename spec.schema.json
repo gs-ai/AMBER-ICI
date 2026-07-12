@@ -1,0 +1,449 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amber.local/schemas/spec.schema.json",
+  "title": "Behavioral Profiling Operational Engine Spec",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "title",
+    "mode",
+    "design_principles",
+    "complexity",
+    "input_contract",
+    "output_contract",
+    "book_level_intelligence_map",
+    "concept_extraction_table",
+    "behavioral_variable_model",
+    "algorithmic_modules",
+    "pipeline_design",
+    "scoring_systems",
+    "pseudocode_library",
+    "data_structures",
+    "rule_engine",
+    "machine_learning_extension",
+    "implementation_blueprint",
+    "final_behavioral_analysis_report_template",
+    "verbosity_policy"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "mode": { "type": "string", "minLength": 1 },
+    "design_principles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "complexity": {
+      "type": "object",
+      "required": ["time", "space", "variables"],
+      "properties": {
+        "time": { "type": "string", "minLength": 1 },
+        "space": { "type": "string", "minLength": 1 },
+        "variables": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "minProperties": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "input_contract": { "$ref": "#/$defs/inputContract" },
+    "output_contract": { "$ref": "#/$defs/outputContract" },
+    "book_level_intelligence_map": {
+      "type": "object",
+      "required": [
+        "core_theories",
+        "behavioral_assumptions",
+        "evidence_types",
+        "hidden_states",
+        "causal_structures",
+        "risk_factors",
+        "predictive_signals"
+      ],
+      "properties": {
+        "core_theories": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "behavioral_assumptions": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "evidence_types": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "hidden_states": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "causal_structures": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["cause", "effect"],
+            "properties": {
+              "cause": { "type": "string", "minLength": 1 },
+              "effect": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "risk_factors": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "predictive_signals": { "$ref": "#/$defs/nonEmptyStringArray" }
+      },
+      "additionalProperties": false
+    },
+    "concept_extraction_table": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "concept_name",
+          "definition",
+          "observable_inputs",
+          "hidden_variables",
+          "inference_rules",
+          "false_positives",
+          "false_negatives",
+          "operational_use"
+        ],
+        "properties": {
+          "concept_name": { "type": "string", "minLength": 1 },
+          "definition": { "type": "string", "minLength": 1 },
+          "observable_inputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "hidden_variables": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "inference_rules": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "false_positives": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "false_negatives": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "operational_use": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "behavioral_variable_model": {
+      "type": "object",
+      "required": ["variables"],
+      "properties": {
+        "variables": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "type",
+              "description",
+              "format",
+              "extraction_method",
+              "weight_range",
+              "confidence_range",
+              "normalization",
+              "interactions"
+            ],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "type": { "type": "string", "minLength": 1 },
+              "description": { "type": "string", "minLength": 1 },
+              "format": { "type": "string", "minLength": 1 },
+              "extraction_method": { "type": "string", "minLength": 1 },
+              "weight_range": { "type": "string", "minLength": 1 },
+              "confidence_range": { "type": "string", "minLength": 1 },
+              "normalization": { "type": "string", "minLength": 1 },
+              "interactions": { "$ref": "#/$defs/nonEmptyStringArray" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "algorithmic_modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "purpose", "inputs", "outputs", "decision_logic", "scoring_method", "confidence_calculation"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "inputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "outputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "feature_extraction_steps": { "$ref": "#/$defs/stringArray" },
+          "decision_logic": { "type": "string", "minLength": 1 },
+          "scoring_method": { "type": "string", "minLength": 1 },
+          "confidence_calculation": { "type": "string", "minLength": 1 },
+          "edge_cases": { "$ref": "#/$defs/stringArray" },
+          "failure_modes": { "$ref": "#/$defs/stringArray" },
+          "recommended_data_structures": { "$ref": "#/$defs/stringArray" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "pipeline_design": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "stage",
+          "name",
+          "purpose",
+          "inputs",
+          "outputs",
+          "algorithm",
+          "data_structures",
+          "error_handling",
+          "quality_checks"
+        ],
+        "properties": {
+          "stage": { "type": "integer", "minimum": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "inputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "outputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "algorithm": { "type": "string", "minLength": 1 },
+          "data_structures": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "error_handling": { "type": "string", "minLength": 1 },
+          "quality_checks": { "$ref": "#/$defs/nonEmptyStringArray" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "scoring_systems": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["formula"],
+        "properties": {
+          "formula": { "type": "string", "minLength": 1 },
+          "threshold_labels": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "minProperties": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "pseudocode_library": {
+      "type": "object",
+      "required": [
+        "main_pipeline_controller",
+        "baseline_update",
+        "deviation_detection",
+        "confidence_model"
+      ],
+      "properties": {
+        "main_pipeline_controller": { "type": "string", "minLength": 1 },
+        "baseline_update": { "type": "string", "minLength": 1 },
+        "deviation_detection": { "type": "string", "minLength": 1 },
+        "confidence_model": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "data_structures": {
+      "type": "object",
+      "required": [
+        "BookConcept",
+        "BehavioralVariable",
+        "BehavioralFeature",
+        "EvidenceItem",
+        "SubjectProfile",
+        "EventTimeline",
+        "BaselineModel",
+        "DeviationSignal",
+        "InferenceResult",
+        "RiskScore",
+        "ConfidenceScore",
+        "BehavioralReport"
+      ],
+      "properties": {
+        "BookConcept": { "$ref": "#/$defs/typeMapObject" },
+        "BehavioralVariable": { "$ref": "#/$defs/typeMapObject" },
+        "BehavioralFeature": { "$ref": "#/$defs/typeMapObject" },
+        "EvidenceItem": { "$ref": "#/$defs/typeMapObject" },
+        "SubjectProfile": { "$ref": "#/$defs/typeMapObject" },
+        "EventTimeline": { "$ref": "#/$defs/typeMapObject" },
+        "BaselineModel": { "$ref": "#/$defs/typeMapObject" },
+        "DeviationSignal": { "$ref": "#/$defs/typeMapObject" },
+        "InferenceResult": { "$ref": "#/$defs/typeMapObject" },
+        "RiskScore": { "$ref": "#/$defs/typeMapObject" },
+        "ConfidenceScore": { "$ref": "#/$defs/typeMapObject" },
+        "BehavioralReport": { "$ref": "#/$defs/typeMapObject" }
+      },
+      "additionalProperties": false
+    },
+    "rule_engine": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "rule_id",
+          "rule_name",
+          "if_conditions",
+          "then_inference",
+          "required_evidence",
+          "weight",
+          "confidence_modifier",
+          "contradictory_evidence",
+          "explanation_template"
+        ],
+        "properties": {
+          "rule_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+          "rule_name": { "type": "string", "minLength": 1 },
+          "if_conditions": { "type": "string", "minLength": 1 },
+          "then_inference": { "type": "string", "minLength": 1 },
+          "required_evidence": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "weight": { "type": "number" },
+          "confidence_modifier": { "type": "number" },
+          "contradictory_evidence": { "$ref": "#/$defs/stringArray" },
+          "explanation_template": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "machine_learning_extension": {
+      "type": "object",
+      "required": [
+        "supervised_learning_targets",
+        "unsupervised_clustering_opportunities",
+        "sequence_modeling_opportunities",
+        "feature_vectors",
+        "labels",
+        "training_data_requirements",
+        "evaluation_metrics",
+        "human_in_the_loop_review_points",
+        "model_drift_risks"
+      ],
+      "properties": {
+        "supervised_learning_targets": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "unsupervised_clustering_opportunities": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "sequence_modeling_opportunities": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "feature_vectors": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "labels": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "training_data_requirements": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "evaluation_metrics": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "human_in_the_loop_review_points": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "model_drift_risks": { "$ref": "#/$defs/nonEmptyStringArray" }
+      },
+      "additionalProperties": false
+    },
+    "implementation_blueprint": {
+      "type": "object",
+      "required": [
+        "modules",
+        "classes",
+        "input_output_contracts",
+        "storage_design",
+        "batch_processing_strategy",
+        "streaming_processing_strategy",
+        "testing_strategy"
+      ],
+      "properties": {
+        "modules": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "classes": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "input_output_contracts": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "storage_design": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "batch_processing_strategy": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "streaming_processing_strategy": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "testing_strategy": { "$ref": "#/$defs/nonEmptyStringArray" }
+      },
+      "additionalProperties": false
+    },
+    "final_behavioral_analysis_report_template": {
+      "type": "object",
+      "required": ["sections"],
+      "properties": {
+        "sections": { "$ref": "#/$defs/nonEmptyStringArray" }
+      },
+      "additionalProperties": true
+    },
+    "verbosity_policy": {
+      "type": "object",
+      "required": [
+        "minimum_sections",
+        "minimum_rules",
+        "minimum_variables",
+        "minimum_algorithms",
+        "minimum_report_tokens",
+        "include_formulas",
+        "include_pseudocode",
+        "include_json_schemas",
+        "include_alternative_hypotheses",
+        "include_confidence_and_contradiction"
+      ],
+      "properties": {
+        "minimum_sections": { "type": "integer", "minimum": 1 },
+        "minimum_rules": { "type": "integer", "minimum": 1 },
+        "minimum_variables": { "type": "integer", "minimum": 1 },
+        "minimum_algorithms": { "type": "integer", "minimum": 1 },
+        "minimum_report_tokens": { "type": "integer", "minimum": 1 },
+        "include_formulas": { "type": "boolean" },
+        "include_pseudocode": { "type": "boolean" },
+        "include_json_schemas": { "type": "boolean" },
+        "include_alternative_hypotheses": { "type": "boolean" },
+        "include_confidence_and_contradiction": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "inputContract": {
+      "type": "object",
+      "required": ["required_inputs"],
+      "properties": {
+        "required_inputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "optional_inputs": { "$ref": "#/$defs/stringArray" }
+      },
+      "additionalProperties": false
+    },
+    "outputContract": {
+      "type": "object",
+      "required": ["required_outputs"],
+      "properties": {
+        "required_outputs": { "$ref": "#/$defs/nonEmptyStringArray" }
+      },
+      "additionalProperties": false
+    },
+    "typeMapObject": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "integer" },
+          { "type": "boolean" },
+          {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "type": "string" },
+                { "type": "number" },
+                { "type": "integer" },
+                { "type": "boolean" },
+                { "type": "object", "additionalProperties": true }
+              ]
+            }
+          },
+          { "type": "object", "additionalProperties": true }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

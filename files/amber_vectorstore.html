@@ -429,6 +429,9 @@ body::before {
       <button class="btn btn-gold" id="indexBtn" onclick="indexAll()" disabled>
         ◈  INDEX ALL FILES
       </button>
+      <button class="btn btn-gold" id="reindexAllBtn" onclick="reindexAll()" style="border-color:rgba(245,158,11,0.4); color:var(--orange-bright);">
+        ↺  REINDEX ALL
+      </button>
       <button class="btn btn-cyan" id="exportBtn" onclick="exportIndex()">
         ↓  EXPORT INDEX
       </button>
@@ -465,9 +468,11 @@ body::before {
           <span class="opt-label">MIN SCORE</span>
           <select class="opt-select" id="minScore">
             <option value="0">NONE</option>
+            <option value="0.1">0.10</option>
+            <option value="0.2" selected>0.20</option>
             <option value="0.3">0.30</option>
             <option value="0.4">0.40</option>
-            <option value="0.5" selected>0.50</option>
+            <option value="0.5">0.50</option>
             <option value="0.6">0.60</option>
             <option value="0.7">0.70</option>
           </select>
@@ -510,7 +515,7 @@ body::before {
 // ── CONFIG ───────────────────────────────────────────────────────────────
 const OLLAMA = 'http://127.0.0.1:11434';
 const EMBED_MODEL = 'embeddinggemma:latest';
-const STORE_API = '/api/store/state/vector_store';
+const VECTORS_API = '/api/vectors';
 const MAX_FILE_MB = 25;
 
 // ── STATE ────────────────────────────────────────────────────────────────
@@ -814,6 +819,44 @@ async function runSearch() {
   syncActionButtons();
 }
 
+// ── REINDEX ──────────────────────────────────────────────────────────────
+async function reindexFile(filename) {
+  if (indexing) { toast('Indexing already in progress', 'error'); return; }
+  if (!ollamaOnline || !embedModelOnline) { toast('Ollama/embed model not ready', 'error'); return; }
+  const chunks = vectorStore.filter(c => c.filename === filename);
+  if (!chunks.length) { toast('No stored chunks for ' + filename, 'error'); return; }
+  indexing = true; syncActionButtons();
+  log(`Reindexing ${filename} (${chunks.length} chunks)...`);
+  updateFileStatus(filename, 'indexing');
+  showProgress(true);
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      const emb = await embed(chunks[i].text);
+      chunks[i].embedding = emb;
+      setProgress(Math.round(((i+1)/chunks.length)*100), `${filename} — chunk ${i+1}/${chunks.length}`);
+    }
+    saveToStorage();
+    updateFileStatus(filename, 'indexed');
+    toast(`Reindexed: ${filename}`, 'success');
+    log(`Reindex complete: ${filename}`);
+  } catch(err) {
+    updateFileStatus(filename, 'error');
+    log(`REINDEX ERROR: ${filename} — ${err.message}`);
+    toast(`Reindex failed: ${filename}`, 'error');
+  }
+  showProgress(false); indexing = false; syncActionButtons();
+}
+
+async function reindexAll() {
+  if (indexing) { toast('Indexing already in progress', 'error'); return; }
+  if (!ollamaOnline || !embedModelOnline) { toast('Ollama/embed model not ready', 'error'); return; }
+  if (!vectorStore.length) { toast('Index is empty', 'error'); return; }
+  const filenames = [...new Set(vectorStore.map(c => c.filename))];
+  for (const fn of filenames) await reindexFile(fn);
+  log('Reindex all complete');
+  toast('All files reindexed', 'success');
+}
+
 // ── RENDER RESULTS ────────────────────────────────────────────────────────
 function renderResults(results, query) {
   const area = document.getElementById('resultsArea');
@@ -914,21 +957,35 @@ function renderFileList() {
 
   document.getElementById('fileCount').textContent = `${allFiles.length} file(s)`;
   list.innerHTML = allFiles.map(f => `
-    <div class="file-item" id="file-${CSS.escape(f.name)}">
+    <div class="file-item" id="${fileDomId(f.name)}">
       <div class="file-icon">◈</div>
       <div class="file-info">
         <div class="file-name">${escHtml(f.name)}</div>
         <div class="file-meta">${(f.size/1024).toFixed(1)}KB${f.chunks ? ` · ${f.chunks} chunks` : ''}</div>
       </div>
-      <div class="file-status ${f.status}">
-        ${f.status === 'indexed' ? 'INDEXED' : f.status === 'reindex' ? 'REINDEX' : 'QUEUED'}
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="file-status ${f.status}">
+          ${f.status === 'indexed' ? 'INDEXED' : f.status === 'reindex' ? 'REINDEX' : 'QUEUED'}
+        </div>
+        ${f.status === 'indexed' ? `<button onclick="reindexFile(${JSON.stringify(f.name).replace(/"/g,'&quot;')})"
+          style="font-size:7px;letter-spacing:1px;padding:2px 5px;border:1px solid rgba(245,158,11,0.3);color:var(--orange-bright);background:transparent;cursor:pointer;">↺ REINDEX</button>` : ''}
       </div>
     </div>
   `).join('');
 }
 
+function fileDomId(name) {
+  let h = 2166136261;
+  const s = String(name || '');
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return `file-${(h >>> 0).toString(16)}`;
+}
+
 function updateFileStatus(name, status) {
-  const el = document.querySelector(`#file-${CSS.escape(name)} .file-status`);
+  const el = document.querySelector(`#${fileDomId(name)} .file-status`);
   if (!el) return;
   el.className = `file-status ${status}`;
   el.textContent = status.toUpperCase();
@@ -936,10 +993,11 @@ function updateFileStatus(name, status) {
 
 // ── STORAGE ───────────────────────────────────────────────────────────────
 function saveToStorage() {
-  fetch(STORE_API, {
+  // Persist via /api/vectors/import (bulk upsert — INSERT OR IGNORE on id)
+  fetch(VECTORS_API + '/import', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(vectorStore)
+    body: JSON.stringify({ chunks: vectorStore })
   }).catch(() => {
     log('WARNING: failed to persist vector store');
   });
@@ -967,10 +1025,10 @@ function sanitizeStore(data) {
 
 async function loadFromStorage() {
   try {
-    const r = await fetch(STORE_API, { signal: AbortSignal.timeout(3000) });
+    const r = await fetch(VECTORS_API, { signal: AbortSignal.timeout(3000) });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
-    vectorStore = sanitizeStore(d?.data || []);
+    vectorStore = sanitizeStore(d?.chunks || []);
     if (vectorStore.length) log(`Restored ${vectorStore.length} chunks from storage`);
   } catch { vectorStore = []; }
 }
@@ -1015,7 +1073,9 @@ function clearAll() {
   if (!confirm('Clear entire vector archive? This cannot be undone.')) return;
   vectorStore = [];
   pendingFiles = [];
-  saveToStorage();
+  fetch(VECTORS_API + '/clear', { method: 'POST' }).catch(() => {
+    log('WARNING: failed to clear persisted vector store');
+  });
   renderFileList();
   updateStats();
   document.getElementById('resultsArea').innerHTML = `<div class="empty-state" id="emptyState">
