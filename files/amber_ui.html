@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AMBER // INVESTIGATIVE COMMAND INTERFACE v3</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
+<title>AMBER // INVESTIGATIVE COMMAND INTERFACE v4</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <style>
 :root {
   --amber:       #ff9d00;
@@ -46,7 +46,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 @keyframes scanMove{from{background-position:0 0}to{background-position:0 36px}}
 
 /* ── APP SHELL ── */
-.app{position:relative;z-index:1;display:grid;grid-template-rows:58px 1fr 34px;height:100vh;max-width:1640px;margin:0 auto;padding:0 14px}
+.app{position:relative;z-index:1;display:grid;grid-template-rows:58px 1fr 34px;height:100vh;width:100%;margin:0;padding:0 8px}
 
 /* ── HEADER ── */
 header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--steel-border);position:relative}
@@ -87,6 +87,12 @@ main{
 .splitter:hover::before,.splitter.active::before{background:var(--amber-dim);box-shadow:0 0 8px rgba(255,157,0,.25)}
 .splitter:hover::after,.splitter.active::after{border-color:var(--steel-border);background:var(--steel-mid)}
 .resizing,.resizing *{cursor:col-resize!important;user-select:none!important}
+main>aside{min-width:0}
+.lp-toggle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:44px;background:var(--steel-mid);border:1px solid var(--steel-border);border-left:none;border-radius:0 4px 4px 0;color:var(--td);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:background .15s,border-color .15s,color .15s,box-shadow .15s;font-family:var(--mono);padding:0}
+.lp-toggle:hover{background:var(--amber-faint);border-color:var(--amber-dim);color:var(--amber-neon);box-shadow:2px 0 8px rgba(255,157,0,.22)}
+main.lp-collapsed #SP-L .lp-toggle{color:var(--amber-hot);border-color:var(--amber-dim);background:rgba(255,157,0,.12);box-shadow:2px 0 10px rgba(255,157,0,.25)}
+main.lp-collapsed #SP-L{cursor:default}
+main.lp-animating{transition:grid-template-columns .26s cubic-bezier(.4,0,.2,1)}
 .splitter-h{position:relative;height:var(--splitter-h);cursor:row-resize;touch-action:none;flex-shrink:0}
 .splitter-h::before{content:'';position:absolute;top:50%;left:14px;right:14px;height:1px;background:var(--steel-border);transform:translateY(-50%);transition:all .15s}
 .splitter-h::after{content:'';position:absolute;left:50%;top:50%;width:22px;height:18px;transform:translate(-50%,-50%);border:1px solid transparent;border-radius:3px;background:transparent;transition:all .15s}
@@ -149,8 +155,12 @@ main{
 /* Files */
 .dropz{margin:9px;padding:14px 8px;text-align:center;border:2px dashed var(--steel-border);border-radius:4px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:7px;flex-shrink:0}
 .dropz:hover,.dropz.drag{border-color:var(--amber-dim);background:var(--amber-faint)}
+.dropz.disabled{cursor:default;opacity:.75}
 .dropz-icon{font-size:22px;color:var(--td)}
 .dropz-txt{font-size:8px;letter-spacing:1.5px;color:var(--td);line-height:1.9}
+.files-topbar{display:flex;gap:6px;padding:0 9px 8px}
+.fdir{margin:0 9px 8px;padding:6px 8px;border:1px solid var(--steel-border);border-radius:3px;background:var(--steel-mid);font-size:8px;letter-spacing:1px;color:var(--td)}
+.fdir b{color:var(--amber-hot)}
 .flist{flex:1;overflow-y:auto;padding:0 7px;min-height:0}
 .fitem{display:flex;align-items:center;gap:7px;padding:6px 8px;margin-bottom:3px;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px;cursor:pointer;transition:all .15s}
 .fitem:hover{border-color:var(--amber-dim)}
@@ -200,6 +210,7 @@ main{
 .pcbtn:hover{border-color:var(--amber-dim);color:var(--amber-dim);background:var(--amber-faint)}
 .pcbtn.go{border-color:var(--amber-neon);color:var(--amber-hot)}
 .pcbtn.go:hover{background:var(--amber-faint);box-shadow:0 0 10px rgba(255,184,0,.18)}
+.pcbtn.linked{border-color:var(--amber-neon);color:var(--amber-hot);background:var(--amber-faint);box-shadow:0 0 12px rgba(255,184,0,.25)}
 .pcbtn:disabled{border-color:var(--steel-border)!important;color:var(--td)!important;background:transparent!important;box-shadow:none!important;cursor:not-allowed}
 .plbl{padding:6px 8px;border:1px solid var(--steel-border);border-radius:3px;color:var(--td);font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
 .pcnum{width:86px;padding:6px 8px;background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px;color:var(--tp);font-family:var(--mono);font-size:8px;letter-spacing:1px;outline:none}
@@ -257,6 +268,17 @@ main{
 .msg.assistant .mbubble{background:var(--steel-mid);border:1px solid var(--steel-border);border-left:2px solid var(--amber-dim);color:var(--tp);border-top-left-radius:0}
 .msg.parallel .mbubble{background:var(--steel-mid);border:1px solid rgba(0,200,255,.18);border-left:2px solid var(--info);color:var(--tp)}
 .msg.sys .mbubble{background:rgba(255,184,0,.03);border:1px solid rgba(255,184,0,.18);border-left:2px solid var(--warn);color:var(--tm);font-size:11px}
+.code-block{margin:10px 0;padding:12px;border:1px solid rgba(255,157,0,.18);border-radius:6px;background:rgba(255,157,0,.06);overflow:auto}
+.code-block-header{font-size:10px;color:var(--amber-hot);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.code-block pre{margin:0;font-family:var(--mono);font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--tp);background:transparent;border:none}
+.code-block code{display:block;}
+.inline-code{background:rgba(255,184,0,.08);border:1px solid rgba(255,157,0,.15);border-radius:3px;padding:1px 4px;color:var(--amber-hot);font-family:var(--mono);font-size:12px}
+.syntax-comment{color:#7c8e9e}
+.syntax-string{color:#a8ff60}
+.syntax-keyword{color:#ffb86c;font-weight:700}
+.syntax-number{color:#f1fa8c}
+.syntax-builtin{color:#8be9fd}
+.syntax-operator{color:#ff79c6}
 .think{display:flex;gap:4px;padding:9px 12px}
 .think span{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:tb 1.2s ease-in-out infinite}
 .think span:nth-child(2){animation-delay:.2s}
@@ -298,6 +320,22 @@ main{
 .av-in{flex:1;min-width:150px;background:var(--steel);border:1px solid var(--steel-border);border-radius:3px;padding:8px 10px;color:var(--tp);font-family:var(--mono);font-size:11px;outline:none}
 .av-in:focus{border-color:var(--amber-dim)}
 .av-sel{background:var(--steel-light);border:1px solid var(--steel-border);border-radius:3px;padding:7px;color:var(--tp);font-family:var(--mono);font-size:9px;outline:none}
+.av-progress{display:none;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px;padding:6px 8px}
+.av-progress.active{display:block}
+.av-progress-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:8px;letter-spacing:1px;color:var(--tm);margin-bottom:5px;text-transform:uppercase}
+.av-progress-detail{font-size:8px;color:var(--info)}
+.av-progress-pct{font-family:var(--display);font-size:9px;color:var(--success);text-shadow:0 0 8px rgba(0,255,170,.35)}
+.av-progress-track{height:5px;background:var(--steel-light);border:1px solid rgba(0,0,0,.45);border-radius:999px;overflow:hidden}
+.av-progress-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--info),var(--success),#66ff00);
+  box-shadow:0 0 10px rgba(0,200,255,.55),0 0 16px rgba(0,255,170,.35);
+  transition:width .2s ease-out;
+  background-size:220% 100%;
+  animation:avFlow 1.2s linear infinite;
+}
+@keyframes avFlow{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 .av-grid{display:grid;grid-template-columns:var(--av-left-w) var(--splitter-w) minmax(260px,1fr);gap:0;min-height:0;flex:1}
 .av-col{display:grid;grid-template-rows:var(--av-top-h) var(--splitter-h) minmax(180px,1fr);gap:0;min-height:0;overflow:hidden}
 .av-box{display:flex;flex-direction:column;min-height:0;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px}
@@ -413,19 +451,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 .btn2{padding:6px 14px;background:transparent;border:1px solid var(--steel-border);border-radius:3px;color:var(--td);font-family:var(--mono);font-size:9px;letter-spacing:2px;cursor:pointer;transition:all .15s;text-transform:uppercase}
 .btn2:hover{border-color:var(--tm);color:var(--tp)}
 
-/* ── GRAPH OVERLAY ── */
-.goverlay{display:none;position:fixed;inset:0;background:rgba(8,10,14,.93);z-index:700;flex-direction:column}
-.goverlay.show{display:flex}
-.ghdr{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--steel-border);background:var(--steel)}
-.gtitle{font-family:var(--display);font-size:12px;letter-spacing:4px;color:var(--amber-hot);text-shadow:0 0 10px var(--amber-glow)}
-.gctrl{display:flex;gap:7px}
-.gbtn{padding:5px 11px;background:transparent;border:1px solid var(--steel-border);border-radius:2px;color:var(--td);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;transition:all .15s}
-.gbtn:hover{border-color:var(--amber-dim);color:var(--amber-dim)}
-.gcwrap{flex:1;position:relative;overflow:hidden}
-#gc{position:absolute;inset:0;width:100%;height:100%}
-.gleg{display:flex;gap:14px;padding:9px 18px;border-top:1px solid var(--steel-border);background:var(--steel);flex-wrap:wrap}
-.gli{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--td);letter-spacing:1px}
-.gld{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
 
 /* Toast */
 .tc{position:fixed;top:13px;right:13px;z-index:900;display:flex;flex-direction:column;gap:6px;pointer-events:none}
@@ -435,32 +461,21 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--steel-border);border-radius:2px}
+/* ── ADVANCED MODAL SECTION ── */
+.adv-modal{border:none;margin-top:2px}
+.adv-modal summary{font-size:8px;letter-spacing:2px;color:var(--td);text-transform:uppercase;cursor:pointer;padding:4px 0;list-style:none;display:flex;align-items:center;gap:6px;user-select:none}
+.adv-modal summary::-webkit-details-marker{display:none}
+.adv-modal summary::before{content:'▶';font-size:6px;color:var(--amber-dim);transition:transform .2s;display:inline-block}
+.adv-modal[open] summary::before{transform:rotate(90deg)}
+.adv-modal summary:hover{color:var(--tm)}
+.adv-fields{display:flex;flex-direction:column;gap:9px;padding-top:8px}
 </style>
 </head>
 <body>
 <div class="scanlines"></div>
 <div class="tc" id="TC"></div>
 
-<!-- GRAPH OVERLAY -->
-<div class="goverlay" id="GO">
-  <div class="ghdr">
-    <span class="gtitle">ENTITY ∙ PROVENANCE GRAPH</span>
-    <div class="gctrl">
-      <button class="gbtn" onclick="resetGraph()">RESET</button>
-      <button class="gbtn" onclick="exportGraphSVG()">EXPORT</button>
-      <button class="gbtn" onclick="closeGraph()" style="border-color:var(--danger);color:var(--danger)">✕ CLOSE</button>
-    </div>
-  </div>
-  <div class="gcwrap"><canvas id="gc"></canvas></div>
-  <div class="gleg">
-    <div class="gli"><div class="gld" style="background:#ff9d00"></div>MODEL</div>
-    <div class="gli"><div class="gld" style="background:#00ffaa"></div>ENTITY</div>
-    <div class="gli"><div class="gld" style="background:#00c8ff"></div>CONCEPT</div>
-    <div class="gli"><div class="gld" style="background:#aa88ff"></div>PROMPT</div>
-    <div class="gli"><div class="gld" style="background:#ff4488"></div>FILE</div>
-    <div class="gli" style="margin-left:auto;font-size:8px">DRAG NODES ∙ SCROLL TO ZOOM ∙ PAN BACKGROUND</div>
-  </div>
-</div>
+
 
 <!-- AGENT MODAL -->
 <div class="overlay" id="AM">
@@ -472,6 +487,17 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <div class="fr"><label class="fl">SYSTEM PROMPT</label><textarea class="fta" id="aSys" placeholder="You are a specialized agent..."></textarea></div>
       <div class="fr"><label class="fl">EXECUTION MODE</label><select class="fsel" id="aMode"><option value="sequential">SEQUENTIAL</option><option value="parallel">PARALLEL</option><option value="gated">INPUT GATED</option></select></div>
       <div class="fr"><label class="fl">OUTPUT → (scratchpad / analyst console)</label><input class="fi" id="aFeeds" placeholder="scratchpad"></div>
+      <details class="adv-modal">
+        <summary>ADVANCED / TOOL BINDING</summary>
+        <div class="adv-fields">
+          <div class="fr"><label class="fl">ROLE / DESIGNATION</label><input class="fi" id="aRole" placeholder="e.g. ARCHITECT"></div>
+          <div class="fr"><label class="fl">OBJECTIVE</label><input class="fi" id="aObjective" placeholder="High-level agent objective"></div>
+          <div class="fr"><label class="fl">TOOL ACCESS (comma-separated)</label><input class="fi" id="aToolAccess" placeholder="web_fetch,archive_search,run_agent"></div>
+          <div class="fr"><label class="fl">MEMORY SCOPE</label><select class="fsel" id="aMemoryScope"><option value="full">FULL (fractal + archive)</option><option value="local">LOCAL (scratchpad only)</option><option value="none">NONE</option></select></div>
+          <div class="fr"><label class="fl">ENABLED</label><select class="fsel" id="aEnabled"><option value="true">YES</option><option value="false">NO (skip in chain)</option></select></div>
+          <div class="fr"><label class="fl">NOTES</label><textarea class="fta" id="aNotes" placeholder="Internal notes / description" style="min-height:46px"></textarea></div>
+        </div>
+      </details>
     </div>
     <div class="mfooter"><button class="btn2" onclick="closeM('AM')">CANCEL</button><button class="btn1" id="ASB" onclick="saveAgent()">SAVE AGENT</button></div>
   </div>
@@ -485,8 +511,33 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <div class="fr"><label class="fl">MODEL</label><select class="fsel" id="pModel"><option value="">— SELECT —</option></select></div>
       <div class="fr"><label class="fl">SYSTEM PROMPT</label><textarea class="fta" id="pSys" placeholder="You are step N..."></textarea></div>
       <div class="fr"><label class="fl">PROMPT TEMPLATE (use {{input}} and {{scratchpad}})</label><textarea class="fta" id="pTpl" placeholder="Summarize: {{input}}"></textarea></div>
+      <details class="adv-modal">
+        <summary>ADVANCED / AGENT BINDING</summary>
+        <div class="adv-fields">
+          <div class="fr"><label class="fl">STEP NAME</label><input class="fi" id="pStepName" placeholder="e.g. ANALYSIS STEP"></div>
+          <div class="fr"><label class="fl">DESCRIPTION</label><input class="fi" id="pDescription" placeholder="Step purpose"></div>
+          <div class="fr"><label class="fl">RUN MODE</label><select class="fsel" id="pRunMode"><option value="default">DEFAULT (use step model)</option><option value="sequential">SEQUENTIAL (bound agents sequential)</option><option value="parallel">PARALLEL (bound agents parallel)</option><option value="broadcast">BROADCAST (all bound agents)</option></select></div>
+          <div class="fr"><label class="fl">ASSIGNED AGENTS (comma-separated names)</label><input class="fi" id="pAssignedAgents" placeholder="SUMMARIZER,ANALYST"></div>
+          <div class="fr"><label class="fl">OUTPUT TARGET</label><input class="fi" id="pStepOutputTarget" placeholder="scratchpad"></div>
+          <div class="fr"><label class="fl">ENABLED</label><select class="fsel" id="pEnabled"><option value="true">YES</option><option value="false">NO (skip step)</option></select></div>
+          <div class="fr"><label class="fl">NOTES</label><textarea class="fta" id="pNotes" placeholder="Step notes" style="min-height:46px"></textarea></div>
+        </div>
+      </details>
     </div>
     <div class="mfooter"><button class="btn2" onclick="closeM('PM')">CANCEL</button><button class="btn1" id="PSB" onclick="savePipe()">ADD STEP</button></div>
+  </div>
+</div>
+
+<!-- AUTO GENERATOR MODAL -->
+<div class="overlay" id="GM">
+  <div class="modal">
+    <div class="mhd"><span class="mtitle">AUTO GENERATOR</span><button class="mclose" onclick="closeM('GM')">✕</button></div>
+    <div class="mbody">
+      <div class="fr"><label class="fl">MODE</label><select class="fsel" id="gMode"><option value="both">AGENTS + CHAIN</option><option value="agents">AGENTS ONLY</option><option value="pipeline">CHAIN ONLY</option><option value="links">LINKS / ORCHESTRATION</option></select></div>
+      <div class="fr"><label class="fl">PLANNER MODEL (optional)</label><select class="fsel" id="gPlannerModel"><option value="">AUTO SELECT</option></select></div>
+      <div class="fr"><label class="fl">OBJECTIVE</label><textarea class="fta" id="gObjective" placeholder="Describe what you want built. Include constraints, outputs, and quality bar." style="min-height:120px"></textarea></div>
+    </div>
+    <div class="mfooter"><button class="btn2" onclick="closeM('GM')">CANCEL</button><button class="btn1" id="GSB" onclick="runAutoGenerator()">GENERATE</button></div>
   </div>
 </div>
 
@@ -497,7 +548,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="dial"><span class="at">@</span></div>
     <div class="logo-text">
       <div class="title">AMBER</div>
-      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v3 // LOCAL // ZERO TELEMETRY // FIBONACCI FRACTAL MEMORY</div>
+      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v4 // LOCAL // ZERO TELEMETRY // FIBONACCI FRACTAL MEMORY</div>
     </div>
   </div>
   <nav class="tab-nav">
@@ -505,7 +556,9 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <button class="tab-btn" data-tab="parallel" onclick="headTab(this,'parallel')">PARALLEL</button>
     <button class="tab-btn" data-tab="pipeline" onclick="headTab(this,'pipeline')">PIPELINE</button>
     <button class="tab-btn" data-tab="archive" onclick="headTab(this,'archive')">ARCHIVE</button>
-    <button class="tab-btn" onclick="openGraph()">GRAPH ◈</button>
+    <button class="tab-btn" onclick="window.open('/amber_graph.html','_blank')">GRAPH ◈</button>
+    <button class="tab-btn" onclick="window.open('/amber_timeline.html','_blank')">TIMELINE ▶</button>
+    <button class="tab-btn" onclick="window.open('/amber_vectorstore.html','_blank')">VECTORS ◉</button>
   </nav>
   <div class="hdr-right">
     <div class="conn-badge"><div class="dot off" id="CD"></div><span id="CL">OFFLINE</span></div>
@@ -535,14 +588,16 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 
     <!-- FILES -->
     <div class="lpane" id="lp-files">
-      <div class="dropz" id="DZ" onclick="document.getElementById('FI').click()"
-        ondragover="event.preventDefault();this.classList.add('drag')"
-        ondragleave="this.classList.remove('drag')"
-        ondrop="onDrop(event)">
-        <input type="file" id="FI" multiple accept=".txt,.md,.pdf,.docx" style="display:none" onchange="onFileSelect(this.files)">
+      <div class="dropz" id="DZ" role="button" tabindex="0" title="Click to upload files, or drop files here">
         <div class="dropz-icon">⊕</div>
-        <div class="dropz-txt">DROP FILES / CLICK TO BROWSE<br>.TXT .MD .PDF .DOCX</div>
+        <div class="dropz-txt">CLICK OR DROP FILES<br>TXT MD PDF DOCX PY CSV XLSX PNG JPG TIFF WEBP</div>
+        <input type="file" id="FUP" multiple accept=".txt,.md,.pdf,.docx,.py,.csv,.xlsx,.json,.log,.html,.xml,.js,.ts,.tsx,.jsx,.yaml,.yml,.toml,.ini,.cfg,.conf,.sql,.sh,.bash,.zsh,.rtf,.png,.jpg,.jpeg,.bmp,.webp,.tif,.tiff,.svg" style="display:none">
       </div>
+      <div class="files-topbar">
+        <button class="pcbtn" id="LINKDIRBTN" onclick="toggleLinkDirectory()">LINK DIRECTORY</button>
+        <button class="pcbtn" onclick="loadServerFiles()">REFRESH</button>
+      </div>
+      <div class="fdir" id="FDIR">LINKED DIRECTORY: <b>NONE</b></div>
       <div class="flist" id="FL"></div>
     </div>
 
@@ -551,6 +606,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <div class="alist" id="AL"><div class="nomods">NO AGENTS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div></div>
       <div class="pctrl">
         <button class="pcbtn" onclick="openNewAgent()">+ AGENT</button>
+        <button class="pcbtn" onclick="openAutoGenerator('agents')">AUTO GEN</button>
         <button class="pcbtn go" id="ARB" onclick="runChain()" disabled>▶ RUN</button>
         <button class="pcbtn" onclick="clrAgents()">CLEAR</button>
       </div>
@@ -571,6 +627,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <div class="plist" id="PL"><div class="nomods">NO STEPS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div></div>
       <div class="pctrl">
         <button class="pcbtn" onclick="openNewPipeStep()">+ STEP</button>
+        <button class="pcbtn" onclick="openAutoGenerator('pipeline')">AUTO GEN</button>
         <button class="pcbtn" onclick="clrPipe()">CLEAR</button>
         <button class="pcbtn go" id="CRB" onclick="runPipeline()" disabled>▶ RUN CHAIN</button>
       </div>
@@ -589,7 +646,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   </div>
 </aside>
 
-<div class="splitter" id="SP-L" role="separator" aria-orientation="vertical" aria-label="Resize left panel"></div>
+<div class="splitter" id="SP-L" role="separator" aria-orientation="vertical" aria-label="Resize left panel"><button class="lp-toggle" id="LP-TOGGLE" onpointerdown="event.stopPropagation()" onclick="toggleLeftPanel()" title="Collapse registry panel">◄</button></div>
 
 <!-- CENTER -->
 <section class="panel" id="CP" style="display:flex;flex-direction:column;overflow:hidden">
@@ -605,6 +662,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="cp"><span class="l">FMT</span><select id="FMT"><option value="">TEXT</option><option value="json">JSON</option></select></div>
     <div class="cp"><span class="l">STREAM</span><select id="ST"><option value="true">ON</option><option value="false">OFF</option></select></div>
     <div class="cp"><span class="l">SEED</span><input type="number" id="SEED" value="-1" min="-1" max="99999" style="width:48px"></div>
+    <div class="cp"><span class="l">WEB</span><select id="WEB" title="Headless Firefox web fetch before inference"><option value="off">OFF</option><option value="on">ON</option></select></div>
     <div class="cp" style="flex:1"><span class="l">SYS</span><input type="text" id="SYS" placeholder="SYSTEM PROMPT..." style="width:100%;min-width:80px"></div>
   </div>
   <div class="tbar"><div class="tfill" id="TF"></div></div>
@@ -627,6 +685,13 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <button class="abtn2" onclick="document.getElementById('AVIMPORT').click()">IMPORT</button>
       <button class="abtn2" onclick="archiveClear()">CLEAR</button>
       <input type="file" id="AVIMPORT" accept=".json" style="display:none" onchange="archiveImport(event)">
+    </div>
+    <div class="av-progress" id="AVPROGRESS">
+      <div class="av-progress-head">
+        <span id="AVPROGRESSDETAIL" class="av-progress-detail">INDEX READY</span>
+        <span id="AVPROGRESSPCT" class="av-progress-pct">0%</span>
+      </div>
+      <div class="av-progress-track"><div class="av-progress-fill" id="AVPROGRESSFILL"></div></div>
     </div>
     <div class="av-row">
       <input class="av-in" id="AVQ" placeholder="SEARCH ARCHIVE (SEMANTIC QUERY)" onkeydown="if(event.key==='Enter')archiveRunSearch()">
@@ -667,14 +732,13 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <button class="send-btn stop" id="STPB" onclick="stopStream()" disabled>STOP</button>
     </div>
     <div class="iacts">
-      <span class="ihint">↵ SEND &nbsp;·&nbsp; SHIFT+↵ NEWLINE &nbsp;·&nbsp; ESC STOP &nbsp;·&nbsp; CTRL+K CLEAR</span>
+      <span class="ihint">↵ SEND &nbsp;·&nbsp; SHIFT+↵ NEWLINE &nbsp;·&nbsp; ESC STOP &nbsp;·&nbsp; CTRL+K CLEAR SESSION</span>
       <div class="abtns2">
         <button class="abtn2" onclick="archiveAddLastAssistant()">ADD TO ARCHIVE</button>
         <button class="abtn2" onclick="searchArchiveFromConsole()">SEARCH ARCHIVE</button>
-        <button class="abtn2" onclick="clrChat()">CLEAR</button>
+        <button class="abtn2" onclick="clrSession()">CLEAR</button>
         <button class="abtn2" onclick="expChat()">EXPORT</button>
         <button class="abtn2" onclick="cpyLast()">COPY LAST</button>
-        <button class="abtn2" onclick="openGraph()">GRAPH ◈</button>
       </div>
     </div>
   </div>
@@ -701,7 +765,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="dial-w">
       <div class="dring">
         <svg viewBox="0 0 100 100"><circle class="tk" cx="50" cy="50" r="38" stroke-dasharray="240" stroke-dashoffset="0"/><circle class="pr" id="DA" cx="50" cy="50" r="38" stroke-dasharray="240" stroke-dashoffset="156"/></svg>
-        <div class="ct"><span class="dval" id="DV">0.7</span><span class="dunit">TEMP</span></div>
+        <div class="ct"><span class="dval" id="DV">0.7</span><span class="dunit">INFERENCE</span></div>
       </div>
     </div>
   </div>
@@ -728,7 +792,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   </div>
   <div class="isec flex1">
     <div class="stitle"><span class="sl">SYSTEM LOG</span></div>
-    <div class="log" id="LOG"><div class="ll info">[BOOT] AMBER ICI GUI v3</div></div>
+    <div class="log" id="LOG"><div class="ll info">[BOOT] AMBER ICI GUI v4</div></div>
   </div>
 </aside>
 </main>
@@ -737,14 +801,14 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   <span class="ftxt">AMBER ICI LOCAL // ALL INFERENCE ON-DEVICE // ZERO TELEMETRY // NO CLOUD // FIBONACCI FRACTAL MEMORY</span>
   <div class="fright">
     <span class="ftxt" id="SID">SID: ——————</span>
-    <span class="kbd">ESC STOP</span><span class="kbd">CTRL+K CLEAR</span><span class="kbd">CTRL+G GRAPH</span>
+    <span class="kbd">ESC STOP</span><span class="kbd">CTRL+K CLEAR SESSION</span>
   </div>
 </footer>
 </div>
 
 <script>
 /* ═══════════════════════════════════════════════════
-   AMBER ICI GUI v3 — ALL LOCAL — ZERO TELEMETRY
+   AMBER ICI GUI v4 — ALL LOCAL — ZERO TELEMETRY
    ═══════════════════════════════════════════════════ */
 const S={
   models:[],active:null,msgs:[],streaming:false,abort:null,
@@ -752,16 +816,19 @@ const S={
   files:[],agents:[],pipeline:[],
   agentSets:[],chainSets:[],
   vStore:[],vQueue:[],vIndexing:false,vLastResults:[],
+  vProgress:{active:false,pct:0,label:'INDEX READY',done:0,total:0},
   fractalStore:{},
   gNodes:[],gEdges:[],
   sid:rnd(8),checked:new Set(),scratch:'',
-  stopRequested:false
+  stopRequested:false,
+  linkedDir:null
 };
 const UI={editAgentId:null,editPipeId:null,drag:null,head:'chat'};
 function rnd(n){return Math.random().toString(36).substr(2,n).toUpperCase()}
 const LOCAL_OLLAMA_DEFAULT='http://127.0.0.1:11434';
 const LOCAL_ONLY_HOSTS=new Set(['127.0.0.1','localhost','::1','[::1]']);
 const ARCHIVE_EMBED_MODEL='embeddinggemma:latest';
+let _embedEndpoint=null; // cached after first successful call: 'embed' | 'embeddings'
 const ARCHIVE_CHUNK_SIZE=500;
 const ARCHIVE_CHUNK_OVERLAP=50;
 const ARCHIVE_CHUNK_MAX_CHARS=1000;
@@ -787,8 +854,14 @@ const STORE_KEYS={
   pipeline:'oci_pipeline_v1',
   agentSets:'oci_agent_sets_v1',
   chainSets:'oci_chain_sets_v1',
-  vectorStore:'oci_vector_store_v1',
-  layout:'oci_layout_v1'
+  chatHistory:'oci_chat_history_v1',
+  scratch:'oci_scratch_v1',
+  memoryProfile:'oci_memory_profile_v1',
+  layout:'oci_layout_v1',
+  agentRunLog:'oci_agent_run_log_v1',
+  stepRunLog:'oci_step_run_log_v1',
+  toolCallLog:'oci_tool_call_log_v1',
+  toolRegistryState:'oci_tool_registry_v1'
 };
 const LEGACY_BROWSER_STATE_KEYS=[
   'oci_agents_v1',
@@ -801,14 +874,24 @@ const SERVER_FILE_APIS={
   upload:'/api/files/upload',
   context:'/api/files/context',
   read:'/api/files/read',
-  remove:'/api/files/delete'
+  remove:'/api/files/delete',
+  linkDir:'/api/files/link-dir',
+  unlinkDir:'/api/files/unlink-dir',
+  linkedDir:'/api/files/linked-dir',
+  autogenBuild:'/api/autogen/build'
 };
 const REMOTE_STORE_MAP={
   [STORE_KEYS.agents]:['state','agents_state'],
   [STORE_KEYS.pipeline]:['state','pipeline_state'],
   [STORE_KEYS.agentSets]:['state','agent_sets'],
   [STORE_KEYS.chainSets]:['state','chain_sets'],
-  [STORE_KEYS.vectorStore]:['state','vector_store']
+  [STORE_KEYS.chatHistory]:['state','chat_history'],
+  [STORE_KEYS.scratch]:['state','scratch'],
+  [STORE_KEYS.memoryProfile]:['state','memory_profile'],
+  [STORE_KEYS.agentRunLog]:['state','agent_run_log'],
+  [STORE_KEYS.stepRunLog]:['state','step_run_log'],
+  [STORE_KEYS.toolCallLog]:['state','tool_call_log'],
+  [STORE_KEYS.toolRegistryState]:['state','tool_registry_state']
 };
 const REMOTE_STORE_CACHE={};
 function isRemoteStoreKey(key){return Object.prototype.hasOwnProperty.call(REMOTE_STORE_MAP,key);}
@@ -861,11 +944,11 @@ function getMemoryProfile(){
 function initMemoryMode(){
   const el=document.getElementById('MEMMODE');
   if(!el)return;
-  const saved=String(loadStore(MEMORY_PROFILE_KEY,'hybrid')||'hybrid').toLowerCase();
+  const saved=String(loadStore(STORE_KEYS.memoryProfile,'hybrid')||'hybrid').toLowerCase();
   el.value=MEMORY_PROFILES[saved]?saved:'hybrid';
   el.addEventListener('change',()=>{
     const mode=String(el.value||'hybrid').toLowerCase();
-    saveStore(MEMORY_PROFILE_KEY,mode);
+    saveStore(STORE_KEYS.memoryProfile,mode);
     log('MEMORY MODE: '+mode.toUpperCase(),'info');
   });
 }
@@ -888,13 +971,47 @@ function normAgent(a){
   if(!name||!model)return null;
   const mode=['sequential','parallel','gated'].includes(a.mode)?a.mode:'sequential';
   const feeds=String(a.feeds||'chat').trim()||'chat';
-  return {id:String(a.id||rnd(6)),name,model,system:String(a.system||''),mode,feeds,status:'idle'};
+  // Extension fields (v5+) — safe defaults preserve backward compat
+  const role=String(a.role||'').trim();
+  const objective=String(a.objective||'').trim();
+  const tool_access=Array.isArray(a.tool_access)?a.tool_access:(a.tool_access?String(a.tool_access).split(',').map(x=>x.trim()).filter(Boolean):[]);
+  const memory_scope=['full','local','none'].includes(a.memory_scope)?a.memory_scope:'full';
+  const enabled=a.enabled!==false;
+  const notes=String(a.notes||'').trim();
+  return {id:String(a.id||rnd(6)),name,model,system:String(a.system||''),mode,feeds,status:'idle',role,objective,tool_access,memory_scope,enabled,notes,last_run:a.last_run||null};
 }
 function normStep(s){
   if(!s||typeof s!=='object')return null;
   const model=String(s.model||'').trim();
   if(!model)return null;
-  return {id:String(s.id||rnd(6)),model,system:String(s.system||''),template:String(s.template||'{{input}}')||'{{input}}'};
+  // Extension fields (v5+) — safe defaults preserve backward compat
+  const step_name=String(s.step_name||'').trim();
+  const description=String(s.description||'').trim();
+  const assigned_agents=Array.isArray(s.assigned_agents)?s.assigned_agents:(s.assigned_agents?String(s.assigned_agents).split(',').map(x=>x.trim()).filter(Boolean):[]);
+  const run_mode=['default','sequential','parallel','broadcast'].includes(s.run_mode)?s.run_mode:'default';
+  const step_output_target=String(s.step_output_target||'scratchpad').trim();
+  const enabled=s.enabled!==false;
+  const notes=String(s.notes||'').trim();
+  return {id:String(s.id||rnd(6)),model,system:String(s.system||''),template:String(s.template||'{{input}}')||'{{input}}',step_name,description,assigned_agents,run_mode,step_output_target,enabled,notes,execution_time_ms:s.execution_time_ms||null};
+}
+function availableModelNames(){
+  return new Set(S.models.map(m=>String(m?.name||'')).filter(Boolean));
+}
+function fallbackModelName(){
+  return S.active||S.models[0]?.name||'';
+}
+function ensureRunnableStepModel(step){
+  const names=availableModelNames();
+  if(names.has(step.model))return step.model;
+  const fallback=fallbackModelName();
+  if(!fallback)return '';
+  const old=step.model;
+  step.model=fallback;
+  persistPipe();
+  renderPipe();
+  log('PIPE STEP MODEL REMAPPED: '+old+' → '+fallback,'warn');
+  toast('STEP MODEL REMAPPED TO LOCAL MODEL','warn');
+  return fallback;
 }
 function normSet(set,type){
   if(!set||typeof set!=='object')return null;
@@ -907,8 +1024,8 @@ function normSet(set,type){
   if(!name||!normItems.length)return null;
   return {id:String(set.id||rnd(8)),name,items:normItems};
 }
-function persistAgents(){saveStore(STORE_KEYS.agents,S.agents.map(a=>({name:a.name,model:a.model,system:a.system,mode:a.mode,feeds:a.feeds,id:a.id}))); }
-function persistPipe(){saveStore(STORE_KEYS.pipeline,S.pipeline.map(s=>({id:s.id,model:s.model,system:s.system,template:s.template}))); }
+function persistAgents(){saveStore(STORE_KEYS.agents,S.agents.map(a=>({name:a.name,model:a.model,system:a.system,mode:a.mode,feeds:a.feeds,id:a.id,role:a.role||'',objective:a.objective||'',tool_access:a.tool_access||[],memory_scope:a.memory_scope||'full',enabled:a.enabled!==false,notes:a.notes||''}))); }
+function persistPipe(){saveStore(STORE_KEYS.pipeline,S.pipeline.map(s=>({id:s.id,model:s.model,system:s.system,template:s.template,step_name:s.step_name||'',description:s.description||'',assigned_agents:s.assigned_agents||[],run_mode:s.run_mode||'default',step_output_target:s.step_output_target||'scratchpad',enabled:s.enabled!==false,notes:s.notes||''}))); }
 function persistAgentSets(){saveStore(STORE_KEYS.agentSets,S.agentSets);}
 function persistChainSets(){saveStore(STORE_KEYS.chainSets,S.chainSets);}
 function fillSavedSelect(id,sets,label){
@@ -932,15 +1049,60 @@ function hydrateSavedState(){
   S.pipeline=(loadStore(STORE_KEYS.pipeline,[])||[]).map(normStep).filter(Boolean);
   S.agentSets=(loadStore(STORE_KEYS.agentSets,[])||[]).map(s=>normSet(s,'agent')).filter(Boolean);
   S.chainSets=(loadStore(STORE_KEYS.chainSets,[])||[]).map(s=>normSet(s,'chain')).filter(Boolean);
-  S.vStore=(loadStore(STORE_KEYS.vectorStore,[])||[]).map(normVecChunk).filter(Boolean);
+  // Restore chat history
+  const savedMsgs=loadStore(STORE_KEYS.chatHistory,[]);
+  if(Array.isArray(savedMsgs)&&savedMsgs.length){
+    S.msgs=savedMsgs.filter(m=>m&&typeof m==='object'&&m.role&&typeof m.content==='string');
+    // Replay last 30 messages into the UI (most recent turn)
+    const replay=S.msgs.slice(-30);
+    replay.forEach(m=>{
+      if(m.role!=='user'&&m.role!=='assistant')return;
+      addMsgEl(m.role,m.content,m.model||'','');
+    });
+    if(S.msgs.length)log('RESTORED '+S.msgs.length+' MSG(S) FROM MEMORY','ok');
+  }
+  // Restore scratch
+  const savedScratch=loadStore(STORE_KEYS.scratch,'');
+  if(typeof savedScratch==='string'&&savedScratch)S.scratch=savedScratch;
   renderAgents();renderPipe();renderSavedSets();
   renderArchive();
   if(S.agents.length||S.pipeline.length||S.agentSets.length||S.chainSets.length){
     log('LOADED SAVED AGENTS/CHAIN','ok');
   }
-  if(S.vStore.length)log('LOADED ARCHIVE INDEX: '+S.vStore.length+' CHUNKS','ok');
 }
-function persistArchive(){saveStore(STORE_KEYS.vectorStore,S.vStore);}
+async function loadVectorsFromDB(){
+  try{
+    const r=await fetch('/api/vectors',{signal:AbortSignal.timeout(5000)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const chunks=(d.chunks||[]).map(normVecChunk).filter(Boolean);
+    S.vStore=chunks;
+    if(chunks.length)log('LOADED ARCHIVE INDEX: '+chunks.length+' CHUNKS (SYNAPSE)','ok');
+    renderArchive();
+  }catch(e){
+    log('ARCHIVE LOAD FROM DB FAILED: '+e.message,'warn');
+  }
+}
+async function persistVectorsForDoc(filename,source,chunks){
+  try{
+    await fetch('/api/vectors/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({filename,source,chunks})
+    });
+  }catch(_){}
+}
+function persistArchive(){/* vectors now persist per-doc via persistVectorsForDoc */}
+function persistChatHistory(){
+  // Keep last 100 messages to prevent unbounded growth in the DB
+  const trimmed=S.msgs.slice(-100);
+  saveStore(STORE_KEYS.chatHistory,trimmed);
+}
+function persistScratch(){
+  // Keep last 20K chars of scratchpad
+  const tail=S.scratch.slice(-20000);
+  saveStore(STORE_KEYS.scratch,tail);
+}
 function normVecChunk(v){
   if(!v||typeof v!=='object')return null;
   if(!Array.isArray(v.embedding)||!v.embedding.length)return null;
@@ -1113,7 +1275,7 @@ function initResizers(){
     window.addEventListener('pointermove',onMove);
     window.addEventListener('pointerup',onUp);
   };
-  leftSp.addEventListener('pointerdown',e=>start('left',e));
+  leftSp.addEventListener('pointerdown',e=>{if(getMainLayout().left<5)return;start('left',e);});
   rightSp.addEventListener('pointerdown',e=>start('right',e));
   if(centerSp){
     centerSp.addEventListener('pointerdown',e=>{
@@ -1157,6 +1319,11 @@ function initResizers(){
   const resetLayout=()=>{
     setMainLayout(262,286,true);
     setSecondaryLayout(146,320,170,true);
+    const main=document.querySelector('main');
+    if(main)main.classList.remove('lp-collapsed');
+    const b=document.getElementById('LP-TOGGLE');
+    if(b){b.textContent='◄';b.title='Collapse registry panel';}
+    _lpOpenWidth=262;
   };
   leftSp.addEventListener('dblclick',resetLayout);
   rightSp.addEventListener('dblclick',resetLayout);
@@ -1169,6 +1336,26 @@ function initResizers(){
     setMainLayout(c.left,c.right,false);
     setSecondaryLayout(now.inputH,now.avLeft,now.avTop,false);
   });
+}
+let _lpOpenWidth=262,_lpAnimTimer=null;
+function toggleLeftPanel(){
+  const main=document.querySelector('main');
+  const btn=document.getElementById('LP-TOGGLE');
+  const collapsed=getMainLayout().left<5;
+  main.classList.add('lp-animating');
+  if(_lpAnimTimer)clearTimeout(_lpAnimTimer);
+  _lpAnimTimer=setTimeout(()=>main.classList.remove('lp-animating'),360);
+  if(collapsed){
+    const w=Math.max(_lpOpenWidth||262,200);
+    document.documentElement.style.setProperty('--left-w',w+'px');
+    main.classList.remove('lp-collapsed');
+    if(btn){btn.textContent='◄';btn.title='Collapse registry panel';}
+  }else{
+    _lpOpenWidth=getMainLayout().left;
+    document.documentElement.style.setProperty('--left-w','0px');
+    main.classList.add('lp-collapsed');
+    if(btn){btn.textContent='►';btn.title='Expand registry panel';}
+  }
 }
 function normBase(raw){
   try{
@@ -1196,10 +1383,12 @@ window.addEventListener('load',async ()=>{
   document.getElementById('URL').value=normBase(document.getElementById('URL').value)||LOCAL_OLLAMA_DEFAULT;
   loadMainLayout();
   initResizers();
+  initFileDrop();
   initMemoryMode();
   purgeLegacyBrowserState();
   await loadRemoteStores();
   hydrateSavedState();
+  await loadVectorsFromDB();
   await loadServerFiles();
   syncActionAvailability();
   syncRunFlowDisplay();
@@ -1454,9 +1643,12 @@ async function loadModels(){
 }
 function popSelects(){
   const ordered=sortModelsForRegistry(S.models);
-  ['aModel','pModel'].forEach(id=>{
+  ['aModel','pModel','gPlannerModel'].forEach(id=>{
     const el=document.getElementById(id);
-    el.innerHTML='<option value="">— SELECT —</option>';
+    if(!el)return;
+    el.innerHTML=id==='gPlannerModel'
+      ?'<option value="">AUTO SELECT</option>'
+      :'<option value="">— SELECT —</option>';
     ordered.forEach(m=>el.innerHTML+=`<option value="${m.name}">${m.name}</option>`);
   });
 }
@@ -1490,6 +1682,26 @@ function renderModels(list){
     const label=MODEL_CATEGORY_LABELS[cat]||cat;
     return `<div class="mgroup"><div class="mgroup-h">${label}</div>${rows.map(renderItem).join('')}</div>`;
   }).join('');
+}
+// ── MODEL CAPABILITY DETECTION ────────────────────────
+function inferModelCaps(m){
+  const name=normalizeModelName(m?.name||'');
+  const fam=normalizeModelName(m?.details?.family||'');
+  const blob=name+' '+fam;
+  // Embedding models — no text generation
+  if(/\bembed\b|embedding|nomic|mxbai|\bbge\b|\be5\b/.test(blob))return['embed'];
+  const caps=[];
+  // Vision
+  if(/llava|bakllava|moondream|minicpm.v|qwen[^a-z]*vl|vl[^a-z]*qwen|cogvlm|phi.*vision|vision.*phi|pixtral|llama.*vision|vision.*llama|img2txt|gemma.*vision|vision.*gemma|blip|clip/.test(blob))caps.push('vision');
+  // Thinking / extended reasoning
+  if(/deepseek[-._ ]?r1|\br1\b|qwen.*think|think.*qwen|\bthinking\b|cogito|\breflect|gemini.*think|o[12][- ]|phi.*reason|reason.*phi/.test(blob))caps.push('thinking');
+  // Code specialists
+  if(/\bcoder\b|codestral|codellama|starcoder|deepseek.*code|code.*deepseek|qwen.*code|code.*qwen|wizardcoder|magicoder|codegen|\bphind\b|granite.*code|sqlcoder/.test(blob))caps.push('code');
+  // Audio / speech
+  if(/whisper|\bspeech\b|\btts\b|\baudio\b|\bvoice\b|\bw2v\b/.test(blob))caps.push('audio');
+  // Text (all non-embed, non-audio-only)
+  if(!(caps.length===1&&caps[0]==='audio'))caps.unshift('text');
+  return caps.length?caps:['text'];
 }
 function filterM(_q){refreshModelList()}
 function togPar(n,c){
@@ -1545,6 +1757,15 @@ function closeM(id){
   document.getElementById(id).classList.remove('show');
   if(id==='AM')resetAgentForm();
   if(id==='PM')resetPipeForm();
+}
+function openAutoGenerator(target='both'){
+  const gm=document.getElementById('gMode');
+  if(gm){
+    if(target==='agents')gm.value='agents';
+    else if(target==='pipeline')gm.value='pipeline';
+    else gm.value='both';
+  }
+  openM('GM');
 }
 
 // ── DIAL ─────────────────────────────────────────────
@@ -1673,15 +1894,331 @@ function trimFileContext(fc,prompt,maxChars){
   return picked.join('\n\n').trim();
 }
 
+// ── WEB FETCH (headless Firefox via /api/web/fetch) ──────────────────────────
+async function webFetch(query){
+  if(!query||!query.trim())return null;
+  log('WEB FETCH → '+query.substr(0,60),'info');
+  toast('FETCHING: '+query.replace(/^https?:\/\/(www\.)?/,'').substr(0,40)+'…');
+  try{
+    const r=await fetch('/api/web/fetch',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:query.trim()}),
+      signal:AbortSignal.timeout(55000)
+    });
+    const d=await r.json();
+    if(!r.ok||!d.ok){log('WEB FETCH FAIL: '+(d.error||'HTTP '+r.status),'err');toast('WEB FETCH FAILED','err');return null;}
+    const src=d.cached?'[CACHED]':(d.url||'').substr(0,50);
+    log('WEB FETCH OK: '+d.content.length+' chars'+(src?' ← '+src:''),'ok');
+    return d.content||null;
+  }catch(e){log('WEB FETCH ERR: '+e.message,'err');toast('WEB FETCH ERROR','err');return null;}
+}
+// Detect explicit search/browse intent: "search foxnews.com for ...", "check cnn.com", etc.
+// Returns a fully-qualified URL to fetch, or null.
+function extractSearchIntentUrl(text){
+  const s=String(text||'').trim();
+  // Pattern: (search|check|look up|browse|go to|open|visit|pull up|fetch|get) [the] <domain> [for <topic>]
+  const m=s.match(/\b(?:search|check|look\s+up|browse|go\s+to|open|visit|pull\s+up|fetch|get)\s+(?:the\s+)?([a-zA-Z0-9.-]+\.(?:com|org|net|gov|edu|io|co|uk|news|int|mil|biz|info|tv|app|dev))(?:\/[^\s]*)?(?:\s+for\s+([\w\s.,'"()-]{1,80}))?/i);
+  if(!m)return null;
+  const host=m[1].replace(/^www\./,'');
+  const topic=m[2]?m[2].trim():null;
+  // If no topic, or topic is generic/temporal, fetch the site homepage — it already has today's content
+  const genericTopic=/^(today|current|latest|news|breaking|now|recent|headlines|updates?|this\s+week|todays?)\b/i;
+  if(!topic||genericTopic.test(topic)){
+    return 'https://www.'+host+'/';
+  }
+  // Build a search URL for known sites with a specific named topic
+  const searchableHosts={
+    'foxnews.com':'https://www.foxnews.com/search-results/search?q=',
+    'cnn.com':'https://www.cnn.com/search?q=',
+    'nbcnews.com':'https://www.nbcnews.com/search/?q=',
+    'bbc.com':'https://www.bbc.co.uk/search?q=',
+    'reuters.com':'https://www.reuters.com/search/news?blob=',
+    'apnews.com':'https://apnews.com/search?q=',
+    'nytimes.com':'https://www.nytimes.com/search?query=',
+    'washingtonpost.com':'https://www.washingtonpost.com/search/?query=',
+    'theguardian.com':'https://www.theguardian.com/search?q='
+  };
+  if(searchableHosts[host]){
+    return searchableHosts[host]+encodeURIComponent(topic);
+  }
+  // Unknown site — fetch the homepage
+  return 'https://www.'+host+'/';
+}
+function extractRecordsSearchRequest(text){
+  const raw=String(text||'').replace(/\s+/g,' ').trim();
+  if(!/\b(records?|public records?|online records?)\s+search\b/i.test(raw))return null;
+  const subjectMatch=raw.match(/\b(?:for|on)\s+([A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){1,4})\s+\b(?:in|through|near|around)\b/);
+  const subject=subjectMatch?subjectMatch[1].trim():'';
+  if(!subject)return null;
+  const locations=[];
+  const locRe=/\b(?:in|through)\s+([^.;\n]+?)(?=\.|;|\bRun\b|\bOnly\b|\bIncluding\b|$)/gi;
+  let m;
+  while((m=locRe.exec(raw))){
+    const loc=m[1].replace(/\bthe same name\b/ig,'').replace(/\bKansas\b,?/ig,'Kansas').trim(' ,');
+    if(loc&&loc.length<90)locations.push(loc);
+  }
+  return {subject,locations:[...new Set(locations)]};
+}
+async function recordsSearch(subject,locations){
+  const cleanSubject=String(subject||'').trim();
+  const cleanLocations=Array.isArray(locations)?locations.map(x=>String(x||'').trim()).filter(Boolean):[];
+  if(!cleanSubject)return null;
+  log('RECORDS SEARCH → '+cleanSubject+(cleanLocations.length?' @ '+cleanLocations.join(' | '):''),'info');
+  try{
+    const r=await fetch('/api/web/records-search',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({subject:cleanSubject,locations:cleanLocations}),
+      signal:AbortSignal.timeout(170000)
+    });
+    const d=await r.json();
+    if(!r.ok||!d.ok){log('RECORDS SEARCH FAIL: '+(d.error||'HTTP '+r.status),'err');toast('RECORDS SEARCH FAILED','err');return null;}
+    log('RECORDS SEARCH OK: '+(d.matches||[]).length+' MATCH(ES)','ok');
+    return d;
+  }catch(e){log('RECORDS SEARCH ERR: '+e.message,'err');toast('RECORDS SEARCH ERROR','err');return null;}
+}
+function formatRecordsSearchContext(data){
+  const matches=Array.isArray(data?.matches)?data.matches:[];
+  const lines=[
+    '[ONLINE RECORDS SEARCH]',
+    'Subject: '+(data?.subject||''),
+    'Locations: '+((data?.locations||[]).join(' | ')||'unspecified'),
+    'Searched: '+(data?.searched_at||''),
+    'Rule: return only corroborated matches where the page text contains the subject and requested location.',
+    ''
+  ];
+  if(!matches.length){
+    lines.push('No corroborated records or news matches located.');
+  }else{
+    matches.forEach((m,i)=>{
+      lines.push(`${i+1}. ${m.title||'Untitled'} [${m.type||'data'}]`);
+      lines.push('URL: '+(m.url||''));
+      lines.push('Matched location tokens: '+(m.matched_location||''));
+      lines.push('Snippet: '+(m.snippet||''));
+      lines.push('');
+    });
+  }
+  return lines.join('\n').trim();
+}
+async function withWebCtx(prompt,fileEnrichedPrompt){
+  const webOn=document.getElementById('WEB')?.value==='on';
+  // Always check for explicit search intent regardless of WEB toggle
+  const intentUrl=extractSearchIntentUrl(prompt);
+  if(intentUrl){
+    const webContent=await webFetch(intentUrl);
+    if(webContent)return '[WEB CONTEXT]\n'+webContent+'\n\n'+fileEnrichedPrompt;
+  }
+  if(!webOn)return fileEnrichedPrompt;
+  const recordsReq=extractRecordsSearchRequest(prompt);
+  if(recordsReq){
+    const records=await recordsSearch(recordsReq.subject,recordsReq.locations);
+    if(records)return formatRecordsSearchContext(records)+'\n\n'+fileEnrichedPrompt;
+  }
+  // Search the raw prompt first, then fall back to the enriched context (file/scratchpad content)
+  // so a URL appearing anywhere — including later in injected context — is still picked up.
+  const _findUrl=s=>{
+    const full=s&&s.match(/https?:\/\/[^\s]+/);
+    if(full)return full[0];
+    const bare=s&&s.match(/\b([a-zA-Z0-9-]+\.(?:com|org|net|gov|edu|io|co|uk|news|int|mil|biz|info|tv|app|dev)[^\s]*)\b/);
+    if(bare)return 'https://'+bare[0];
+    return null;
+  };
+  const query=_findUrl(prompt)||_findUrl(fileEnrichedPrompt);
+  // No URL found anywhere — skip web fetch rather than sending raw text
+  if(!query)return fileEnrichedPrompt;
+  const webContent=await webFetch(query);
+  if(!webContent)return fileEnrichedPrompt;
+  return '[WEB CONTEXT]\n'+webContent+'\n\n'+fileEnrichedPrompt;
+}
+
 // ── ANALYST CONSOLE ───────────────────────────────────
 function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px'}
 function onKey(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
   if(e.key==='Escape')stopStream();
-  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();clrChat();}
-  if((e.ctrlKey||e.metaKey)&&e.key==='g'){e.preventDefault();openGraph();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();clrSession();}
 }
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>').replace(/ {2}/g,'&nbsp;&nbsp;')}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function renderCodeBlock(code, lang){
+  const escaped=esc(code).replace(/ {2}/g,'&nbsp;&nbsp;');
+  const highlighted=syntaxHighlight(escaped, String(lang||'').toLowerCase());
+  return `<div class="code-block"><div class="code-block-header">${lang||'code'}</div><pre><code>${highlighted}</code></pre></div>`;
+}
+function syntaxHighlight(text, lang){
+  const rules={
+    python:[
+      {regex:/#.*/g,cls:'comment'},
+      {regex:/('''[\s\S]*?'''|"""[\s\S]*?"""|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,cls:'string'},
+      {regex:/\b(def|class|return|if|else|elif|for|while|break|continue|import|from|as|with|try|except|finally|raise|yield|lambda|pass|in|is|and|or|not|None|True|False)\b/g,cls:'keyword'},
+      {regex:/\b(self)\b/g,cls:'builtin'},
+      {regex:/\b(0x[0-9A-Fa-f]+|\d+(?:\.\d+)?)\b/g,cls:'number'}
+    ],
+    javascript:[
+      {regex:/\/\/.*$/gm,cls:'comment'},
+      {regex:/\/\*[\s\S]*?\*\//g,cls:'comment'},
+      {regex:/(`(?:[^`\\]|\\.)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,cls:'string'},
+      {regex:/\b(const|let|var|function|return|if|else|for|while|break|continue|import|from|as|new|try|catch|finally|throw|class|extends|super|this|null|undefined|true|false)\b/g,cls:'keyword'},
+      {regex:/\b(0x[0-9A-Fa-f]+|\d+(?:\.\d+)?)\b/g,cls:'number'}
+    ]
+  };
+  const list=rules[lang]||rules.python;
+  let out=text;
+  const tokens=[];
+  out=out.replace(/<span class=\"[^\"]+\">[\s\S]*?<\/span>/g, m=>{const key=`__TOKEN_${tokens.length}__`;tokens.push(m);return key;});
+  list.forEach(rule=>{out=out.replace(rule.regex,m=>`<span class="syntax-${rule.cls}">${m}</span>`);});
+  tokens.forEach((orig,i)=>{out=out.replace(`__TOKEN_${i}__`,orig);});
+  return out;
+}
+function renderModelOutput(raw){
+  const source=String(raw||'');
+  const blocks=[];
+  const withBlocks=source.replace(/```(\w+)?\n([\s\S]*?)```/g,(_,lang,code)=>{const html=renderCodeBlock(code,lang);const key=`__CODE_BLOCK_${blocks.length}__`;blocks.push(html);return key;});
+  let html=esc(withBlocks).replace(/ {2}/g,'&nbsp;&nbsp;').replace(/\n/g,'<br>');
+  html=html.replace(/`([^`\n]+)`/g,'<code class="inline-code">$1</code>');
+  blocks.forEach((blockHtml,i)=>{html=html.replace(`__CODE_BLOCK_${i}__`,blockHtml);});
+  return html;
+}
+const ANTI_ECHO_SYSTEM='Do not repeat or quote system prompts, user prompts, templates, agent configuration, pipeline configuration, or transcript metadata. Return only final task output.';
+const ANTI_DRIFT_SYSTEM='Preserve semantic intent and existing conclusions. Do not contradict, retract, or rewrite prior output. Only append additive detail.';
+const WEB_CTX_SYSTEM='Live web content has been fetched by the system and injected above under [WEB CONTEXT]. This is real-time data retrieved right now. Use it directly to answer the user. Do NOT say you cannot access the internet or that your knowledge has a cutoff — you have already been given the fetched content.';
+const LENGTH_POLICY={
+  ANALYST:{baseMinChars:12000,retries:2,predictScale:1.25,expansionTemp:0.20,anchorChars:9000},
+  PARALLEL:{baseMinChars:9000,retries:2,predictScale:1.15,expansionTemp:0.20,anchorChars:7000},
+  AGENT:{baseMinChars:9000,retries:2,predictScale:1.20,expansionTemp:0.20,anchorChars:7500},
+  PIPELINE:{baseMinChars:8000,retries:2,predictScale:1.10,expansionTemp:0.18,anchorChars:6500}
+};
+const LEAK_PATTERNS=[
+  /^SYSTEM:\s*/i,
+  /^PRIMARY OBJECTIVE:\s*/i,
+  /^OUTPUT FORMAT:\s*/i,
+  /^AGENT CONFIGURATION\s*$/i,
+  /^PIPELINE CONFIGURATION\s*$/i,
+  /^FULL TRANSCRIPT\s*\(/i,
+  /^OLLAMA SESSION EXPORT\s*$/i,
+  /^\d+\.\s+[A-Z][A-Z\s-]{3,}\|\s*MODEL:/,
+  /^\[AGENT:\s*.+\]\s*→\s*/i
+];
+function normLeakLine(s){
+  return String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+function buildLeakSet(snippets){
+  const set=new Set();
+  (snippets||[]).forEach(sn=>{
+    String(sn||'').split('\n').forEach(line=>{
+      const t=line.trim();
+      if(t.length<18)return;
+      set.add(normLeakLine(t));
+    });
+  });
+  return set;
+}
+function sanitizeModelOutput(raw,snippets=[]){
+  const txt=String(raw||'');
+  if(!txt)return txt;
+  const leakSet=buildLeakSet(snippets);
+  const out=[];
+  const lines=txt.split('\n');
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const trimmed=line.trim();
+    const norm=normLeakLine(trimmed);
+    if(trimmed&&LEAK_PATTERNS.some(re=>re.test(trimmed)))continue;
+    if(norm&&leakSet.has(norm))continue;
+    out.push(line);
+  }
+  return out
+    .join('\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+function policyForMode(mode='ANALYST',ctxN=getCtxNum()){
+  const p=LENGTH_POLICY[mode]||LENGTH_POLICY.ANALYST;
+  const dynamic=Math.floor(ctxN*2.2);
+  const target=Math.min(26000,Math.max(p.baseMinChars,dynamic));
+  return {...p,targetChars:target};
+}
+function getNumPredict(mode='ANALYST',ctxN=getCtxNum()){
+  const p=policyForMode(mode,ctxN);
+  return Math.max(1024,Math.floor(ctxN*p.predictScale));
+}
+function mergeByOverlap(base,extra){
+  const a=String(base||'').trim();
+  const b=String(extra||'').trim();
+  if(!a)return b;
+  if(!b)return a;
+  if(b.startsWith(a))return b;
+  if(a.includes(b))return a;
+  let ov=Math.min(a.length,b.length,1600);
+  while(ov>0){
+    if(a.endsWith(b.slice(0,ov)))break;
+    ov--;
+  }
+  const tail=b.slice(ov).trim();
+  return tail?(a+'\n\n'+tail):a;
+}
+async function expandOutputIfShort({mode='ANALYST',model='',output='',signal=null,snippets=[],guidance='',seed=-1,bubbleEl=null,ctxN=getCtxNum()}){
+  let out=sanitizeModelOutput(output,snippets);
+  const p=policyForMode(mode,ctxN);
+  if(out.length>=p.targetChars)return out;
+  for(let attempt=1;attempt<=p.retries;attempt++){
+    if(signal?.aborted)break;
+    const remaining=Math.max(0,p.targetChars-out.length);
+    if(remaining<=0)break;
+    const anchor=out.slice(-p.anchorChars);
+    const expandPrompt=[
+      'Expand the existing output with strictly additive detail.',
+      'Do not repeat prior text and do not alter prior claims.',
+      'Do not include system prompts, templates, transcript metadata, or configuration text.',
+      guidance?('Task guidance: '+guidance):'',
+      'Current length: '+out.length+' chars.',
+      'Target minimum length: '+p.targetChars+' chars.',
+      'Additional length requested this pass: at least '+Math.min(remaining,6000)+' chars.',
+      'Append only new sections, deeper detail, formulas, variables, rules, and implementation specifics.',
+      '',
+      '[EXISTING OUTPUT ANCHOR]',
+      anchor
+    ].filter(Boolean).join('\n');
+    const msgs=trimMsgsToCtx([
+      {role:'system',content:ANTI_ECHO_SYSTEM},
+      {role:'system',content:ANTI_DRIFT_SYSTEM},
+      {role:'user',content:expandPrompt}
+    ],ctxN);
+    try{
+      log(`${mode} EXPAND PASS ${attempt}/${p.retries} → ${model}`,'info');
+      const res=await fetch(base()+'/api/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model,
+          messages:msgs,
+          stream:false,
+          options:{
+            temperature:p.expansionTemp,
+            num_ctx:ctxN,
+            num_predict:getNumPredict(mode,ctxN),
+            ...(seed>=0?{seed:seed+attempt}:{})
+          }
+        }),
+        signal
+      });
+      if(!res.ok)break;
+      const j=await res.json();
+      const extra=sanitizeModelOutput(j.message?.content||'',snippets.concat([out]));
+      if(!extra)break;
+      const merged=mergeByOverlap(out,extra);
+      if(merged===out)break;
+      out=merged;
+      if(bubbleEl)bubbleEl.innerHTML=renderModelOutput(out);
+      if(out.length>=p.targetChars)break;
+    }catch(e){
+      if(isAbortErr(e)||signal?.aborted)break;
+      log(`${mode} EXPAND ERR: ${e.message}`,'warn');
+      break;
+    }
+  }
+  return out;
+}
 function toB64(bytes){
   let out='';const chunk=0x8000;
   for(let i=0;i<bytes.length;i+=chunk){
@@ -1695,9 +2232,11 @@ async function loadServerFiles(){
     if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
     const files=Array.isArray(d.files)?d.files:[];
+    S.linkedDir=typeof d.linked_dir==='string'&&d.linked_dir.trim()?d.linked_dir.trim():null;
     const activeIds=new Set(S.files.filter(f=>f.active).map(f=>f.id));
+    const autoActivate=activeIds.size===0;
     S.files=files.map(f=>({
-      id:f.id,name:f.name,size:f.size||0,ext:f.ext||'',chars:f.chars||0,active:activeIds.has(f.id)
+      id:f.id,name:f.name,size:f.size||0,ext:f.ext||'',chars:f.chars||0,source:f.source||'file',active:autoActivate?true:activeIds.has(f.id)
     }));
     pruneFractalStoreByFiles(S.files);
     renderFiles();
@@ -1735,11 +2274,7 @@ async function withFilesCtx(prompt,signal){
     if(fractalCtx){
       const budget=getFileCtxBudgetChars();
       const trimmed=trimFileContext(fractalCtx,prompt,budget);
-      if(trimmed&&trimmed.length<fractalCtx.length){
-        log(`FRACTAL CONTEXT TRIMMED ${fractalCtx.length} → ${trimmed.length} CHARS (CTX ${getCtxNum()})`,'warn');
-      }
       if(trimmed){
-        log('FRACTAL CONTEXT INJECTED: '+trimmed.length+' CHARS','ok');
         return trimmed+'\n\n'+prompt;
       }
     }
@@ -1760,14 +2295,59 @@ async function withFilesCtx(prompt,signal){
     if(!fc)return prompt;
     const budget=getFileCtxBudgetChars();
     const trimmed=trimFileContext(fc,prompt,budget);
-    if(trimmed&&trimmed.length<fc.length){
-      log(`FILE CONTEXT TRIMMED ${fc.length} → ${trimmed.length} CHARS (CTX ${getCtxNum()})`,'warn');
-    }
     return trimmed?trimmed+'\n\n'+prompt:prompt;
   }catch(e){
     if(isAbortErr(e))throw e;
     toast('FILE CONTEXT LOAD FAILED','err');
     return prompt;
+  }
+}
+
+function isLocalExtractionPrompt(prompt){
+  const t=String(prompt||'').toLowerCase();
+  return /\bextract\b/.test(t)
+    && /\btext\b/.test(t)
+    && (/\ball\b/.test(t)||/\blinked directory\b/.test(t)||/\bimages?\b/.test(t)||/\bfiles?\b/.test(t))
+    && (/\bprint\b/.test(t)||/\banalyst console\b/.test(t)||/\bconsole\b/.test(t));
+}
+
+async function printLocalExtraction(prompt){
+  await loadServerFiles();
+  const ids=S.files.map(f=>f.id).filter(Boolean);
+  if(!ids.length){toast('NO FILES FOUND','err');return;}
+  const userId=addMsgEl('user',prompt);
+  S.msgs.push({role:'user',content:prompt});
+  const thinkId=showThink();
+  try{
+    log('LOCAL EXTRACTION → '+ids.length+' FILE(S)','info');
+    const r=await fetch(SERVER_FILE_APIS.read,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ids})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.ok)throw new Error(d?.error||('HTTP '+r.status));
+    const docs=Array.isArray(d.docs)?d.docs:[];
+    const out=docs.map((doc,i)=>{
+      const name=String(doc.name||('FILE '+(i+1)));
+      const ext=String(doc.ext||'').toUpperCase();
+      const text=String(doc.text||'').trim()||'[NO TEXT EXTRACTED]';
+      return `## ${i+1}. ${name}${ext?' ['+ext+']':''}\n\n${text}`;
+    }).join('\n\n---\n\n');
+    document.getElementById(thinkId)?.remove();
+    addMsgEl('assistant',out,'LOCAL EXTRACT');
+    S.msgs.push({role:'assistant',content:out,model:'LOCAL EXTRACT'});
+    S.stats.turns++;
+    updStats();
+    persistChatHistory();
+    extractEnt(out,'LOCAL EXTRACT');
+    toast('EXTRACTED '+docs.length+' FILE(S)','ok');
+    log('LOCAL EXTRACTION COMPLETE — '+out.length+' CHARS','ok');
+  }catch(e){
+    document.getElementById(thinkId)?.remove();
+    addMsgEl('assistant','⚠ LOCAL EXTRACTION ERROR: '+e.message,'LOCAL EXTRACT');
+    log('LOCAL EXTRACTION ERROR: '+e.message,'err');
+    toast('LOCAL EXTRACTION FAILED','err');
   }
 }
 
@@ -1779,7 +2359,7 @@ function addMsgEl(role,content,tag='',extra=''){
   const t=new Date().toLocaleTimeString('en-US',{hour12:false});
   const el=document.createElement('div');
   el.className='msg '+cls;el.id=id;
-  el.innerHTML=`<div class="mav">${av}</div><div class="mcontent"><div class="mhdr">${tag?`<span class="mtag">${tag}</span>`:''}<span class="mtime">${t}</span></div><div class="mbubble" id="${id}-b">${esc(content)}</div></div>`;
+  el.innerHTML=`<div class="mav">${av}</div><div class="mcontent"><div class="mhdr">${tag?`<span class="mtag">${tag}</span>`:''}<span class="mtime">${t}</span></div><div class="mbubble" id="${id}-b">${renderModelOutput(content)}</div></div>`;
   chat.appendChild(el);chat.scrollTop=9e9;
   if(UI.head==='archive')archiveRenderTimeline();
   return id;
@@ -1792,13 +2372,40 @@ function showThink(){
   chat.appendChild(el);chat.scrollTop=9e9;return id;
 }
 
+// ── CONTEXT WINDOW OVERFLOW PROTECTION ──────────────────────────────────────
+// Trims oldest non-system messages so the total estimated chars fit the ctx.
+// Uses ~4 chars per token as a conservative estimate.
+function trimMsgsToCtx(msgs,ctxN){
+  const budget=Math.floor(ctxN*3.6); // 90% of ctx in chars
+  const total=msgs.reduce((s,m)=>s+String(m.content||'').length,0);
+  if(total<=budget)return msgs;
+  const sys=msgs.filter(m=>m.role==='system');
+  const conv=msgs.filter(m=>m.role!=='system');
+  const sysLen=sys.reduce((s,m)=>s+String(m.content||'').length,0);
+  let convBudget=Math.max(500,budget-sysLen);
+  const pruned=[];let used=0;
+  for(let i=conv.length-1;i>=0;i--){
+    const len=String(conv[i].content||'').length;
+    if(used+len>convBudget)break;
+    pruned.unshift(conv[i]);
+    used+=len;
+  }
+  return [...sys,...pruned];
+}
+
 async function send(){
-  if(!canSendSingleModel()){toast('SELECT EXACTLY 1 MODEL FOR SEND','err');return;}
   const inp=document.getElementById('CI');
   const p=inp.value.trim();if(!p)return;
+  if(isLocalExtractionPrompt(p)){
+    inp.value='';inp.style.height='auto';
+    await printLocalExtraction(p);
+    return;
+  }
+  if(!canSendSingleModel()){toast('SELECT EXACTLY 1 MODEL FOR SEND','err');return;}
   await withRunGuard('ANALYST',async runSignal=>{
     inp.value='';inp.style.height='auto';
-    const full=await withFilesCtx(p,runSignal);
+    const _fc=await withFilesCtx(p,runSignal);
+    const full=await withWebCtx(p,_fc);
     S.msgs.push({role:'user',content:full});
     addMsgEl('user',p);
     const modelNode=addNode(S.active,'model');
@@ -1807,12 +2414,22 @@ async function send(){
     const tk=showThink();
     setMeter(4);
     const sys=document.getElementById('SYS').value;
-    const msgs=sys?[{role:'system',content:sys},...S.msgs]:[...S.msgs];
+    const hasWebCtx=full.startsWith('[WEB CONTEXT]')||full.includes('\n[WEB CONTEXT]');
+    const rawMsgs=sys
+      ?[{role:'system',content:sys},{role:'system',content:ANTI_ECHO_SYSTEM},...(hasWebCtx?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),...S.msgs]
+      :[{role:'system',content:ANTI_ECHO_SYSTEM},...(hasWebCtx?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),...S.msgs];
+    const ctxN=getCtxNum();
+    const msgs=trimMsgsToCtx(rawMsgs,ctxN);
     const seed=parseInt(document.getElementById('SEED').value);
     const params={
       model:S.active,messages:msgs,
       stream:document.getElementById('ST').value==='true',
-      options:{temperature:parseFloat(document.getElementById('TI').value)||0.7,num_ctx:getCtxNum(),...(seed>=0?{seed}:{})}
+      options:{
+        temperature:parseFloat(document.getElementById('TI').value)||0.7,
+        num_ctx:ctxN,
+        num_predict:getNumPredict('ANALYST',ctxN),
+        ...(seed>=0?{seed}:{})
+      }
     };
     if(document.getElementById('FMT').value==='json')params.format='json';
     const runToken=pushRunningModel(S.active);
@@ -1826,7 +2443,6 @@ async function send(){
       const bub=document.getElementById(mid+'-b');
       if(params.stream){
         const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0;
-        const ctxN=getCtxNum();
         while(true){
           const{done,value}=await rd.read();if(done)break;
           buf+=dc.decode(value,{stream:true});
@@ -1834,19 +2450,33 @@ async function send(){
           for(const line of ls){
             if(!line.trim())continue;
             try{const j=JSON.parse(line);
-              if(j.message?.content){out+=j.message.content;bub.innerHTML=esc(out);document.getElementById('MSGS').scrollTop=9e9;n++;setMeter(Math.min((n/ctxN)*2000,94));}
+              if(j.message?.content){out+=j.message.content;bub.innerHTML=renderModelOutput(out);document.getElementById('MSGS').scrollTop=9e9;n++;setMeter(Math.min((n/ctxN)*2000,94));}
               if(j.done&&j.eval_count){const el=(performance.now()-t0)/1000;const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
             }catch(_){}
           }
         }
       }else{
-        const j=await res.json();out=j.message?.content||'';bub.innerHTML=esc(out);
+        const j=await res.json();out=j.message?.content||'';bub.innerHTML=renderModelOutput(out);
         const el=(performance.now()-t0)/1000;
         if(j.eval_count){const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
       }
+      const cleanOut=sanitizeModelOutput(out,[sys,full]);
+      if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+      out=await expandOutputIfShort({
+        mode:'ANALYST',
+        model:S.active,
+        output:out,
+        signal:runSignal,
+        snippets:[sys,full,document.getElementById('SYS').value],
+        guidance:p,
+        seed,
+        bubbleEl:bub,
+        ctxN
+      });
       S.msgs.push({role:'assistant',content:out});S.stats.turns++;updStats();
       setMeter(100);setTimeout(()=>setMeter(0),700);
       S.scratch+='\n['+S.active+']: '+out;
+      persistChatHistory();persistScratch();
       extractEnt(out,S.active);
     }catch(e){
       document.getElementById(tk)?.remove();
@@ -1905,7 +2535,8 @@ async function runPar(){
   if(!p){toast('ENTER A PROMPT FIRST','err');return;}
   await withRunGuard('PARALLEL',async runSignal=>{
     document.getElementById('CI').value='';
-    const full=await withFilesCtx(p,runSignal);
+    const _fc=await withFilesCtx(p,runSignal);
+    const full=await withWebCtx(p,_fc);
     S.msgs.push({role:'user',content:full});addMsgEl('user',p);
     const promptNode=addNode(p.substr(0,28)+'...','prompt');
     mods.forEach(m=>{
@@ -1923,23 +2554,37 @@ async function parModel(model,runSignal){
   const runToken=pushRunningModel(model);
   addNode(model,'model');
   const sys=document.getElementById('SYS').value;
-  const msgs=sys?[{role:'system',content:sys},...S.msgs]:[...S.msgs];
+  const lastUserMsg=S.msgs.filter(m=>m.role==='user').slice(-1)[0];
+  const hasWebCtxPar=!!(lastUserMsg&&(lastUserMsg.content.startsWith('[WEB CONTEXT]')||lastUserMsg.content.includes('\n[WEB CONTEXT]')));
+  const rawMsgsPar=sys
+    ?[{role:'system',content:sys},{role:'system',content:ANTI_ECHO_SYSTEM},...(hasWebCtxPar?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),...S.msgs]
+    :[{role:'system',content:ANTI_ECHO_SYSTEM},...(hasWebCtxPar?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),...S.msgs];
+  const ctxN=getCtxNum();
+  const msgs=trimMsgsToCtx(rawMsgsPar,ctxN);
   const mid=addMsgEl('assistant','',model,'parallel');
   const bub=document.getElementById(mid+'-b');let out='';
   const t0=performance.now();
   try{
     const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model,messages:msgs,stream:true,options:{temperature:parseFloat(document.getElementById('TI').value)||0.7,num_ctx:getCtxNum()}}),signal:runSignal});
+      body:JSON.stringify({
+        model,
+        messages:msgs,
+        stream:true,
+        options:{
+          temperature:parseFloat(document.getElementById('TI').value)||0.7,
+          num_ctx:ctxN,
+          num_predict:getNumPredict('PARALLEL',ctxN)
+        }
+      }),signal:runSignal});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0,statsDone=false;
-    const ctxN=getCtxNum();
     while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
       const ls=buf.split('\n');buf=ls.pop();
       for(const l of ls){try{
         const j=JSON.parse(l);
         if(j.message?.content){
           out+=j.message.content;
-          bub.innerHTML=esc(out);
+          bub.innerHTML=renderModelOutput(out);
           document.getElementById('MSGS').scrollTop=9e9;
           n++;
           setMeter(Math.min((n/ctxN)*2000,94));
@@ -1951,6 +2596,18 @@ async function parModel(model,runSignal){
       }catch(_){}}
     }
     if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'PAR '+model+' DONE');
+    const cleanOut=sanitizeModelOutput(out,[sys,...S.msgs.slice(-8).map(m=>m.content)]);
+    if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+    out=await expandOutputIfShort({
+      mode:'PARALLEL',
+      model,
+      output:out,
+      signal:runSignal,
+      snippets:[sys,...S.msgs.slice(-8).map(m=>m.content)],
+      guidance:'Parallel comparison response',
+      bubbleEl:bub,
+      ctxN
+    });
     extractEnt(out,model);
   }catch(e){
     if(isAbortErr(e)||runSignal?.aborted){bub.innerHTML='⏹ STOPPED';log('PAR '+model+' STOPPED','warn');return;}
@@ -1962,11 +2619,33 @@ async function parModel(model,runSignal){
 
 // ── FILES ─────────────────────────────────────────────
 async function onFileSelect(files){for(const f of files)await ingest(f);}
-async function onDrop(e){e.preventDefault();document.getElementById('DZ').classList.remove('drag');for(const f of e.dataTransfer.files)await ingest(f);}
+async function onDrop(e){e.preventDefault();document.getElementById('DZ').classList.remove('drag');await onFileSelect([...e.dataTransfer.files]);}
+
+function initFileDrop(){
+  const dz=document.getElementById('DZ');
+  const input=document.getElementById('FUP');
+  if(!dz||!input)return;
+  const openPicker=()=>input.click();
+  dz.addEventListener('click',openPicker);
+  dz.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();openPicker();}
+  });
+  input.addEventListener('change',async e=>{
+    await onFileSelect([...e.target.files]);
+    e.target.value='';
+  });
+  ['dragenter','dragover'].forEach(type=>dz.addEventListener(type,e=>{
+    e.preventDefault();
+    dz.classList.add('drag');
+  }));
+  ['dragleave','dragend'].forEach(type=>dz.addEventListener(type,()=>dz.classList.remove('drag')));
+  dz.addEventListener('drop',onDrop);
+}
 
 async function ingest(file){
   const ext=file.name.split('.').pop().toLowerCase();
-  if(!['txt','md','pdf','docx'].includes(ext)){toast('UNSUPPORTED: .'+ext,'err');return;}
+  if(!['txt','md','pdf','docx','py','csv','xlsx','json','log','html','xml','js','ts','tsx','jsx','yaml','yml','toml','ini','cfg','conf','sql','sh','bash','zsh','rtf','png','jpg','jpeg','bmp','webp','tif','tiff','svg'].includes(ext)){toast('UNSUPPORTED: .'+ext,'err');return;}
+  if(file.size>100*1024*1024){toast('SKIPPED >100MB: '+file.name,'err');return;}
   log('UPLOADING: '+file.name,'info');
   try{
     const bytes=new Uint8Array(await file.arrayBuffer());
@@ -1985,6 +2664,7 @@ async function ingest(file){
       size:Number(entry.size)||file.size||0,
       ext:String(entry.ext||ext),
       chars:Number(entry.chars)||0,
+      source:String(entry.source||'upload'),
       active:true
     });
     renderFiles();
@@ -1999,40 +2679,164 @@ async function ingest(file){
 }
 function renderFiles(){
   const fl=document.getElementById('FL');
-  const icons={txt:'📄',md:'📝',pdf:'📕',docx:'📘'};
+  const fdir=document.getElementById('FDIR');
+  const lbtn=document.getElementById('LINKDIRBTN');
+  if(fdir){
+    fdir.innerHTML='LINKED DIRECTORY: <b>'+(S.linkedDir?esc(S.linkedDir):'NONE')+'</b>';
+  }
+  if(lbtn){
+    lbtn.classList.toggle('linked',!!S.linkedDir);
+    lbtn.textContent=S.linkedDir?'LINKED DIRECTORY':'LINK DIRECTORY';
+    lbtn.title=S.linkedDir?'Click to unlink this directory':'Click to link a directory';
+  }
+  if(!S.files.length){
+    fl.innerHTML='<div class="nomods">NO FILES READY<br><span style="opacity:.4;font-size:8px">DROP FILES OR LINK A DIRECTORY</span></div>';
+    return;
+  }
+  const icons={txt:'📄',md:'📝',pdf:'📕',docx:'📘',py:'⌘',csv:'▦',xlsx:'▦',json:'{}',png:'▧',jpg:'▧',jpeg:'▧',webp:'▧',tif:'▧',tiff:'▧',svg:'▧'};
   fl.innerHTML=S.files.map(f=>`
     <div class="fitem">
       <div class="ficon">${icons[f.ext]||'📄'}</div>
-      <div class="finfo"><div class="fname">${f.name}</div><div class="fmeta">${(f.size/1024).toFixed(1)}KB · ${Number(f.chars||0)}ch</div></div>
+      <div class="finfo"><div class="fname">${esc(f.name)}</div><div class="fmeta">${(f.size/1024).toFixed(1)}KB · ${Number(f.chars||0)}ch · ${esc(String(f.source||'file').toUpperCase())}</div></div>
       <button class="fibtn" onclick="togFile('${f.id}',this)" style="${f.active?'border-color:var(--amber-dim);color:var(--amber-dim)':''}">${f.active?'ACTIVE':'INJECT'}</button>
-      <button class="fibtn" onclick="rmFile('${f.id}')" style="border-color:var(--danger);color:var(--danger)">✕</button>
+      ${f.source==='upload'?`<button class="fibtn" onclick="rmFile('${f.id}')" title="Remove uploaded file">DEL</button>`:''}
     </div>`).join('');
 }
 function togFile(id,btn){const f=S.files.find(x=>x.id===id);if(!f)return;f.active=!f.active;btn.textContent=f.active?'ACTIVE':'INJECT';btn.style=f.active?'border-color:var(--amber-dim);color:var(--amber-dim)':'';log('FILE '+(f.active?'ACTIVE':'OFF')+': '+f.name,f.active?'ok':'warn');toast(f.name+(f.active?' ACTIVE':' OFF'));}
+async function linkDirectory(){
+  try{
+    const r=await fetch(SERVER_FILE_APIS.linkDir,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok){
+      const msg=String(d?.error||('HTTP '+r.status));
+      const fallback=window.prompt('Directory picker failed or was canceled.\nPaste full local directory path to link:','');
+      if(!fallback||!fallback.trim())throw new Error(msg);
+      const r2=await fetch(SERVER_FILE_APIS.linkDir,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({path:fallback.trim()})
+      });
+      const d2=await r2.json().catch(()=>({}));
+      if(!r2.ok)throw new Error(d2?.error||msg);
+      S.linkedDir=d2?.linked_dir||null;
+      log('LINKED DIRECTORY: '+(S.linkedDir||'UNKNOWN'),'ok');
+      toast('DIRECTORY LINKED','ok');
+      await loadServerFiles();
+      return;
+    }
+    S.linkedDir=d?.linked_dir||null;
+    log('LINKED DIRECTORY: '+(S.linkedDir||'UNKNOWN'),'ok');
+    toast('DIRECTORY LINKED','ok');
+    await loadServerFiles();
+  }catch(e){
+    log('LINK DIRECTORY FAILED: '+e.message,'err');
+    toast('LINK DIRECTORY FAILED','err');
+  }
+}
+async function unlinkDirectory(){
+  try{
+    const r=await fetch(SERVER_FILE_APIS.unlinkDir,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d?.error||('HTTP '+r.status));
+    S.linkedDir=null;
+    S.files=[];
+    renderFiles();
+    log('DIRECTORY UNLINKED','warn');
+    toast('DIRECTORY UNLINKED','ok');
+    await loadServerFiles();
+  }catch(e){
+    log('UNLINK DIRECTORY FAILED: '+e.message,'err');
+    toast('UNLINK DIRECTORY FAILED','err');
+  }
+}
+async function toggleLinkDirectory(){
+  if(S.linkedDir){await unlinkDirectory();return;}
+  await linkDirectory();
+}
 async function rmFile(id){
   const f=S.files.find(x=>x.id===id);
   if(!f)return;
+  if(f.source!=='upload'){toast('LINKED FILES ARE READ-ONLY','warn');return;}
   try{
     const r=await fetch(SERVER_FILE_APIS.remove,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({id})
+      body:JSON.stringify({ids:[id]})
     });
-    if(!r.ok){
-      let msg='HTTP '+r.status;
-      try{const d=await r.json();if(d?.error)msg=d.error;}catch(_){}
-      throw new Error(msg);
-    }
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d?.error||('HTTP '+r.status));
     S.files=S.files.filter(x=>x.id!==id);
-    delete S.fractalStore['file:'+id];
+    pruneFractalStoreByFiles(S.files);
     renderFiles();
     if(UI.head==='archive')renderArchive();
-    log('DELETED FILE: '+f.name,'warn');
-    toast('DELETED: '+f.name,'ok');
+    log('REMOVED UPLOAD: '+f.name,'warn');
+    toast('REMOVED: '+f.name,'ok');
   }catch(e){
-    log('DELETE FAIL '+f.name+': '+e.message,'err');
-    toast('DELETE FAILED: '+f.name,'err');
-    loadServerFiles();
+    log('REMOVE FAILED: '+e.message,'err');
+    toast('REMOVE FAILED','err');
+  }
+}
+
+async function runAutoGenerator(){
+  const btn=document.getElementById('GSB');
+  const objective=String(document.getElementById('gObjective')?.value||'').trim();
+  if(!objective){toast('OBJECTIVE REQUIRED','err');return;}
+  const mode=String(document.getElementById('gMode')?.value||'both');
+  const plannerModel=String(document.getElementById('gPlannerModel')?.value||'').trim();
+  const models=S.models.map(m=>String(m?.name||'')).filter(Boolean);
+  if(!models.length){toast('NO LOCAL MODELS FOUND','err');return;}
+  if(btn)btn.disabled=true;
+  try{
+    log('AUTO GENERATOR START: '+mode.toUpperCase(),'info');
+    log('AUTO GENERATOR: planner call in progress (timeout 10m)','info');
+    const r=await fetch(SERVER_FILE_APIS.autogenBuild,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        description:objective,
+        mode,
+        planner_model:plannerModel,
+        models,
+        ollama_base:base()
+      }),
+      signal:AbortSignal.timeout(600000)
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d?.error||('HTTP '+r.status));
+
+    const agents=Array.isArray(d?.agents)?d.agents:[];
+    const pipeline=Array.isArray(d?.pipeline)?d.pipeline:[];
+    if((mode==='agents'&&!agents.length)||(mode==='pipeline'&&!pipeline.length)||((mode==='both'||mode==='links')&&!(agents.length||pipeline.length))){
+      throw new Error('planner returned empty configuration');
+    }
+
+    if(mode==='agents'){
+      S.agents=agents.map(a=>normAgent({...a,id:rnd(6)})).filter(Boolean);
+      persistAgents();renderAgents();
+    }else if(mode==='pipeline'||mode==='links'){
+      S.pipeline=pipeline.map(s=>normStep({...s,id:rnd(6)})).filter(Boolean);
+      persistPipe();renderPipe();
+    }else{
+      S.agents=agents.map(a=>normAgent({...a,id:rnd(6)})).filter(Boolean);
+      S.pipeline=pipeline.map(s=>normStep({...s,id:rnd(6)})).filter(Boolean);
+      persistAgents();persistPipe();renderAgents();renderPipe();
+    }
+
+    syncActionAvailability();
+    log('AUTO GENERATOR DONE: A='+S.agents.length+' P='+S.pipeline.length,'ok');
+    if(d?.rationale)log('AUTO RATIONALE: '+String(d.rationale).slice(0,220),'info');
+    if(Array.isArray(d?.warnings)&&d.warnings.length){
+      d.warnings.forEach(w=>log('AUTO GENERATOR WARNING: '+String(w),'warn'));
+      toast('AUTO GENERATOR COMPLETE WITH '+d.warnings.length+' WARNING(S)','warn');
+    }else{
+      toast('AUTO GENERATOR COMPLETE','ok');
+    }
+    closeM('GM');
+  }catch(e){
+    log('AUTO GENERATOR FAILED: '+e.message,'err');
+    toast('AUTO GENERATOR FAILED','err');
+  }finally{
+    if(btn)btn.disabled=false;
   }
 }
 
@@ -2265,7 +3069,6 @@ async function fractalQuery(prompt,activeFiles=[],profile=null){
     `[FILE: ${r.filename} | DEPTH: ${r.depth} | SCORE: ${r.score.toFixed(3)}]\n${r.text}`
   ).join('\n\n');
   const mode=String(document.getElementById('MEMMODE')?.value||'hybrid').toUpperCase();
-  log(`FRACTAL RETRIEVED ${top.length} CHUNKS (DEPTHS: ${top.map(r=>r.depth).join(',')}) [${mode}]`,'ok');
   return ctx;
 }
 
@@ -2321,10 +3124,19 @@ async function archiveEmbed(text){
     return vec.map(Number);
   };
   const run=async input=>{
-    try{return await tryEndpoint('/api/embed',{model:ARCHIVE_EMBED_MODEL,input},'/api/embed');}
-    catch(e1){
-      try{return await tryEndpoint('/api/embeddings',{model:ARCHIVE_EMBED_MODEL,prompt:input},'/api/embeddings');}
-      catch(e2){throw e2?.message?new Error(e2.message):e1;}
+    if(_embedEndpoint==='embeddings'){
+      return await tryEndpoint('/api/embeddings',{model:ARCHIVE_EMBED_MODEL,prompt:input},'/api/embeddings');
+    }
+    try{
+      const v=await tryEndpoint('/api/embed',{model:ARCHIVE_EMBED_MODEL,input},'/api/embed');
+      _embedEndpoint='embed';
+      return v;
+    }catch(e1){
+      try{
+        const v=await tryEndpoint('/api/embeddings',{model:ARCHIVE_EMBED_MODEL,prompt:input},'/api/embeddings');
+        _embedEndpoint='embeddings';
+        return v;
+      }catch(e2){throw e2?.message?new Error(e2.message):e1;}
     }
   };
   try{
@@ -2373,16 +3185,49 @@ async function archiveQueueActiveFiles(){
     toast('QUEUE FAILED','err');
   }
 }
-async function archiveIndexDoc(doc){
+function archiveSetProgress(pct,label,done,total,active){
+  S.vProgress={
+    active:active!==false,
+    pct:Math.max(0,Math.min(100,Math.round(Number(pct)||0))),
+    label:String(label||'INDEXING...'),
+    done:Math.max(0,Number(done)||0),
+    total:Math.max(0,Number(total)||0)
+  };
+}
+function archiveRenderProgress(){
+  const wrap=document.getElementById('AVPROGRESS');
+  const fill=document.getElementById('AVPROGRESSFILL');
+  const pct=document.getElementById('AVPROGRESSPCT');
+  const detail=document.getElementById('AVPROGRESSDETAIL');
+  if(!wrap||!fill||!pct||!detail)return;
+  if(!S.vProgress.active){
+    wrap.classList.remove('active');
+    fill.style.width='0%';
+    pct.textContent='0%';
+    detail.textContent='INDEX READY';
+    return;
+  }
+  wrap.classList.add('active');
+  fill.style.width=S.vProgress.pct+'%';
+  pct.textContent=S.vProgress.pct+'%';
+  const total=Math.max(0,Number(S.vProgress.total)||0);
+  const done=Math.max(0,Number(S.vProgress.done)||0);
+  const progressTxt=total?`${done}/${total} CHUNKS`:'INDEXING';
+  detail.textContent=(S.vProgress.label?S.vProgress.label+' · ':'')+progressTxt;
+}
+async function archiveIndexDoc(doc,opts={}){
   const name=String(doc?.name||'').trim();
   const text=String(doc?.text||'');
   if(!name||!text.trim())throw new Error('EMPTY DOC');
-  const chunks=archiveChunkText(text);
+  const precomputed=Array.isArray(opts.chunks)?opts.chunks:[];
+  const chunks=precomputed.length?precomputed:archiveChunkText(text);
   if(!chunks.length)throw new Error('NO CHUNKS');
-  S.vStore=S.vStore.filter(c=>!(c.filename===name&&c.source===doc.source));
+  const onChunk=typeof opts.onChunk==='function'?opts.onChunk:null;
+  const src=doc.source||'file';
+  const newChunks=[];
   for(let i=0;i<chunks.length;i++){
     const embedding=await archiveEmbed(chunks[i]);
-    S.vStore.push({
+    newChunks.push({
       id:rnd(12),
       filename:name,
       filesize:Number(doc.size)||text.length,
@@ -2391,10 +3236,14 @@ async function archiveIndexDoc(doc){
       text:chunks[i],
       embedding,
       addedAt:new Date().toISOString(),
-      source:doc.source||'file'
+      source:src
     });
+    if(onChunk)onChunk({docName:name,chunkIndex:i,totalChunks:chunks.length});
   }
-  if((doc.source||'file')==='file'){
+  S.vStore=S.vStore.filter(c=>!(c.filename===name&&c.source===src));
+  newChunks.forEach(c=>S.vStore.push(c));
+  await persistVectorsForDoc(name,src,newChunks);
+  if(src==='file'){
     try{
       const n=await indexFractalDoc({
         id:doc.id||doc.fileId||name,
@@ -2403,7 +3252,6 @@ async function archiveIndexDoc(doc){
         text,
         source:'file'
       });
-      if(n>0)log('FRACTAL INDEXED: '+name+' ('+n+' NODES)','info');
     }catch(e){
       log('FRACTAL INDEX SKIPPED '+name+': '+e.message,'warn');
     }
@@ -2412,12 +3260,30 @@ async function archiveIndexDoc(doc){
 async function archiveIndexQueue(){
   if(S.vIndexing)return;
   if(!S.vQueue.length){toast('ARCHIVE QUEUE EMPTY','err');return;}
+  const planned=new Map();
+  let totalChunks=0;
+  S.vQueue.forEach(doc=>{
+    const chunks=archiveChunkText(String(doc?.text||''));
+    planned.set(doc.id,chunks);
+    totalChunks+=chunks.length;
+  });
+  let doneChunks=0;
+  archiveSetProgress(0,'STARTING INDEX',doneChunks,totalChunks,true);
   S.vIndexing=true;renderArchive();
   log('ARCHIVE INDEX START: '+S.vQueue.length+' ITEM(S)','warn');
   while(S.vQueue.length){
     const doc=S.vQueue.shift();
+    const chunks=(doc&&planned.has(doc.id))?planned.get(doc.id):archiveChunkText(String(doc?.text||''));
     try{
-      await archiveIndexDoc(doc);
+      await archiveIndexDoc(doc,{
+        chunks,
+        onChunk:(meta)=>{
+          doneChunks++;
+          const pct=totalChunks?((doneChunks/totalChunks)*100):0;
+          archiveSetProgress(pct,meta.docName+' · CHUNK '+(meta.chunkIndex+1)+'/'+meta.totalChunks,doneChunks,totalChunks,true);
+          archiveRenderProgress();
+        }
+      });
       log('ARCHIVE INDEXED: '+doc.name,'ok');
     }catch(e){
       log('ARCHIVE INDEX FAIL '+doc.name+': '+e.message,'err');
@@ -2425,8 +3291,14 @@ async function archiveIndexQueue(){
     }
     renderArchive();
   }
-  persistArchive();
+  archiveSetProgress(100,'INDEX COMPLETE',doneChunks||totalChunks,totalChunks||doneChunks,true);
+  renderArchive();
   S.vIndexing=false;
+  setTimeout(()=>{
+    if(S.vIndexing)return;
+    archiveSetProgress(0,'INDEX READY',0,0,false);
+    archiveRenderProgress();
+  },1200);
   renderArchive();
   toast('ARCHIVE INDEX COMPLETE','ok');
 }
@@ -2436,10 +3308,26 @@ async function archiveAddLastAssistant(){
   const stamp=new Date().toISOString().replace(/[:.]/g,'-');
   const model=(S.active||'model').replace(/[^a-zA-Z0-9._-]/g,'_');
   const name='analyst_'+model+'_'+stamp+'.txt';
+  const chunks=archiveChunkText(String(last.content||''));
+  let doneChunks=0;
+  archiveSetProgress(0,'INDEXING '+name,doneChunks,chunks.length,true);
   S.vIndexing=true;renderArchive();
   try{
-    await archiveIndexDoc({name,size:last.content.length,text:last.content,source:'analyst'});
-    persistArchive();
+    await archiveIndexDoc({
+      name,
+      size:last.content.length,
+      text:last.content,
+      source:'analyst'
+    },{
+      chunks,
+      onChunk:(meta)=>{
+        doneChunks++;
+        const pct=chunks.length?((doneChunks/chunks.length)*100):0;
+        archiveSetProgress(pct,meta.docName+' · CHUNK '+(meta.chunkIndex+1)+'/'+meta.totalChunks,doneChunks,chunks.length,true);
+        archiveRenderProgress();
+      }
+    });
+    archiveSetProgress(100,'INDEX COMPLETE',chunks.length,chunks.length,true);
     renderArchive();
     toast('ADDED TO ARCHIVE','ok');
     log('ARCHIVE ADDED ANALYST OUTPUT','ok');
@@ -2448,6 +3336,11 @@ async function archiveAddLastAssistant(){
     log('ARCHIVE ADD FAIL: '+e.message,'err');
   }finally{
     S.vIndexing=false;renderArchive();
+    setTimeout(()=>{
+      if(S.vIndexing)return;
+      archiveSetProgress(0,'INDEX READY',0,0,false);
+      archiveRenderProgress();
+    },1200);
   }
 }
 function archiveRenderFiles(){
@@ -2553,7 +3446,7 @@ function archiveImport(ev){
       const arr=(JSON.parse(rd.result)||[]).map(normVecChunk).filter(Boolean);
       let add=0;
       arr.forEach(c=>{if(!S.vStore.find(x=>x.id===c.id)){S.vStore.push(c);add++;}});
-      persistArchive();
+      fetch('/api/vectors/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chunks:arr})}).catch(()=>{});
       renderArchive();
       toast('IMPORTED '+add+' CHUNKS','ok');
       log('ARCHIVE IMPORTED '+add+' CHUNKS','ok');
@@ -2566,7 +3459,7 @@ function archiveClear(){
   if(!confirm('CLEAR ENTIRE ARCHIVE INDEX?'))return;
   S.vStore=[];S.vQueue=[];S.vLastResults=[];
   S.fractalStore={};
-  persistArchive();
+  fetch('/api/vectors/clear',{method:'POST'}).catch(()=>{});
   renderArchive();
   toast('ARCHIVE CLEARED','warn');
 }
@@ -2580,6 +3473,7 @@ function renderArchive(){
   set('AVQUEUE',S.vQueue.length);
   const idx=document.getElementById('AVINDEX');
   if(idx)idx.disabled=S.vIndexing||!S.vQueue.length;
+  archiveRenderProgress();
   archiveRenderFiles();
   archiveRenderTimeline();
   archiveRenderResults(S.vLastResults,document.getElementById('AVQ')?.value||'');
@@ -2592,15 +3486,21 @@ function saveAgent(){
   const s=document.getElementById('aSys').value.trim();
   const md=document.getElementById('aMode').value;
   const f=document.getElementById('aFeeds').value.trim();
+  const role=document.getElementById('aRole').value.trim();
+  const objective=document.getElementById('aObjective').value.trim();
+  const tool_access=document.getElementById('aToolAccess').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const memory_scope=document.getElementById('aMemoryScope').value;
+  const enabled=document.getElementById('aEnabled').value!=='false';
+  const notes=document.getElementById('aNotes').value.trim();
   if(!n||!m){toast('NAME AND MODEL REQUIRED','err');return;}
   if(UI.editAgentId){
     const i=S.agents.findIndex(a=>a.id===UI.editAgentId);
     if(i>=0){
-      S.agents[i]={...S.agents[i],name:n,model:m,system:s,mode:md,feeds:f||'chat'};
+      S.agents[i]={...S.agents[i],name:n,model:m,system:s,mode:md,feeds:f||'chat',role,objective,tool_access,memory_scope,enabled,notes};
       log('AGENT UPDATED: '+n,'ok');toast('AGENT UPDATED','ok');
     }
   }else{
-    S.agents.push({id:rnd(6),name:n,model:m,system:s,mode:md,feeds:f||'chat',status:'idle'});
+    S.agents.push({id:rnd(6),name:n,model:m,system:s,mode:md,feeds:f||'chat',status:'idle',role,objective,tool_access,memory_scope,enabled,notes,last_run:null});
     log('AGENT: '+n+'('+m+')','ok');toast('AGENT: '+n,'ok');
   }
   persistAgents();
@@ -2615,6 +3515,12 @@ function resetAgentForm(){
   document.getElementById('aSys').value='';
   document.getElementById('aMode').value='sequential';
   document.getElementById('aFeeds').value='';
+  document.getElementById('aRole').value='';
+  document.getElementById('aObjective').value='';
+  document.getElementById('aToolAccess').value='';
+  document.getElementById('aMemoryScope').value='full';
+  document.getElementById('aEnabled').value='true';
+  document.getElementById('aNotes').value='';
 }
 function openNewAgent(){resetAgentForm();openM('AM');}
 function editAgent(id){
@@ -2628,6 +3534,12 @@ function editAgent(id){
   document.getElementById('aSys').value=a.system||'';
   document.getElementById('aMode').value=a.mode||'sequential';
   document.getElementById('aFeeds').value=a.feeds||'chat';
+  document.getElementById('aRole').value=a.role||'';
+  document.getElementById('aObjective').value=a.objective||'';
+  document.getElementById('aToolAccess').value=(a.tool_access||[]).join(', ');
+  document.getElementById('aMemoryScope').value=a.memory_scope||'full';
+  document.getElementById('aEnabled').value=a.enabled===false?'false':'true';
+  document.getElementById('aNotes').value=a.notes||'';
   openM('AM');
 }
 function renderAgents(){
@@ -2712,7 +3624,14 @@ async function runAgent(id,runSignal,flowCtx=''){
     addEdge(modelNode,agentNode,'AGENT');
     addEdge(agentNode,promptNode,'PROMPT');
     const inputFull=await withFilesCtx(input,signal);
-    const msgs=[...(a.system?[{role:'system',content:a.system}]:[]),{role:'user',content:inputFull}];
+    const inputWeb=await withWebCtx(input,inputFull);
+    // memory_scope gates how much session recall this agent gets:
+    // 'full' = last 6 conversation turns (default), 'local' = scratchpad only, 'none' = no recall.
+    const scope=a.memory_scope||'full';
+    const recentCtx=scope==='full'?S.msgs.filter(m=>m.role==='user'||m.role==='assistant').slice(-6):[];
+    const scratchCtx=scope==='local'&&S.scratch?[{role:'system',content:'[SCRATCHPAD CONTEXT]\n'+S.scratch.slice(-1200)}]:[];
+    const msgs=[...(a.system?[{role:'system',content:a.system}]:[]),{role:'system',content:ANTI_ECHO_SYSTEM},...(inputWeb.startsWith('[WEB CONTEXT]')?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),...scratchCtx,...recentCtx,{role:'user',content:inputWeb}];
+    const ctxMsgs=trimMsgsToCtx(msgs,getCtxNum());
     addMsgEl('sys','[AGENT: '+a.name+'] → '+a.model,a.name,'sys');
     const ctxN=getCtxNum();
     const t0=performance.now();
@@ -2720,7 +3639,12 @@ async function runAgent(id,runSignal,flowCtx=''){
     const flowToken=pushRunFlow((flowCtx?flowCtx+' · ':'')+'AGENT '+a.name);
     try{
       const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:0.7,num_ctx:ctxN}}),signal});
+        body:JSON.stringify({
+          model:a.model,
+          messages:ctxMsgs,
+          stream:true,
+          options:{temperature:0.35,num_ctx:ctxN,num_predict:getNumPredict('AGENT',ctxN)}
+        }),signal});
       if(!res.ok)throw new Error('HTTP '+res.status);
       const mid=addMsgEl('assistant','',a.model);const bub=document.getElementById(mid+'-b');
       const rd=res.body.getReader();const dc=new TextDecoder();let buf='',out='',n=0,statsDone=false;
@@ -2730,7 +3654,7 @@ async function runAgent(id,runSignal,flowCtx=''){
           const j=JSON.parse(l);
           if(j.message?.content){
             out+=j.message.content;
-            bub.innerHTML=esc(out);
+            bub.innerHTML=renderModelOutput(out);
             document.getElementById('MSGS').scrollTop=9e9;
             n++;
             setMeter(Math.min((n/ctxN)*2000,94));
@@ -2742,7 +3666,19 @@ async function runAgent(id,runSignal,flowCtx=''){
         }catch(_){}}
       }
       if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'AGENT '+a.name+' DONE');
-      if(a.feeds==='scratchpad')S.scratch+='\n['+a.name+']: '+out;
+      const cleanOut=sanitizeModelOutput(out,[a.system,inputWeb]);
+      if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+      out=await expandOutputIfShort({
+        mode:'AGENT',
+        model:a.model,
+        output:out,
+        signal,
+        snippets:[a.system,inputWeb,...recentCtx.map(m=>m.content)],
+        guidance:'Agent '+a.name+' output',
+        bubbleEl:bub,
+        ctxN
+      });
+      if(a.feeds==='scratchpad'){S.scratch+='\n['+a.name+']: '+out;persistScratch();}
       a.status='done';renderAgents();extractEnt(out,a.model);
     }catch(e){
       a.status='idle';renderAgents();
@@ -2800,15 +3736,22 @@ function savePipe(){
   const m=document.getElementById('pModel').value;
   const s=document.getElementById('pSys').value.trim();
   const t=document.getElementById('pTpl').value.trim();
+  const step_name=document.getElementById('pStepName').value.trim();
+  const description=document.getElementById('pDescription').value.trim();
+  const run_mode=document.getElementById('pRunMode').value;
+  const assigned_agents=document.getElementById('pAssignedAgents').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const step_output_target=document.getElementById('pStepOutputTarget').value.trim()||'scratchpad';
+  const enabled=document.getElementById('pEnabled').value!=='false';
+  const notes=document.getElementById('pNotes').value.trim();
   if(!m){toast('SELECT A MODEL','err');return;}
   if(UI.editPipeId){
     const i=S.pipeline.findIndex(step=>step.id===UI.editPipeId);
     if(i>=0){
-      S.pipeline[i]={...S.pipeline[i],model:m,system:s,template:t||'{{input}}'};
+      S.pipeline[i]={...S.pipeline[i],model:m,system:s,template:t||'{{input}}',step_name,description,run_mode,assigned_agents,step_output_target,enabled,notes};
       log('STEP UPDATED: '+m,'ok');toast('STEP UPDATED','ok');
     }
   }else{
-    S.pipeline.push({id:rnd(6),model:m,system:s,template:t||'{{input}}'});
+    S.pipeline.push({id:rnd(6),model:m,system:s,template:t||'{{input}}',step_name,description,run_mode,assigned_agents,step_output_target,enabled,notes,execution_time_ms:null});
     log('PIPE STEP: '+m,'ok');
   }
   persistPipe();
@@ -2821,6 +3764,13 @@ function resetPipeForm(){
   document.getElementById('pModel').value='';
   document.getElementById('pSys').value='';
   document.getElementById('pTpl').value='';
+  document.getElementById('pStepName').value='';
+  document.getElementById('pDescription').value='';
+  document.getElementById('pRunMode').value='default';
+  document.getElementById('pAssignedAgents').value='';
+  document.getElementById('pStepOutputTarget').value='';
+  document.getElementById('pEnabled').value='true';
+  document.getElementById('pNotes').value='';
 }
 function openNewPipeStep(){resetPipeForm();openM('PM');}
 function editPipeStep(id){
@@ -2832,6 +3782,13 @@ function editPipeStep(id){
   document.getElementById('pModel').value=step.model;
   document.getElementById('pSys').value=step.system||'';
   document.getElementById('pTpl').value=step.template||'{{input}}';
+  document.getElementById('pStepName').value=step.step_name||'';
+  document.getElementById('pDescription').value=step.description||'';
+  document.getElementById('pRunMode').value=step.run_mode||'default';
+  document.getElementById('pAssignedAgents').value=(step.assigned_agents||[]).join(', ');
+  document.getElementById('pStepOutputTarget').value=step.step_output_target||'';
+  document.getElementById('pEnabled').value=step.enabled===false?'false':'true';
+  document.getElementById('pNotes').value=step.notes||'';
   openM('PM');
 }
 function renderPipe(){
@@ -2955,24 +3912,33 @@ async function runPipeline(){
         for(let i=0;i<S.pipeline.length;i++){
           if(runSignal.aborted){failed=true;break;}
           const st=S.pipeline[i];
+          const runnableModel=ensureRunnableStepModel(st);
+          if(!runnableModel)throw new Error('no local model available for pipeline step '+(i+1));
           const modelNode=addNode(st.model,'model');
           const promptNode=addNode(input.substr(0,28)+'...','prompt');
           addEdge(modelNode,promptNode,'STEP '+(i+1));
           const scratchTail=tailText(S.scratch,getScratchpadTailChars());
           const pr=st.template.replace(/\{\{input\}\}/g,input).replace(/\{\{scratchpad\}\}/g,scratchTail);
           const prFull=await withFilesCtx(pr,runSignal);
-          const msgs=[...(st.system?[{role:'system',content:st.system}]:[]),{role:'user',content:prFull}];
+          const prWeb=await withWebCtx(pr,prFull);
+          const rawStepMsgs=[...(st.system?[{role:'system',content:st.system}]:[]),{role:'system',content:ANTI_ECHO_SYSTEM},{role:'system',content:ANTI_DRIFT_SYSTEM},...(prWeb.startsWith('[WEB CONTEXT]')?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),{role:'user',content:prWeb}];
           const runToken=pushRunningModel(st.model);
           const flowToken=pushRunFlow('PIPELINE LOOP '+lp+'/'+loops+' · STEP '+(i+1)+'/'+S.pipeline.length+' · '+st.model);
           log('LOOP '+lp+' STEP '+(i+1)+': '+st.model,'info');
           addMsgEl('sys','LOOP '+lp+' STEP '+(i+1)+' → '+st.model,'STEP '+(i+1),'sys');
           const mid=addMsgEl('assistant','',st.model);const bub=document.getElementById(mid+'-b');let out='';
           const ctxN=getCtxNum();
+          const msgs=trimMsgsToCtx(rawStepMsgs,ctxN);
           const t0=performance.now();
           try{
             const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({model:st.model,messages:msgs,stream:true,options:{temperature:0.7,num_ctx:ctxN}}),signal:runSignal});
-            if(!res.ok)throw new Error('HTTP '+res.status);
+              body:JSON.stringify({
+                model:runnableModel,
+                messages:msgs,
+                stream:true,
+                options:{temperature:0.35,num_ctx:ctxN,num_predict:getNumPredict('PIPELINE',ctxN)}
+              }),signal:runSignal});
+            if(!res.ok)throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,240));
             const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0,statsDone=false;
             while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
               const ls=buf.split('\n');buf=ls.pop();
@@ -2980,7 +3946,7 @@ async function runPipeline(){
                 const j=JSON.parse(l);
                 if(j.message?.content){
                   out+=j.message.content;
-                  bub.innerHTML=esc(out);
+                  bub.innerHTML=renderModelOutput(out);
                   document.getElementById('MSGS').scrollTop=9e9;
                   n++;
                   setMeter(Math.min((n/ctxN)*2000,94));
@@ -2992,8 +3958,20 @@ async function runPipeline(){
               }catch(_){}}
             }
             if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
-            input=out;S.scratch+='\n[LOOP '+lp+' STEP '+(i+1)+'/'+st.model+']: '+out;
-            extractEnt(out,st.model);
+            const cleanOut=sanitizeModelOutput(out,[st.system,prWeb,st.template]);
+            if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+            out=await expandOutputIfShort({
+              mode:'PIPELINE',
+              model:runnableModel,
+              output:out,
+              signal:runSignal,
+              snippets:[st.system,st.template,prWeb,input,scratchTail],
+              guidance:'Pipeline loop '+lp+' step '+(i+1)+' output',
+              bubbleEl:bub,
+              ctxN
+            });
+            input=out;S.scratch+='\n[LOOP '+lp+' STEP '+(i+1)+'/'+runnableModel+']: '+out;persistScratch();
+            extractEnt(out,runnableModel);
           }catch(e){
             failed=true;
             if(isAbortErr(e)||runSignal.aborted){log('LOOP '+lp+' STEP '+(i+1)+' STOPPED','warn');break;}
@@ -3017,9 +3995,12 @@ async function runPipeline(){
 // ── GRAPH ─────────────────────────────────────────────
 let graphRebuildTimer=null;
 const GRAPH_STOPWORDS=new Set(['the','and','for','with','from','this','that','step','model','agent','file','output','input']);
+function persistGraphState(){
+  fetch('/api/store/state/graph_state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nodes:S.gNodes,edges:S.gEdges})}).catch(()=>{});
+}
 function queueGraphRebuild(){
   if(graphRebuildTimer)clearTimeout(graphRebuildTimer);
-  graphRebuildTimer=setTimeout(()=>{graphRebuildTimer=null;rebuildPropertyEdges();},40);
+  graphRebuildTimer=setTimeout(()=>{graphRebuildTimer=null;rebuildPropertyEdges();persistGraphState();},40);
 }
 function resolveNodeRef(ref){
   const raw=String(ref||'');
@@ -3176,13 +4157,9 @@ function extractEnt(text,src=''){
   });
 }
 
-let GC,GA,GT={x:0,y:0,s:1},GD=null;
-function openGraph(){
-  document.getElementById('GO').classList.add('show');
-  requestAnimationFrame(initGraph);
-}
-function closeGraph(){document.getElementById('GO').classList.remove('show');cancelAnimationFrame(GA);}
-function resetGraph(){if(graphRebuildTimer)clearTimeout(graphRebuildTimer);S.gNodes=[];S.gEdges=[];log('GRAPH RESET','warn');}
+let GT={x:0,y:0,s:1};
+function openGraph(){window.open('/amber_graph.html','_blank');}
+function resetGraph(){if(graphRebuildTimer)clearTimeout(graphRebuildTimer);S.gNodes=[];S.gEdges=[];persistGraphState();log('GRAPH RESET','warn');}
 function exportGraphSVG(){
   if(!S.gNodes.length){toast('GRAPH EMPTY','err');return;}
   const cv=document.getElementById('gc');
@@ -3263,91 +4240,39 @@ function exportGraphSVG(){
 
 const NC={model:'#ff9d00',entity:'#00ffaa',concept:'#00c8ff',prompt:'#aa88ff',file:'#ff4488'};
 
-function initGraph(){
-  const cv=document.getElementById('gc');
-  const w=cv.parentElement;
-  cv.width=w.clientWidth;cv.height=w.clientHeight;
-  GC=cv.getContext('2d');
-  cv.onwheel=e=>{e.preventDefault();GT.s*=e.deltaY<0?1.1:.9;drawGraph();};
-  cv.onmousedown=e=>{const p=cpt(e);const nd=S.gNodes.find(n=>dist(n,p)<(n.r||16));if(nd)GD={nd,ox:p.x-nd.x,oy:p.y-nd.y};else GD={pan:true,ox:e.clientX-GT.x,oy:e.clientY-GT.y};};
-  cv.onmousemove=e=>{if(!GD)return;if(GD.pan){GT.x=e.clientX-GD.ox;GT.y=e.clientY-GD.oy;}else{const p=cpt(e);GD.nd.x=p.x;GD.nd.y=p.y;GD.nd.pinned=true;}};
-  cv.onmouseup=()=>GD=null;
-  animGraph();
+// ── DOWNLOAD HELPERS ──────────────────────────────────
+function dlGraph(){
+  if(!S.gNodes.length){toast('GRAPH EMPTY','err');return;}
+  exportGraphSVG();
 }
-function cpt(e){const r=document.getElementById('gc').getBoundingClientRect();return{x:(e.clientX-r.left-GT.x)/GT.s,y:(e.clientY-r.top-GT.y)/GT.s};}
-function dist(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);}
-
-function animGraph(){
-  const ns=S.gNodes;
-  for(let i=0;i<ns.length;i++){
-    if(ns[i].pinned){ns[i].vx=0;ns[i].vy=0;continue;}
-    let fx=0,fy=0;
-    for(let j=0;j<ns.length;j++){if(i===j)continue;const dx=ns[i].x-ns[j].x,dy=ns[i].y-ns[j].y;const d2=dx*dx+dy*dy||1;const f=2800/d2;fx+=dx*f;fy+=dy*f;}
-    S.gEdges.forEach(e=>{
-      const a=ns.find(n=>n.label===e.from||n.id===e.from);
-      const b=ns.find(n=>n.label===e.to||n.id===e.to);
-      if(!a||!b)return;
-      const tg=i===ns.indexOf(a)?b:i===ns.indexOf(b)?a:null;
-      if(!tg)return;
-      const dx=tg.x-ns[i].x,dy=tg.y-ns[i].y;
-      const d=Math.sqrt(dx*dx+dy*dy)||1;
-      const rest=e.kind==='inferred'?115:90;
-      const spring=e.kind==='inferred'?0.012:0.02;
-      const f=(d-rest)*spring;fx+=dx*f;fy+=dy*f;
-    });
-    const cv=document.getElementById('gc');
-    if(cv){const cx=cv.width/2/GT.s,cy=cv.height/2/GT.s;fx+=(cx-ns[i].x)*0.003;fy+=(cy-ns[i].y)*0.003;}
-    ns[i].vx=(ns[i].vx+fx)*0.8;ns[i].vy=(ns[i].vy+fy)*0.8;
-    ns[i].x+=ns[i].vx;ns[i].y+=ns[i].vy;
-  }
-  drawGraph();
-  GA=requestAnimationFrame(animGraph);
+async function dlTimeline(){
+  try{
+    const r=await fetch('/api/store/state/timeline_state',{signal:AbortSignal.timeout(3000)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const data=d?.data;
+    const evts=Array.isArray(data)?data:(data?.events||[]);
+    if(!evts.length){toast('TIMELINE EMPTY','err');return;}
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='amber_timeline_'+S.sid+'_'+Date.now()+'.json';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+    log('TIMELINE DOWNLOADED','ok');toast('TIMELINE DOWNLOADED','ok');
+  }catch(e){log('TIMELINE DL FAILED: '+e.message,'err');toast('TIMELINE DL FAILED','err');}
 }
 
-function drawGraph(){
-  if(!GC)return;
-  const cv=document.getElementById('gc');
-  const W=cv.width,H=cv.height;
-  GC.clearRect(0,0,W,H);
-  GC.fillStyle='#000000';GC.fillRect(0,0,W,H);
-  GC.strokeStyle='rgba(255,157,0,.03)';GC.lineWidth=1;
-  for(let x=0;x<W;x+=36){GC.beginPath();GC.moveTo(x,0);GC.lineTo(x,H);GC.stroke();}
-  for(let y=0;y<H;y+=36){GC.beginPath();GC.moveTo(0,y);GC.lineTo(W,y);GC.stroke();}
-  GC.save();GC.translate(GT.x,GT.y);GC.scale(GT.s,GT.s);
-  // Edges
-  S.gEdges.forEach(e=>{
-    const a=S.gNodes.find(n=>n.label===e.from||n.id===e.from);
-    const b=S.gNodes.find(n=>n.label===e.to||n.id===e.to);
-    if(!a||!b)return;
-    if(e.kind==='inferred'){
-      GC.strokeStyle='rgba(0,200,255,.18)';
-      GC.lineWidth=Math.min(1.7,0.7+(e.score||0)*0.6);
-      GC.setLineDash([2,4]);
-    }else{
-      GC.strokeStyle='rgba(255,157,0,.22)';
-      GC.lineWidth=1;
-      GC.setLineDash([4,6]);
-    }
-    GC.beginPath();GC.moveTo(a.x,a.y);GC.lineTo(b.x,b.y);GC.stroke();GC.setLineDash([]);
-    if(e.label){GC.fillStyle='rgba(255,157,0,.45)';GC.font='8px Share Tech Mono';GC.textAlign='center';GC.fillText(e.label,(a.x+b.x)/2,(a.y+b.y)/2);}
-  });
-  // Nodes
-  S.gNodes.forEach(n=>{
-    const col=NC[n.type]||'#ff9d00';
-    GC.beginPath();GC.arc(n.x,n.y,n.r*2.2,0,Math.PI*2);GC.fillStyle=col+'12';GC.fill();
-    GC.strokeStyle=col;GC.lineWidth=1.5;GC.shadowColor=col;GC.shadowBlur=7;
-    GC.beginPath();GC.arc(n.x,n.y,n.r,0,Math.PI*2);GC.stroke();GC.shadowBlur=0;
-    GC.fillStyle=col+'20';GC.fill();
-    GC.fillStyle='rgba(237,240,244,.92)';GC.font='9px Share Tech Mono';GC.textAlign='center';GC.textBaseline='middle';
-    GC.fillText(n.label.substr(0,14)+(n.label.length>14?'…':''),n.x,n.y);
-    GC.fillStyle=col+'aa';GC.font='7px Share Tech Mono';GC.fillText(n.type.toUpperCase(),n.x,n.y+n.r+8);
-  });
-  GC.restore();
-  if(!S.gNodes.length){GC.fillStyle='rgba(74,85,104,.6)';GC.font='10px Share Tech Mono';GC.textAlign='center';GC.fillText('NO GRAPH DATA — RUN INFERENCE TO BUILD THE GRAPH',W/2,H/2);}
-}
+
+
+
+
+
 
 // ── GPU ───────────────────────────────────────────────
+let _lastGpuTemp=null;
 async function refreshGPU(){
+  // Fetch VRAM usage from Ollama /api/ps
   try{
     const r=await fetch(base()+'/api/ps',{signal:AbortSignal.timeout(2000)});
     if(r.ok){
@@ -3357,6 +4282,7 @@ async function refreshGPU(){
       document.getElementById('GUL').innerHTML=mods.length?'<span style="color:var(--success)">LOAD</span>':'<span style="color:var(--td)">IDLE</span>';
     }
   }catch(_){}
+  // Compute free VRAM
   const used=parseFloat(document.getElementById('GU').textContent)||0;
   const tot=8;const free=Math.max(0,tot-used);
   document.getElementById('GF').innerHTML=free.toFixed(1)+'<span class="gu">GB</span>';
@@ -3364,17 +4290,82 @@ async function refreshGPU(){
   document.getElementById('VP').textContent=pct.toFixed(0)+'%';
   const vb=document.getElementById('VB');vb.style.width=pct+'%';
   vb.className='mfill '+(pct<40?'lo':pct<75?'me':'hi');
-  if(S.streaming){const t=62+Math.round(Math.random()*12);document.getElementById('GT').innerHTML=t+'<span class="gu">°C</span>';}
+  // Fetch real system temperature
+  try{
+    const mr=await fetch('/api/metrics',{signal:AbortSignal.timeout(1500)});
+    if(mr.ok){
+      const md=await mr.json();
+      const t=md?.metrics?.gpu_temp??md?.metrics?.cpu_temp;
+      if(typeof t==='number'&&Number.isFinite(t)){
+        _lastGpuTemp=t;
+        document.getElementById('GT').innerHTML=t.toFixed(0)+'<span class="gu">°C</span>';
+        return;
+      }
+    }
+  }catch(_){}
+  // Fallback: show last known temp or dash
+  if(_lastGpuTemp!==null){
+    document.getElementById('GT').innerHTML=_lastGpuTemp.toFixed(0)+'<span class="gu">°C</span>';
+  }
 }
 
 // ── UTILS ─────────────────────────────────────────────
-function clrChat(){
-  S.msgs=[];S.stats={turns:0,tokIn:0,tokOut:0,tpsH:[],peakTPS:0,totalTPS:0,tpsN:0};S.scratch='';
-  updStats();document.getElementById('TPSV').textContent='— t/s';document.getElementById('SPK').textContent='—';document.getElementById('SAV').textContent='—';
+function clrSession(){
+  // Stop any active stream first
+  if(S.streaming&&S.abort&&!S.abort.signal.aborted){S.abort.abort();}
+  // Clear message history and session stats
+  S.msgs=[];
+  S.stats={turns:0,tokIn:0,tokOut:0,tpsH:[],peakTPS:0,totalTPS:0,tpsN:0};
+  S.scratch='';
+  // Clear run stacks
+  RUN_MODEL_STACK.length=0;
+  RUN_FLOW_STACK.length=0;
+  // Clear graph for this session (nodes/edges accumulated during session)
+  S.gNodes=[];S.gEdges=[];
+  persistGraphState();
+  // Reset UI elements
+  updStats();
+  document.getElementById('TPSV').textContent='— t/s';
+  document.getElementById('SPK').textContent='—';
+  document.getElementById('SAV').textContent='—';
+  setMeter(0);
+  // Reset sparkline
+  requestAnimationFrame(drawSpark);
+  // Reset run indicator to idle
+  setStream(false);
+  syncRunFlowDisplay();
+  syncDisplayedModel();
+  // Reset center panel pills to defaults
+  const ti=document.getElementById('TI');if(ti)ti.value='0.7';
+  const ctx=document.getElementById('CTX');if(ctx)ctx.value='4096';
+  const sys=document.getElementById('SYS');if(sys)sys.value='';
+  const fmt=document.getElementById('FMT');if(fmt)fmt.value='';
+  const st=document.getElementById('ST');if(st)st.value='true';
+  const seed=document.getElementById('SEED');if(seed)seed.value='-1';
+  const web=document.getElementById('WEB');if(web)web.value='off';
+  syncDial();
+  // Clear GPU temp display
+  _lastGpuTemp=null;
+  document.getElementById('GT').innerHTML='—<span class="gu">°C</span>';
+  // Reset chat UI
   document.getElementById('MSGS').innerHTML='<div class="empty-s" id="ES"><div class="ei">@</div><p>SELECT A MODEL FROM THE REGISTRY<br>TO BEGIN INFERENCE</p></div>';
+  // Clear input box
+  const ci=document.getElementById('CI');if(ci){ci.value='';ci.style.height='auto';}
+  // Switch back to analyst console tab
+  headTabByName('chat');
+  // Archive view cleanup
   if(UI.head==='archive')archiveRenderTimeline();
-  log('SESSION CLEARED','warn');toast('ANALYST CONSOLE CLEARED');
+  // Clear system log and write fresh marker
+  const logEl=document.getElementById('LOG');
+  if(logEl)logEl.innerHTML='';
+  log('SESSION CLEARED','warn');
+  log('SID: '+S.sid,'info');
+  // Persist cleared state to remote store
+  persistRemoteStore(STORE_KEYS.chatHistory,[]);
+  persistRemoteStore(STORE_KEYS.scratch,'');
+  toast('SESSION CLEARED');
 }
+function clrChat(){clrSession();}  // backward compat alias
 function cpyLast(){const l=S.msgs.filter(m=>m.role==='assistant').pop();if(!l){toast('NOTHING TO COPY','err');return;}navigator.clipboard.writeText(l.content).then(()=>toast('COPIED','ok'));}
 function collectTranscript(){
   return [...document.querySelectorAll('#MSGS .msg')].map((el,i)=>{
@@ -3452,7 +4443,122 @@ function expChat(){
   a.click();
   log('EXPORTED','ok');toast('EXPORTED','ok');
 }
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='g'){e.preventDefault();openGraph();}});
+
+// ── ICI EXTENSION v5 ─────────────────────────────────────────
+// Sections 4+5: ToolRegistry
+
+const ICI_TOOL_REGISTRY=new Map();
+
+function registerTool(name,description,fn,category){
+  if(!name||typeof fn!=='function')return;
+  ICI_TOOL_REGISTRY.set(name,{name,description:description||name,fn,category:category||'general'});
+}
+
+function listTools(category){
+  const all=[...ICI_TOOL_REGISTRY.values()];
+  return category?all.filter(t=>t.category===category):all;
+}
+
+async function callTool(name,...args){
+  const tool=ICI_TOOL_REGISTRY.get(name);
+  if(!tool){log('TOOL NOT FOUND: '+name,'err');return null;}
+  const t0=performance.now();let result=null,ok=true;
+  try{
+    result=await Promise.resolve(tool.fn(...args));
+  }catch(e){
+    ok=false;log('TOOL CALL ERR ['+name+']: '+e.message,'err');
+  }finally{
+    logToolCall(name,args,result,ok,Math.round(performance.now()-t0));
+  }
+  return result;
+}
+
+function _registerDefaultTools(){
+  registerTool('web_fetch','Fetch web page content by URL',url=>webFetch(url),'web');
+  registerTool('online_records_search','Run corroborated online records/news search with Playwright stealth',(subject,locations)=>recordsSearch(subject,locations),'web');
+  registerTool('archive_search','Run archive vector search',(q)=>archiveRunSearch(q),'memory');
+  registerTool('fractal_query','Query fractal memory store',(q,mode)=>fractalQuery(q,mode),'memory');
+  registerTool('archive_index_queue','Index queued files to archive',()=>archiveIndexQueue(),'memory');
+  registerTool('files_list','List server-side files',()=>loadServerFiles(),'files');
+  registerTool('run_agent','Execute a named agent by id',(id,sig,ctx)=>runAgent(id,sig,ctx),'agent');
+  registerTool('run_chain','Execute all agents in chain',()=>runChain(),'agent');
+  registerTool('run_pipeline','Execute pipeline step sequence',()=>runPipeline(),'agent');
+  registerTool('stop_stream','Stop current streaming run',()=>stopStream(),'control');
+  registerTool('save_agent_set','Save current agents as a named set',()=>saveAgentSet(),'persistence');
+  registerTool('save_chain_set','Save current pipeline as a named chain set',()=>saveChainSet(),'persistence');
+  registerTool('list_tools','List all registered tools',cat=>listTools(cat),'meta');
+}
+
+// ── Section 6: Execution Logging ─────────────────────────────
+
+const ICI_AGENT_RUN_LOG=[];
+const ICI_STEP_RUN_LOG=[];
+const ICI_TOOL_CALL_LOG=[];
+const ICI_MAX_LOG_ENTRIES=500;
+
+function logAgentRun(agentId,agentName,model,startTs,endTs,ok,notes){
+  if(ICI_AGENT_RUN_LOG.length>=ICI_MAX_LOG_ENTRIES)ICI_AGENT_RUN_LOG.shift();
+  ICI_AGENT_RUN_LOG.push({agentId,agentName,model,startTs,endTs,durationMs:endTs-startTs,ok,notes:notes||'',ts:Date.now()});
+  const a=S.agents.find(x=>x.id===agentId);if(a)a.last_run=endTs;
+}
+
+function logStepRun(stepId,stepIndex,model,startTs,endTs,ok,outputLen){
+  if(ICI_STEP_RUN_LOG.length>=ICI_MAX_LOG_ENTRIES)ICI_STEP_RUN_LOG.shift();
+  ICI_STEP_RUN_LOG.push({stepId,stepIndex,model,startTs,endTs,durationMs:endTs-startTs,ok,outputLen:outputLen||0,ts:Date.now()});
+  const step=S.pipeline.find(x=>x.id===stepId);if(step)step.execution_time_ms=endTs-startTs;
+}
+
+function logToolCall(toolName,args,result,ok,durationMs){
+  if(ICI_TOOL_CALL_LOG.length>=ICI_MAX_LOG_ENTRIES)ICI_TOOL_CALL_LOG.shift();
+  ICI_TOOL_CALL_LOG.push({toolName,ok,durationMs,resultLen:result?String(JSON.stringify(result)).length:0,ts:Date.now()});
+}
+
+async function persistRunLogs(){
+  try{
+    if(isRemoteStoreKey(STORE_KEYS.agentRunLog))saveStore(STORE_KEYS.agentRunLog,ICI_AGENT_RUN_LOG.slice(-100));
+    if(isRemoteStoreKey(STORE_KEYS.stepRunLog))saveStore(STORE_KEYS.stepRunLog,ICI_STEP_RUN_LOG.slice(-100));
+    if(isRemoteStoreKey(STORE_KEYS.toolCallLog))saveStore(STORE_KEYS.toolCallLog,ICI_TOOL_CALL_LOG.slice(-100));
+  }catch(_){}
+}
+
+// ── Section 7: PipelineEngine ─────────────────────────────────
+
+const PipelineEngine={
+  resolveStepMode(step){
+    return(step&&step.run_mode&&step.run_mode!=='default')?step.run_mode:'default';
+  },
+  resolveStepAgents(step){
+    if(!step||!Array.isArray(step.assigned_agents)||!step.assigned_agents.length)return[];
+    return step.assigned_agents.flatMap(nameOrId=>{
+      const a=S.agents.find(x=>x.name===nameOrId||x.id===nameOrId);
+      return a?[a]:[];
+    });
+  },
+  async dispatchBoundAgents(step,signal,flowLabel){
+    const agents=this.resolveStepAgents(step);
+    if(!agents.length)return null;
+    const mode=this.resolveStepMode(step);
+    if(mode==='parallel'||mode==='broadcast'){
+      await Promise.all(agents.map(a=>runAgent(a.id,signal,flowLabel)));
+    }else{
+      for(const a of agents){
+        if(signal&&signal.aborted)break;
+        await runAgent(a.id,signal,flowLabel);
+      }
+    }
+    return agents.map(a=>a.id);
+  },
+  async run(){return runPipeline();},
+  async runAgentChain(){return runChain();}
+};
+
+// Initialization: register default tools on DOMContentLoaded
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',_registerDefaultTools);
+}else{
+  _registerDefaultTools();
+}
+
 </script>
 </body>
 </html>

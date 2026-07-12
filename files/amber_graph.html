@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMBER // ENTITY GRAPH</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
+<style>
+:root {
+  --bg:          #0a0c0f;
+  --panel:       #0f1215;
+  --panel2:      #111519;
+  --border:      #1a2030;
+  --border2:     #222d3d;
+  --gold:        #c8932a;
+  --gold-dim:    #6a4d15;
+  --gold-bright: #f0b840;
+  --green:       #27ae60;
+  --green-bright:#2ecc71;
+  --red:         #c0392b;
+  --red-bright:  #e74c3c;
+  --cyan:        #0891b2;
+  --cyan-bright: #22d3ee;
+  --orange:      #d97706;
+  --orange-bright:#f59e0b;
+  --purple:      #7c3aed;
+  --purple-bright:#a78bfa;
+  --text:        #8a9bb0;
+  --text-dim:    #3d5068;
+  --text-bright: #dde6f0;
+  --amber:       #A84D00;
+  --amber-bright:#C76500;
+  --mono:        Menlo, Consolas, "Liberation Mono", monospace;
+  --display:     "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  font-family: var(--mono);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none; z-index: 999;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  height: 48px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 20px;
+  flex-shrink: 0; z-index: 100;
+}
+.topbar-logo {
+  font-family: var(--display);
+  font-size: 16px; font-weight: 700;
+  letter-spacing: 6px; color: var(--gold-bright);
+  text-transform: uppercase;
+}
+.topbar-sep { color: var(--text-dim); }
+.topbar-module { font-size: 10px; letter-spacing: 4px; color: var(--cyan-bright); text-transform: uppercase; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); }
+.status-dot.up { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-text { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; }
+.topbar-btn {
+  padding: 4px 12px; background: transparent;
+  border: 1px solid var(--border2); color: var(--text);
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+  cursor: pointer; text-transform: uppercase;
+}
+.topbar-btn:hover { border-color: var(--gold); color: var(--gold-bright); }
+.topbar-btn.danger { border-color: rgba(192,57,43,0.4); color: var(--red-bright); }
+.topbar-btn.danger:hover { border-color: var(--red-bright); background: rgba(192,57,43,0.08); }
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 300px 18px 1fr;
+  flex: 1;
+  min-height: 0;
+  transition: grid-template-columns 0.26s cubic-bezier(.4,0,.2,1);
+}
+.layout.lp-collapsed {
+  grid-template-columns: 0px 18px 1fr;
+}
+.layout.lp-collapsed .left-panel {
+  overflow: hidden;
+}
+
+/* ── PANEL SPLITTER ── */
+.panel-splitter {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.lp-toggle {
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 10px;
+  cursor: pointer;
+  font-family: var(--mono);
+  padding: 0;
+  transition: color .15s, background .15s, box-shadow .15s;
+}
+.lp-toggle:hover {
+  background: rgba(200,147,42,0.08);
+  color: var(--gold-bright);
+  box-shadow: inset 1px 0 8px rgba(200,147,42,0.1);
+}
+.layout.lp-collapsed .lp-toggle {
+  color: var(--gold-bright);
+  background: rgba(200,147,42,0.12);
+  box-shadow: inset 1px 0 8px rgba(200,147,42,0.2);
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+}
+.left-panel::-webkit-scrollbar { width: 3px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border2); }
+.section {
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+}
+.section-title {
+  font-size: 8px; letter-spacing: 3px; color: var(--gold-bright);
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.stat-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 10px; }
+.stat-label { color: var(--text-dim); letter-spacing: 1px; }
+.stat-val { color: var(--cyan-bright); font-weight: 600; }
+.form-row { margin-bottom: 8px; }
+.form-label { font-size: 8px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: block; }
+.form-input {
+  width: 100%; background: var(--bg);
+  border: 1px solid var(--border2); color: var(--text-bright);
+  font-family: var(--mono); font-size: 10px;
+  padding: 5px 8px; outline: none;
+}
+.form-input:focus { border-color: var(--gold); }
+.form-select {
+  width: 100%; background: var(--bg);
+  border: 1px solid var(--border2); color: var(--text-bright);
+  font-family: var(--mono); font-size: 10px;
+  padding: 5px 8px; outline: none; cursor: pointer;
+}
+.form-select:focus { border-color: var(--gold); }
+.btn {
+  width: 100%; padding: 7px; background: transparent;
+  border: 1px solid var(--border2); color: var(--text);
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+  cursor: pointer; text-transform: uppercase; margin-top: 4px;
+}
+.btn:hover { border-color: var(--gold); color: var(--gold-bright); }
+.btn-gold { border-color: rgba(200,147,42,0.4); color: var(--gold-bright); }
+.btn-gold:hover { background: rgba(200,147,42,0.08); border-color: var(--gold); }
+.btn-red { border-color: rgba(192,57,43,0.3); color: var(--red-bright); }
+.btn-red:hover { background: rgba(192,57,43,0.08); }
+.btn-cyan { border-color: rgba(8,145,178,0.35); color: var(--cyan-bright); }
+.btn-cyan:hover { background: rgba(8,145,178,0.08); border-color: var(--cyan); }
+
+/* ── CANVAS PANEL ── */
+.canvas-panel {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+#gc {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  cursor: grab;
+}
+#gc:active { cursor: grabbing; }
+
+/* ── LEGEND BAR ── */
+.legend {
+  height: 34px; background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 20px;
+  flex-shrink: 0;
+}
+.leg-item { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--text-dim); letter-spacing: 1px; }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.leg-hint { margin-left: auto; font-size: 8px; color: var(--text-dim); letter-spacing: 1px; }
+
+/* ── LOG BAR ── */
+.logbar {
+  height: 26px; background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 16px; flex-shrink: 0;
+}
+.log-text { font-size: 9px; color: var(--text-dim); letter-spacing: 1px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; top: 14px; right: 14px; z-index: 1000;
+  padding: 8px 14px; background: var(--panel);
+  border: 1px solid var(--border2); border-left: 3px solid var(--gold-bright);
+  font-size: 10px; color: var(--text-bright); letter-spacing: 1px;
+  animation: fadeOut 0.3s ease-in 2s forwards;
+  pointer-events: none;
+}
+.toast.err { border-left-color: var(--red-bright); }
+.toast.ok  { border-left-color: var(--green-bright); }
+@keyframes fadeOut { from{opacity:1} to{opacity:0;pointer-events:none} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">AMBER</div>
+  <span class="topbar-sep">◈</span>
+  <div class="topbar-module">Entity Provenance Graph</div>
+  <div class="topbar-right">
+    <button class="topbar-btn btn-cyan" onclick="loadFromDB()">↺ REFRESH</button>
+    <button class="topbar-btn" onclick="exportSVG()">↓ EXPORT SVG</button>
+    <button class="topbar-btn danger" onclick="clearGraph()">✕ CLEAR ALL</button>
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">LOADING</span>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+
+    <div class="section">
+      <div class="section-title">Graph Stats</div>
+      <div class="stat-row"><span class="stat-label">NODES</span><span class="stat-val" id="statNodes">0</span></div>
+      <div class="stat-row"><span class="stat-label">EDGES</span><span class="stat-val" id="statEdges">0</span></div>
+      <div class="stat-row"><span class="stat-label">INFERRED</span><span class="stat-val" id="statInferred">0</span></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Add Node</div>
+      <div class="form-row">
+        <label class="form-label">Label</label>
+        <input class="form-input" id="addNodeLabel" placeholder="ENTITY NAME">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="addNodeType">
+          <option value="entity">ENTITY</option>
+          <option value="concept">CONCEPT</option>
+          <option value="model">MODEL</option>
+          <option value="prompt">PROMPT</option>
+          <option value="file">FILE</option>
+        </select>
+      </div>
+      <button class="btn btn-gold" onclick="manualAddNode()">+ ADD NODE</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Add Edge</div>
+      <div class="form-row">
+        <label class="form-label">From (label)</label>
+        <input class="form-input" id="addEdgeFrom" placeholder="SOURCE NODE">
+      </div>
+      <div class="form-row">
+        <label class="form-label">To (label)</label>
+        <input class="form-input" id="addEdgeTo" placeholder="TARGET NODE">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Edge Label (optional)</label>
+        <input class="form-input" id="addEdgeLabel" placeholder="RELATES TO">
+      </div>
+      <button class="btn btn-gold" onclick="manualAddEdge()">+ ADD EDGE</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Controls</div>
+      <button class="btn btn-cyan" onclick="loadFromDB()">↺ RELOAD FROM SYNAPSE.DB</button>
+      <button class="btn" onclick="resetLayout()">⤢ RESET LAYOUT</button>
+      <button class="btn btn-red" onclick="clearGraph()">✕ CLEAR GRAPH</button>
+    </div>
+
+    <div class="section" style="flex:1">
+      <div class="section-title">Instructions</div>
+      <div style="font-size:9px;line-height:1.8;color:var(--text-dim);">
+        <div>DRAG NODES to reposition</div>
+        <div>SCROLL to zoom in/out</div>
+        <div>DRAG BACKGROUND to pan</div>
+        <div style="margin-top:8px;color:var(--text-dim);">Graph data is populated automatically by the main AMBER ICI during inference. Open this page while AMBER is running to view the live graph.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PANEL SPLITTER / TOGGLE -->
+  <div class="panel-splitter">
+    <button class="lp-toggle" id="LP-TOGGLE" onclick="toggleLeftPanel()" title="Collapse panel">◄</button>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-panel">
+    <canvas id="gc"></canvas>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:#ff9d00"></div>MODEL</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#00ffaa"></div>ENTITY</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#00c8ff"></div>CONCEPT</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#aa88ff"></div>PROMPT</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#ff4488"></div>FILE</div>
+  <div class="leg-item"><div class="leg-dot" style="background:rgba(0,200,255,0.4)"></div>INFERRED</div>
+  <div class="leg-hint">DRAG NODES · SCROLL ZOOM · PAN BACKGROUND</div>
+</div>
+
+<div class="logbar">
+  <span class="log-text" id="logLine">AMBER ENTITY GRAPH — LOADING FROM SYNAPSE.DB</span>
+</div>
+
+<script>
+const GRAPH_API = '/api/store/state/graph_state';
+
+// ── STATE ─────────────────────────────────────────────
+let G = { nodes: [], edges: [] };
+
+// Canvas vars
+let GC, GA, GT = { x: 0, y: 0, s: 1 }, GD = null;
+let rebuildTimer = null;
+let SELECTED = null; // currently selected node id
+let _clickStart = null; // track mousedown position to distinguish click vs drag
+
+// ── NODE COLORS ───────────────────────────────────────
+const NC = { model:'#ff9d00', entity:'#00ffaa', concept:'#00c8ff', prompt:'#aa88ff', file:'#ff4488' };
+
+// ── UTILS ─────────────────────────────────────────────
+function rnd(n=8){ return Math.random().toString(36).substr(2,n); }
+function log(msg){ const el=document.getElementById('logLine'); if(el) el.textContent=msg; }
+function toast(msg, type=''){
+  const t=document.createElement('div');
+  t.className='toast'+(type?' '+type:'');
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+function updateStats(){
+  document.getElementById('statNodes').textContent = G.nodes.length;
+  document.getElementById('statEdges').textContent = G.edges.length;
+  document.getElementById('statInferred').textContent = G.edges.filter(e=>e.kind==='inferred').length;
+}
+
+// ── STORAGE ───────────────────────────────────────────
+async function loadFromDB(){
+  log('Loading from synapse.db...');
+  try {
+    const r = await fetch(GRAPH_API, { signal: AbortSignal.timeout(4000) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const saved = d?.data;
+    if (saved && Array.isArray(saved.nodes)) {
+      const cv = document.getElementById('gc');
+      const W = cv ? cv.width  || 800 : 800;
+      const H = cv ? cv.height || 500 : 500;
+      // Keep positions that are already being simulated in memory so the 10s poll
+      // doesn't re-randomize nodes and cause the "flash" jump.
+      const live = new Map(G.nodes.map(n => [n.id, n]));
+      let positionsWereNull = false;
+      G.nodes = saved.nodes.map(n => {
+        const cur = live.get(n.id);
+        if (cur && Number.isFinite(cur.x) && Number.isFinite(cur.y)) {
+          // Node already placed by simulation — preserve its position
+          return { ...n, x: cur.x, y: cur.y, vx: cur.vx || 0, vy: cur.vy || 0 };
+        }
+        // New or unpositioned node — assign a random starting position
+        positionsWereNull = true;
+        return {
+          ...n,
+          x:  (n.x != null && Number.isFinite(n.x)) ? n.x : 80 + Math.random() * (W - 160),
+          y:  (n.y != null && Number.isFinite(n.y)) ? n.y : 60 + Math.random() * (H - 120),
+          vx: 0,
+          vy: 0,
+        };
+      });
+      G.edges = saved.edges || [];
+      // Settle layout for freshly-positioned nodes, then save so the next poll
+      // finds finite x/y and the merge path preserves positions.
+      if (positionsWereNull) { if(live.size===0) settleLayout(); saveToDb(); }
+      log('Loaded ' + G.nodes.length + ' nodes, ' + G.edges.length + ' edges from synapse.db');
+      document.getElementById('statusDot').className = 'status-dot up';
+      document.getElementById('statusText').textContent = 'CONNECTED';
+    } else {
+      G.nodes = []; G.edges = [];
+      log('synapse.db has no graph state yet — graph will populate as you run inference in AMBER ICI');
+      document.getElementById('statusDot').className = 'status-dot up';
+      document.getElementById('statusText').textContent = 'EMPTY';
+    }
+  } catch(e) {
+    log('Load error: ' + e.message + ' — is the AMBER server running?');
+    document.getElementById('statusDot').className = 'status-dot';
+    document.getElementById('statusText').textContent = 'OFFLINE';
+  }
+  updateStats();
+}
+
+async function saveToDb(){
+  try {
+    await fetch(GRAPH_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nodes: G.nodes, edges: G.edges })
+    });
+  } catch(_) {}
+}
+
+// ── GRAPH LOGIC ───────────────────────────────────────
+function nodeByLabel(label){
+  const key = String(label||'').substr(0,22);
+  return G.nodes.find(n => n.label === key);
+}
+
+function addNode(label, type){
+  const key = String(label||'').substr(0,22);
+  if (!key) return null;
+  const ex = G.nodes.find(n => n.label === key);
+  if (ex) { if(ex.type !== type) ex.type = type; return ex.id; }
+  const cv = document.getElementById('gc');
+  const W = cv ? cv.width : 800;
+  const H = cv ? cv.height : 600;
+  const node = {
+    id: rnd(6), label: key, type,
+    x: 60 + Math.random() * (W * 0.8),
+    y: 60 + Math.random() * (H * 0.8),
+    vx: 0, vy: 0, r: type === 'model' ? 20 : 14
+  };
+  G.nodes.push(node);
+  queueRebuild();
+  return node.id;
+}
+
+function addEdge(from, to, label='', opts={}){
+  const kind = opts.kind || 'explicit';
+  const score = typeof opts.score === 'number' ? opts.score : 1;
+  if (from === to) return;
+  const key = edgeKey(from, to, label, kind);
+  const i = G.edges.findIndex(e => edgeKey(e.from, e.to, e.label, e.kind||'explicit') === key);
+  if (i >= 0) {
+    if (kind === 'inferred' && score > (G.edges[i].score||0)) G.edges[i].score = score;
+  } else {
+    G.edges.push({ from, to, label, kind, score });
+  }
+  if (opts.rebuild !== false && kind !== 'inferred') queueRebuild();
+}
+
+function edgeKey(from, to, label, kind){
+  return `${from}|${to}|${label||''}|${kind||'explicit'}`;
+}
+
+function resolveNodeRef(ref){
+  const raw = String(ref||'');
+  const short = raw.substr(0,22);
+  return G.nodes.find(n => n.id === ref || n.label === raw || n.label === short);
+}
+
+// ── PROPERTY SIMILARITY / INFERRED EDGES ─────────────
+const STOPWORDS = new Set(['the','and','for','with','from','this','that','step','model','agent','file','output','input']);
+
+function tokenizeLabel(label){
+  return new Set((String(label||'').toLowerCase().match(/[a-z0-9]{3,}/g)||[]).filter(t=>!STOPWORDS.has(t)).slice(0,10));
+}
+function jaccard(a,b){
+  if(!a.size||!b.size)return 0;
+  let inter=0; a.forEach(v=>{if(b.has(v))inter++;});
+  return inter/(a.size+b.size-inter||1);
+}
+function commonPrefixRatio(a,b){
+  const x=String(a||'').toLowerCase(),y=String(b||'').toLowerCase();
+  const m=Math.min(x.length,y.length);
+  if(m<4)return 0; let i=0; while(i<m&&x[i]===y[i])i++; return i/m;
+}
+function buildAdj(){
+  const adj=new Map();
+  G.edges.filter(e=>e.kind!=='inferred').forEach(e=>{
+    const a=resolveNodeRef(e.from),b=resolveNodeRef(e.to);
+    if(!a||!b||a.id===b.id)return;
+    if(!adj.has(a.id))adj.set(a.id,new Set()); adj.get(a.id).add(b.id);
+    if(!adj.has(b.id))adj.set(b.id,new Set()); adj.get(b.id).add(a.id);
+  });
+  return adj;
+}
+function sharedNeighbors(a,b,adj){
+  const sa=adj.get(a.id)||new Set(),sb=adj.get(b.id)||new Set();
+  let c=0; sa.forEach(x=>{if(sb.has(x))c++;}); return c;
+}
+function propertySim(a,b,adj){
+  if(!a||!b||a.id===b.id)return 0;
+  let s=0;
+  if(a.type===b.type)s+=0.2;
+  s+=jaccard(tokenizeLabel(a.label),tokenizeLabel(b.label))*0.75;
+  const la=String(a.label||'').toLowerCase(),lb=String(b.label||'').toLowerCase();
+  if((la.includes(lb)||lb.includes(la))&&Math.min(la.length,lb.length)>=5)s+=0.22;
+  if(commonPrefixRatio(la,lb)>=0.6)s+=0.18;
+  s+=Math.min(sharedNeighbors(a,b,adj),3)*0.14;
+  return s;
+}
+function rebuildInferred(){
+  const explicit = G.edges.filter(e=>e.kind!=='inferred');
+  G.edges = explicit;
+  if(G.nodes.length < 3)return;
+  const adj = buildAdj();
+  const cands = [];
+  for(let i=0;i<G.nodes.length;i++)
+    for(let j=i+1;j<G.nodes.length;j++){
+      const s=propertySim(G.nodes[i],G.nodes[j],adj);
+      if(s>=0.56) cands.push({a:G.nodes[i],b:G.nodes[j],score:s});
+    }
+  cands.sort((x,y)=>y.score-x.score);
+  const deg=new Map();
+  cands.forEach(c=>{
+    const da=deg.get(c.a.id)||0,db=deg.get(c.b.id)||0;
+    if(da>=4||db>=4)return;
+    addEdge(c.a.id,c.b.id,'',{kind:'inferred',score:c.score,rebuild:false});
+    deg.set(c.a.id,da+1); deg.set(c.b.id,db+1);
+  });
+  updateStats();
+}
+
+let saveTimer = null;
+function queueRebuild(){
+  if(rebuildTimer) clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(()=>{ rebuildTimer=null; rebuildInferred(); }, 40);
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToDb, 1200);
+}
+
+// ── MANUAL ADD ────────────────────────────────────────
+function manualAddNode(){
+  const lbl = document.getElementById('addNodeLabel').value.trim();
+  const typ = document.getElementById('addNodeType').value;
+  if(!lbl){ toast('Enter a label', 'err'); return; }
+  addNode(lbl, typ);
+  document.getElementById('addNodeLabel').value = '';
+  updateStats();
+  saveToDb();
+  toast('Node added: ' + lbl, 'ok');
+  log('Node added: ' + lbl + ' [' + typ + ']');
+}
+
+function manualAddEdge(){
+  const from = document.getElementById('addEdgeFrom').value.trim();
+  const to   = document.getElementById('addEdgeTo').value.trim();
+  const lbl  = document.getElementById('addEdgeLabel').value.trim();
+  if(!from||!to){ toast('Enter both from and to labels', 'err'); return; }
+  const a = nodeByLabel(from), b = nodeByLabel(to);
+  if(!a){ toast('Node not found: ' + from, 'err'); return; }
+  if(!b){ toast('Node not found: ' + to, 'err'); return; }
+  addEdge(a.id, b.id, lbl);
+  document.getElementById('addEdgeFrom').value = '';
+  document.getElementById('addEdgeTo').value = '';
+  document.getElementById('addEdgeLabel').value = '';
+  updateStats();
+  saveToDb();
+  toast('Edge added', 'ok');
+}
+
+function toggleLeftPanel(){
+  const layout = document.querySelector('.layout');
+  const btn = document.getElementById('LP-TOGGLE');
+  const collapsed = layout.classList.contains('lp-collapsed');
+  if(collapsed){
+    layout.classList.remove('lp-collapsed');
+    if(btn){ btn.textContent='◄'; btn.title='Collapse panel'; }
+  } else {
+    layout.classList.add('lp-collapsed');
+    if(btn){ btn.textContent='►'; btn.title='Expand panel'; }
+  }
+}
+
+function clearGraph(){
+  if(!confirm('Clear the entire graph? This will also clear the graph in AMBER ICI.')) return;
+  G.nodes = []; G.edges = [];
+  updateStats();
+  saveToDb();
+  log('Graph cleared');
+  toast('Graph cleared');
+}
+
+function resetLayout(){
+  const cv = document.getElementById('gc');
+  const W = cv ? cv.width : 800;
+  const H = cv ? cv.height : 600;
+  G.nodes.forEach(n=>{ n.x=80+Math.random()*(W-160); n.y=60+Math.random()*(H-120); n.vx=0; n.vy=0; });
+  GT = { x:0, y:0, s:1 };
+  settleLayout();
+  saveToDb();
+  log('Layout reset');
+}
+
+// ── ONE-TIME LAYOUT SETTLING ──────────────────────────────────────────────────
+// Runs synchronously after load/reset. Spreads overlapping nodes using
+// repulsion + weak edge springs + gentle center gravity, then freezes.
+function settleLayout(){
+  const cv=document.getElementById('gc');
+  const W=cv?cv.width/GT.s:800, H=cv?cv.height/GT.s:600;
+  const ns=G.nodes;
+  if(ns.length<2)return;
+  const REPULSE=5500, SPRING=0.03, REST=130, CENTER_G=0.0008, DAMP=0.45, MAX_V=14;
+  const cx=W/2, cy=H/2;
+  for(let iter=0;iter<300;iter++){
+    const cool=1-iter/300;
+    for(let i=0;i<ns.length;i++){
+      let fx=0,fy=0;
+      // Repulsion between all node pairs
+      for(let j=0;j<ns.length;j++){
+        if(i===j)continue;
+        let dx=ns[i].x-ns[j].x, dy=ns[i].y-ns[j].y;
+        const d2=dx*dx+dy*dy||0.01;
+        const d=Math.sqrt(d2);
+        if(d<0.5){dx=Math.random()-0.5;dy=Math.random()-0.5;}
+        const f=REPULSE/d2;
+        fx+=dx/d*f; fy+=dy/d*f;
+      }
+      // Spring force along explicit edges
+      G.edges.filter(e=>e.kind!=='inferred').forEach(e=>{
+        const a=ns.find(n=>n.label===e.from||n.id===e.from);
+        const b=ns.find(n=>n.label===e.to||n.id===e.to);
+        if(!a||!b)return;
+        const tg=i===ns.indexOf(a)?b:i===ns.indexOf(b)?a:null;
+        if(!tg)return;
+        const dx=tg.x-ns[i].x,dy=tg.y-ns[i].y;
+        const d=Math.sqrt(dx*dx+dy*dy)||1;
+        const f=(d-REST)*SPRING;
+        fx+=dx/d*f; fy+=dy/d*f;
+      });
+      // Weak gravity toward canvas center
+      fx+=(cx-ns[i].x)*CENTER_G;
+      fy+=(cy-ns[i].y)*CENTER_G;
+      ns[i].vx=(ns[i].vx+fx)*DAMP;
+      ns[i].vy=(ns[i].vy+fy)*DAMP;
+      const spd=Math.sqrt(ns[i].vx*ns[i].vx+ns[i].vy*ns[i].vy);
+      const mv=MAX_V*Math.max(cool,0.05);
+      if(spd>mv){ns[i].vx=ns[i].vx/spd*mv;ns[i].vy=ns[i].vy/spd*mv;}
+      ns[i].x+=ns[i].vx; ns[i].y+=ns[i].vy;
+      const pad=(ns[i].r||14)+20;
+      ns[i].x=Math.max(pad,Math.min(W-pad,ns[i].x));
+      ns[i].y=Math.max(pad,Math.min(H-pad,ns[i].y));
+    }
+  }
+  ns.forEach(n=>{n.vx=0;n.vy=0;});
+}
+
+// ── RENDER LOOP (static — nodes only move when dragged) ───────────────────────
+function animGraph(){
+  drawGraph();
+  GA = requestAnimationFrame(animGraph);
+}
+
+// ── DRAW ─────────────────────────────────────────────
+function drawGraph(){
+  if(!GC)return;
+  const cv=document.getElementById('gc');
+  const W=cv.width, H=cv.height;
+  GC.clearRect(0,0,W,H);
+  GC.fillStyle='#000000'; GC.fillRect(0,0,W,H);
+  GC.strokeStyle='rgba(255,157,0,.03)'; GC.lineWidth=1;
+  for(let x=0;x<W;x+=36){ GC.beginPath(); GC.moveTo(x,0); GC.lineTo(x,H); GC.stroke(); }
+  for(let y=0;y<H;y+=36){ GC.beginPath(); GC.moveTo(0,y); GC.lineTo(W,y); GC.stroke(); }
+  GC.save();
+  GC.translate(GT.x, GT.y);
+  GC.scale(GT.s, GT.s);
+  // Edges
+  G.edges.forEach(e=>{
+    const a=G.nodes.find(n=>n.label===e.from||n.id===e.from);
+    const b=G.nodes.find(n=>n.label===e.to||n.id===e.to);
+    if(!a||!b)return;
+    if(e.kind==='inferred'){
+      GC.strokeStyle='rgba(0,200,255,.18)';
+      GC.lineWidth=Math.min(1.7,0.7+(e.score||0)*0.6);
+      GC.setLineDash([2,4]);
+    } else {
+      GC.strokeStyle='rgba(255,157,0,.22)';
+      GC.lineWidth=1;
+      GC.setLineDash([4,6]);
+    }
+    GC.beginPath(); GC.moveTo(a.x,a.y); GC.lineTo(b.x,b.y); GC.stroke(); GC.setLineDash([]);
+    if(e.label){ GC.fillStyle='rgba(255,157,0,.45)'; GC.font='8px Share Tech Mono'; GC.textAlign='center'; GC.fillText(e.label,(a.x+b.x)/2,(a.y+b.y)/2); }
+  });
+  // Nodes
+  G.nodes.forEach(n=>{
+    const col=NC[n.type]||'#ff9d00';
+    const isSel=n.id===SELECTED;
+    // Outer glow ring
+    GC.beginPath(); GC.arc(n.x,n.y,n.r*2.2,0,Math.PI*2); GC.fillStyle=col+(isSel?'28':'12'); GC.fill();
+    // Selection ring (dashed, pulsing)
+    if(isSel){
+      GC.strokeStyle=col; GC.lineWidth=2; GC.shadowColor=col; GC.shadowBlur=22;
+      GC.setLineDash([4,3]);
+      GC.beginPath(); GC.arc(n.x,n.y,(n.r||14)+9,0,Math.PI*2); GC.stroke();
+      GC.setLineDash([]); GC.shadowBlur=0;
+    }
+    // Node circle
+    GC.strokeStyle=col; GC.lineWidth=isSel?2.5:1.5; GC.shadowColor=col; GC.shadowBlur=isSel?14:7;
+    GC.beginPath(); GC.arc(n.x,n.y,n.r,0,Math.PI*2); GC.stroke(); GC.shadowBlur=0;
+    GC.fillStyle=col+'20'; GC.fill();
+    // Label
+    GC.fillStyle='rgba(237,240,244,.92)'; GC.font='9px Share Tech Mono'; GC.textAlign='center'; GC.textBaseline='middle';
+    GC.fillText(n.label.substr(0,14)+(n.label.length>14?'…':''),n.x,n.y);
+    GC.fillStyle=col+'aa'; GC.font='7px Share Tech Mono'; GC.fillText(String(n.type||'').toUpperCase(),n.x,n.y+n.r+8);
+  });
+  GC.restore();
+  // ── SELECTED NODE INFO PANEL (drawn in screen space after transform restore) ──
+  if(SELECTED){
+    const n=G.nodes.find(x=>x.id===SELECTED);
+    if(n){
+      const col=NC[n.type]||'#ff9d00';
+      const sx=n.x*GT.s+GT.x, sy=n.y*GT.s+GT.y;
+      const nodeEdges=G.edges.filter(e=>{
+        const a=resolveNodeRef(e.from),b=resolveNodeRef(e.to);
+        return a?.id===n.id||b?.id===n.id;
+      });
+      const explCount=nodeEdges.filter(e=>e.kind!=='inferred').length;
+      const infCount=nodeEdges.filter(e=>e.kind==='inferred').length;
+      const connLabels=[...new Set(nodeEdges.map(e=>{
+        const a=resolveNodeRef(e.from),b=resolveNodeRef(e.to);
+        if(!a||!b)return null;
+        return a.id===n.id?b.label:a.label;
+      }).filter(Boolean))].slice(0,6);
+      const lines=[
+        {t:n.label,          bold:true,  color:'#edf0f4'},
+        {t:'TYPE: '+(n.type||'?').toUpperCase(), bold:false, color:col},
+        {t:'ID: '+n.id,       bold:false, color:col+'99'},
+        {t:'EDGES: '+explCount+' explicit · '+infCount+' inferred', bold:false, color:col},
+        ...connLabels.map((l,i)=>({t:(i===0?'↗ ':'  ')+l, bold:false, color:col+'bb'}))
+      ];
+      const LH=13,PAD=10;
+      const PW=Math.min(244,W-20);
+      const PH=lines.length*LH+PAD*2;
+      let px=sx+(n.r||14)*GT.s+14;
+      let py=sy-PH/2;
+      if(px+PW>W-4)px=sx-(n.r||14)*GT.s-PW-14;
+      if(px<4)px=4;
+      if(py<4)py=4;
+      if(py+PH>H-4)py=H-PH-4;
+      GC.save();
+      GC.globalAlpha=0.94;
+      GC.fillStyle='#080808';
+      GC.strokeStyle=col;
+      GC.lineWidth=1;
+      GC.beginPath();
+      GC.roundRect(px,py,PW,PH,5);
+      GC.fill(); GC.stroke();
+      GC.globalAlpha=1;
+      GC.textAlign='left'; GC.textBaseline='top';
+      lines.forEach((l,i)=>{
+        GC.font=(l.bold?'bold ':'')+((i===0)?'10px':'9px')+' Share Tech Mono';
+        GC.fillStyle=l.color;
+        const txt=String(l.t||'');
+        GC.fillText(txt.length>32?txt.substr(0,31)+'…':txt, px+PAD, py+PAD+i*LH);
+      });
+      // Dashed connector line from panel edge to node
+      GC.strokeStyle=col+'55'; GC.lineWidth=1;
+      GC.setLineDash([2,3]);
+      GC.beginPath(); GC.moveTo(sx,sy);
+      GC.lineTo(px<sx?px+PW:px, py+PH/2);
+      GC.stroke(); GC.setLineDash([]);
+      GC.restore();
+    }
+  }
+  if(!G.nodes.length){
+    GC.fillStyle='rgba(74,85,104,.6)'; GC.font='10px Share Tech Mono'; GC.textAlign='center'; GC.textBaseline='middle';
+    GC.fillText('NO GRAPH DATA — RUN INFERENCE IN AMBER ICI TO BUILD THE GRAPH', W/2, H/2);
+  }
+}
+
+// ── CANVAS INIT / INTERACTION ─────────────────────────
+function initCanvas(){
+  const cv = document.getElementById('gc');
+  const wrap = cv.parentElement;
+  const resize = () => { cv.width = wrap.clientWidth; cv.height = wrap.clientHeight; };
+  resize();
+  window.addEventListener('resize', resize);
+  GC = cv.getContext('2d');
+  cv.onwheel = e => { e.preventDefault(); GT.s *= e.deltaY < 0 ? 1.1 : 0.9; drawGraph(); };
+  cv.onmousedown = e => {
+    _clickStart = { cx:e.clientX, cy:e.clientY };
+    const p = cpt(cv, e);
+    const nd = G.nodes.find(n => dist(n,p) < (n.r||16)+4);
+    if(nd) GD = { nd, ox:p.x-nd.x, oy:p.y-nd.y, moved:false };
+    else   GD = { pan:true, ox:e.clientX-GT.x, oy:e.clientY-GT.y };
+  };
+  cv.onmousemove = e => {
+    if(!GD)return;
+    if(GD.pan){ GT.x=e.clientX-GD.ox; GT.y=e.clientY-GD.oy; }
+    else {
+      const ddx=e.clientX-_clickStart.cx, ddy=e.clientY-_clickStart.cy;
+      if(ddx*ddx+ddy*ddy>16) GD.moved=true; // >4px = drag
+      if(GD.moved){ const p=cpt(cv,e); GD.nd.x=p.x; GD.nd.y=p.y; }
+    }
+  };
+  cv.onmouseup  = e => {
+    if(GD && GD.nd){
+      if(!GD.moved){
+        // Click (no drag) — toggle selection
+        SELECTED = (SELECTED===GD.nd.id) ? null : GD.nd.id;
+      } else {
+        saveToDb(); // dragged — persist new position
+      }
+    } else if(GD && GD.pan){
+      // Click on empty canvas — deselect
+      const ddx=e.clientX-_clickStart.cx, ddy=e.clientY-_clickStart.cy;
+      if(ddx*ddx+ddy*ddy<16) SELECTED=null;
+    }
+    GD=null;
+  };
+  cv.ontouchstart = e => { e.preventDefault(); if(e.touches.length===1){ const t=e.touches[0]; cv.onmousedown({clientX:t.clientX,clientY:t.clientY}); } };
+  cv.ontouchmove  = e => { e.preventDefault(); if(e.touches.length===1){ const t=e.touches[0]; cv.onmousemove({clientX:t.clientX,clientY:t.clientY}); } };
+  cv.ontouchend   = () => cv.onmouseup();
+  animGraph();
+}
+
+function cpt(cv, e){
+  const r = cv.getBoundingClientRect();
+  return { x:(e.clientX-r.left-GT.x)/GT.s, y:(e.clientY-r.top-GT.y)/GT.s };
+}
+function dist(a,b){ return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2); }
+
+// ── SVG EXPORT ────────────────────────────────────────
+function exportSVG(){
+  if(!G.nodes.length){ toast('Graph is empty', 'err'); return; }
+  const cv=document.getElementById('gc');
+  const W=cv&&cv.width>0?cv.width:1400;
+  const H=cv&&cv.height>0?cv.height:860;
+  const ex=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmt=n=>Number.isFinite(n)?Number(n.toFixed(2)):0;
+  const edges=G.edges.map(e=>{
+    const a=resolveNodeRef(e.from),b=resolveNodeRef(e.to);
+    if(!a||!b)return '';
+    const inferred=e.kind==='inferred';
+    const stroke=inferred?'#00c8ff':'#ff9d00';
+    const opacity=inferred?0.18:0.22;
+    let out=`<line x1="${fmt(a.x)}" y1="${fmt(a.y)}" x2="${fmt(b.x)}" y2="${fmt(b.y)}" stroke="${stroke}" stroke-opacity="${opacity}" stroke-width="${fmt(inferred?Math.min(1.7,0.7+(e.score||0)*0.6):1)}" stroke-dasharray="${inferred?'2 4':'4 6'}" />`;
+    if(e.label) out+=`<text x="${fmt((a.x+b.x)/2)}" y="${fmt((a.y+b.y)/2)}" fill="#ff9d00" fill-opacity="0.45" font-family="monospace" font-size="8" text-anchor="middle">${ex(e.label)}</text>`;
+    return out;
+  }).join('');
+  const nodes=G.nodes.map(n=>{
+    const col=NC[n.type]||'#ff9d00';
+    const lbl=n.label.length>14?(n.label.substr(0,14)+'...'):n.label;
+    return `<g><circle cx="${fmt(n.x)}" cy="${fmt(n.y)}" r="${fmt((n.r||14)*2.2)}" fill="${col}" fill-opacity="0.07"/><circle cx="${fmt(n.x)}" cy="${fmt(n.y)}" r="${fmt(n.r||14)}" fill="${col}" fill-opacity="0.12" stroke="${col}" stroke-width="1.5"/><text x="${fmt(n.x)}" y="${fmt(n.y)}" fill="#edf0f4" fill-opacity="0.92" font-family="monospace" font-size="9" text-anchor="middle" dominant-baseline="middle">${ex(lbl)}</text><text x="${fmt(n.x)}" y="${fmt(n.y+(n.r||14)+8)}" fill="${col}" fill-opacity="0.67" font-family="monospace" font-size="7" text-anchor="middle">${ex(String(n.type||'').toUpperCase())}</text></g>`;
+  }).join('');
+  const svg=`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">\n  <rect width="${W}" height="${H}" fill="#000"/>\n  <g transform="translate(${fmt(GT.x)} ${fmt(GT.y)}) scale(${fmt(GT.s)})">\n    <g>${edges}</g>\n    <g>${nodes}</g>\n  </g>\n</svg>`;
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+  a.download='amber_graph_'+stamp+'.svg';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  toast('SVG exported', 'ok');
+  log('Graph exported as SVG');
+}
+
+// ── BOOT ─────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  initCanvas();
+  await loadFromDB();
+  // Auto-refresh every 10s so changes from AMBER ICI propagate
+  setInterval(loadFromDB, 10000);
+});
+</script>
+</body>
+</html>

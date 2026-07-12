@@ -1,0 +1,1071 @@
+{
+  "spec_version": "1.0.0",
+  "title": "Behavioral Profiling Operational Engine",
+  "mode": "evidence-weighted, inference-constrained, explainable",
+  "design_principles": [
+    "Observation over assumption",
+    "Probabilistic inference over certainty claims",
+    "Versioned profile updates",
+    "Explicit contradiction tracking",
+    "Human-auditable output"
+  ],
+  "complexity": {
+    "time": "O(n + n*v + n*r)",
+    "space": "O(n + v + r + t)",
+    "variables": {
+      "n": "number of evidence/events",
+      "v": "number of extracted variables",
+      "r": "number of active rules",
+      "t": "timeline nodes and links"
+    }
+  },
+  "input_contract": {
+    "required_inputs": [
+      "case_id",
+      "event_records",
+      "scene_observations",
+      "victimology_data",
+      "timeline_hypotheses",
+      "source_reliability"
+    ],
+    "optional_inputs": [
+      "media_activity",
+      "geographic_context",
+      "institutional_constraints"
+    ]
+  },
+  "output_contract": {
+    "required_outputs": [
+      "baseline_model",
+      "deviation_signals",
+      "intent_inference",
+      "risk_scores",
+      "confidence_scores",
+      "explanation_bundle",
+      "update_delta"
+    ]
+  },
+  "book_level_intelligence_map": {
+    "core_theories": [
+      "Profiling is structured inference, not hard certainty",
+      "Physical evidence can invalidate narrative assumptions",
+      "Behavior has stable and adaptive components",
+      "Profiles must be iterative and versioned"
+    ],
+    "behavioral_assumptions": [
+      "Offenders adapt MO under pressure",
+      "Signature-like behavior tends to be more stable",
+      "Victim selection reflects opportunity + preference + constraint",
+      "Media/police feedback loops can alter offender behavior"
+    ],
+    "evidence_types": [
+      "scene_physical",
+      "biological_temporal",
+      "victimological",
+      "geographic",
+      "linguistic",
+      "witness",
+      "procedural"
+    ],
+    "hidden_states": [
+      "control_need",
+      "escalation_drive",
+      "risk_tolerance",
+      "tactical_adaptation",
+      "narrative_manipulation_intent"
+    ],
+    "causal_structures": [
+      {
+        "cause": "investigative pressure increase",
+        "effect": "offender pattern displacement"
+      },
+      {
+        "cause": "media amplification",
+        "effect": "attention-seeking behavior probability increase"
+      },
+      {
+        "cause": "timeline contradiction",
+        "effect": "profile confidence decrease"
+      }
+    ],
+    "risk_factors": [
+      "repeated escalation markers",
+      "shrinking cooling-off interval",
+      "broader victim class expansion",
+      "deliberate distance displacement",
+      "post-offense communication behavior"
+    ],
+    "predictive_signals": [
+      "location drift with behavioral continuity",
+      "tactical changes preserving core ritual",
+      "inconsistent disposal timing",
+      "targeted event-window offenses"
+    ]
+  },
+  "concept_extraction_table": [
+    {
+      "concept_name": "Baseline Construction",
+      "definition": "Stable behavior reference model",
+      "observable_inputs": [
+        "prior incidents",
+        "victim traits",
+        "method patterns"
+      ],
+      "hidden_variables": [
+        "stability index"
+      ],
+      "inference_rules": [
+        "If repeated markers persist across incidents, baseline confidence increases"
+      ],
+      "false_positives": [
+        "copycat effects"
+      ],
+      "false_negatives": [
+        "sparse case history"
+      ],
+      "operational_use": "Anchor for deviation scoring"
+    },
+    {
+      "concept_name": "Pattern Deviation",
+      "definition": "Distance from baseline",
+      "observable_inputs": [
+        "method shifts",
+        "location shifts",
+        "timing shifts"
+      ],
+      "hidden_variables": [
+        "adaptation pressure"
+      ],
+      "inference_rules": [
+        "If deviation exceeds threshold and contradictions are low, mark tactical shift"
+      ],
+      "false_positives": [
+        "environmental disruption"
+      ],
+      "false_negatives": [
+        "slow drift hidden in noise"
+      ],
+      "operational_use": "Early-warning indicator"
+    },
+    {
+      "concept_name": "Intent Inference",
+      "definition": "Probabilistic motive/goal estimate",
+      "observable_inputs": [
+        "targeting pattern",
+        "interaction style",
+        "post-offense behavior"
+      ],
+      "hidden_variables": [
+        "control and symbolic needs"
+      ],
+      "inference_rules": [
+        "Weighted rules over behavior clusters"
+      ],
+      "false_positives": [
+        "misread symbolism"
+      ],
+      "false_negatives": [
+        "overfitting to one event"
+      ],
+      "operational_use": "Prioritize interview strategy"
+    }
+  ],
+  "behavioral_variable_model": {
+    "variables": [
+      {
+        "name": "scene_control_index",
+        "type": "float",
+        "description": "Degree of offender control over scene and victim interaction",
+        "format": "0.0-1.0",
+        "extraction_method": "rule-based from scene markers",
+        "weight_range": "0.05-0.20",
+        "confidence_range": "0.30-0.95",
+        "normalization": "min-max",
+        "interactions": [
+          "victim_selection_specificity",
+          "post_offense_staging_score"
+        ]
+      },
+      {
+        "name": "victim_selection_specificity",
+        "type": "float",
+        "description": "How narrow and repeatable victim selection criteria are",
+        "format": "0.0-1.0",
+        "extraction_method": "cluster compactness over victim attributes",
+        "weight_range": "0.05-0.18",
+        "confidence_range": "0.40-0.95",
+        "normalization": "z-score then logistic squash",
+        "interactions": [
+          "baseline_stability_score",
+          "intent_class_probability"
+        ]
+      },
+      {
+        "name": "timeline_consistency_score",
+        "type": "float",
+        "description": "Agreement between biological, witness, and scene timing",
+        "format": "0.0-1.0",
+        "extraction_method": "constraint satisfaction over time windows",
+        "weight_range": "0.08-0.25",
+        "confidence_range": "0.50-0.98",
+        "normalization": "constraint ratio",
+        "interactions": [
+          "confidence_global",
+          "contradiction_index"
+        ]
+      },
+      {
+        "name": "geographic_displacement_ratio",
+        "type": "float",
+        "description": "Distance shift relative to historical comfort zone",
+        "format": "0.0-3.0+",
+        "extraction_method": "current centroid distance / baseline radius",
+        "weight_range": "0.04-0.15",
+        "confidence_range": "0.45-0.95",
+        "normalization": "log1p",
+        "interactions": [
+          "adaptation_pressure_score",
+          "escalation_potential"
+        ]
+      },
+      {
+        "name": "mo_variability_score",
+        "type": "float",
+        "description": "Operational-method variability across events",
+        "format": "0.0-1.0",
+        "extraction_method": "feature entropy",
+        "weight_range": "0.03-0.14",
+        "confidence_range": "0.30-0.90",
+        "normalization": "entropy/entropy_max",
+        "interactions": [
+          "signature_stability_score",
+          "deception_inconsistency_score"
+        ]
+      },
+      {
+        "name": "signature_stability_score",
+        "type": "float",
+        "description": "Persistence of nonfunctional behavioral motifs",
+        "format": "0.0-1.0",
+        "extraction_method": "motif recurrence with rarity weighting",
+        "weight_range": "0.06-0.22",
+        "confidence_range": "0.35-0.97",
+        "normalization": "rarity-weighted recurrence",
+        "interactions": [
+          "linkage_probability",
+          "intent_class_probability"
+        ]
+      },
+      {
+        "name": "media_reactivity_score",
+        "type": "float",
+        "description": "Behavior changes following media spikes",
+        "format": "0.0-1.0",
+        "extraction_method": "lagged correlation against media timeline",
+        "weight_range": "0.02-0.10",
+        "confidence_range": "0.20-0.85",
+        "normalization": "pearson/spearman fused",
+        "interactions": [
+          "attention_seeking_likelihood",
+          "pattern_deviation_score"
+        ]
+      },
+      {
+        "name": "contradiction_index",
+        "type": "float",
+        "description": "Aggregate contradiction load among evidence sources",
+        "format": "0.0-1.0",
+        "extraction_method": "weighted contradiction graph density",
+        "weight_range": "0.10-0.30",
+        "confidence_range": "0.60-0.99",
+        "normalization": "weighted ratio",
+        "interactions": [
+          "confidence_global",
+          "inference_suppression_factor"
+        ]
+      },
+      {
+        "name": "cooling_off_interval_trend",
+        "type": "float",
+        "description": "Trend slope of inter-event intervals",
+        "format": "real",
+        "extraction_method": "robust regression slope",
+        "weight_range": "0.05-0.20",
+        "confidence_range": "0.40-0.95",
+        "normalization": "slope scaled by median interval",
+        "interactions": [
+          "escalation_potential",
+          "risk_score_behavioral"
+        ]
+      },
+      {
+        "name": "stress_pressure_indicator",
+        "type": "float",
+        "description": "Estimated external/internal pressure load",
+        "format": "0.0-1.0",
+        "extraction_method": "composite from tactical errors and drift",
+        "weight_range": "0.04-0.16",
+        "confidence_range": "0.35-0.90",
+        "normalization": "weighted composite",
+        "interactions": [
+          "mo_variability_score",
+          "geographic_displacement_ratio"
+        ]
+      }
+    ]
+  },
+  "algorithmic_modules": [
+    {
+      "name": "BaselineModelBuilder",
+      "purpose": "Construct stable reference behavior",
+      "inputs": [
+        "events",
+        "victimology",
+        "scene_features"
+      ],
+      "outputs": [
+        "baseline_model",
+        "baseline_confidence"
+      ],
+      "feature_extraction_steps": [
+        "normalize feature namespaces",
+        "compute recurrence vectors",
+        "compute rarity-weighted motifs",
+        "fit robust centroid and dispersion"
+      ],
+      "decision_logic": "retain features with recurrence >= threshold and confidence >= min_conf",
+      "scoring_method": "stability = recurrence * rarity_weight * source_reliability",
+      "confidence_calculation": "bootstrap consistency across event subsets",
+      "edge_cases": [
+        "single-event case",
+        "mixed-offender contamination"
+      ],
+      "failure_modes": [
+        "false baseline from early sparse data"
+      ],
+      "recommended_data_structures": [
+        "FeatureVector",
+        "MotifIndex",
+        "ConfidenceEnvelope"
+      ]
+    },
+    {
+      "name": "DeviationDetector",
+      "purpose": "Detect departures from baseline",
+      "inputs": [
+        "new_event",
+        "baseline_model"
+      ],
+      "outputs": [
+        "deviation_signals",
+        "deviation_score"
+      ],
+      "decision_logic": "weighted distance + rule exceptions",
+      "scoring_method": "Mahalanobis-like distance with categorical penalties",
+      "confidence_calculation": "depends on baseline size and feature completeness"
+    },
+    {
+      "name": "IntentInferenceEngine",
+      "purpose": "Produce probability over intent classes",
+      "inputs": [
+        "signature_features",
+        "victimology_features",
+        "context_features"
+      ],
+      "outputs": [
+        "intent_probabilities",
+        "supporting_evidence"
+      ],
+      "decision_logic": "rule-ensemble + calibrated probabilistic layer",
+      "scoring_method": "softmax over weighted intent logits",
+      "confidence_calculation": "entropy-based certainty + contradiction penalty"
+    }
+  ],
+  "pipeline_design": [
+    {
+      "stage": 1,
+      "name": "Data Ingestion",
+      "purpose": "Normalize case payloads",
+      "inputs": [
+        "Raw documents/events"
+      ],
+      "outputs": [
+        "Canonical records"
+      ],
+      "algorithm": "Parsers + schema validation",
+      "data_structures": [
+        "CaseRecord"
+      ],
+      "error_handling": "Reject malformed records",
+      "quality_checks": [
+        "Required field completeness"
+      ]
+    },
+    {
+      "stage": 2,
+      "name": "Text Cleaning and Normalization",
+      "purpose": "Reduce noise while preserving offsets",
+      "inputs": [
+        "Raw text"
+      ],
+      "outputs": [
+        "Clean tokens/spans"
+      ],
+      "algorithm": "Deterministic normalization",
+      "data_structures": [
+        "TokenSpan"
+      ],
+      "error_handling": "Preserve source offsets",
+      "quality_checks": [
+        "Offset integrity"
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Entity Extraction",
+      "purpose": "Detect people, places, events",
+      "inputs": [
+        "Clean spans"
+      ],
+      "outputs": [
+        "Entity graph"
+      ],
+      "algorithm": "NER + rules",
+      "data_structures": [
+        "EntityNode",
+        "Edge"
+      ],
+      "error_handling": "Ambiguity tagging",
+      "quality_checks": [
+        "Entity confidence floor"
+      ]
+    },
+    {
+      "stage": 4,
+      "name": "Event Extraction",
+      "purpose": "Build event objects",
+      "inputs": [
+        "Entity graph",
+        "spans"
+      ],
+      "outputs": [
+        "Event timeline nodes"
+      ],
+      "algorithm": "Pattern templates",
+      "data_structures": [
+        "EventNode"
+      ],
+      "error_handling": "Missing-time fallback windows",
+      "quality_checks": [
+        "Temporal consistency"
+      ]
+    },
+    {
+      "stage": 5,
+      "name": "Behavioral Feature Extraction",
+      "purpose": "Compute behavior features",
+      "inputs": [
+        "Events",
+        "scenes"
+      ],
+      "outputs": [
+        "Feature vectors"
+      ],
+      "algorithm": "Module library",
+      "data_structures": [
+        "FeatureVector"
+      ],
+      "error_handling": "Unknown feature defaults",
+      "quality_checks": [
+        "Feature coverage ratio"
+      ]
+    },
+    {
+      "stage": 6,
+      "name": "Context Modeling",
+      "purpose": "Add environment variables",
+      "inputs": [
+        "Media",
+        "geography",
+        "policing"
+      ],
+      "outputs": [
+        "Context state"
+      ],
+      "algorithm": "Context encoder",
+      "data_structures": [
+        "ContextFrame"
+      ],
+      "error_handling": "Sparse context warning",
+      "quality_checks": [
+        "Context reliability score"
+      ]
+    },
+    {
+      "stage": 7,
+      "name": "Timeline Construction",
+      "purpose": "Sequence events",
+      "inputs": [
+        "Event nodes"
+      ],
+      "outputs": [
+        "Ordered timeline"
+      ],
+      "algorithm": "Constraint solver",
+      "data_structures": [
+        "Timeline"
+      ],
+      "error_handling": "Contradiction branch creation",
+      "quality_checks": [
+        "Feasible timeline count"
+      ]
+    },
+    {
+      "stage": 8,
+      "name": "Baseline Modeling",
+      "purpose": "Build reference profile",
+      "inputs": [
+        "Historical events"
+      ],
+      "outputs": [
+        "Baseline model"
+      ],
+      "algorithm": "BaselineModelBuilder",
+      "data_structures": [
+        "BaselineModel"
+      ],
+      "error_handling": "Min-event gate",
+      "quality_checks": [
+        "Baseline confidence"
+      ]
+    },
+    {
+      "stage": 9,
+      "name": "Deviation Detection",
+      "purpose": "Flag unusual behavior",
+      "inputs": [
+        "New events",
+        "baseline"
+      ],
+      "outputs": [
+        "Deviation signals"
+      ],
+      "algorithm": "DeviationDetector",
+      "data_structures": [
+        "DeviationSignal"
+      ],
+      "error_handling": "Insufficient baseline fallback",
+      "quality_checks": [
+        "Signal precision estimate"
+      ]
+    },
+    {
+      "stage": 10,
+      "name": "Inference Generation",
+      "purpose": "Infer intent and state",
+      "inputs": [
+        "Features",
+        "rules"
+      ],
+      "outputs": [
+        "Inference set"
+      ],
+      "algorithm": "IntentInferenceEngine",
+      "data_structures": [
+        "InferenceResult"
+      ],
+      "error_handling": "Contradiction suppression",
+      "quality_checks": [
+        "Claim support ratio"
+      ]
+    },
+    {
+      "stage": 11,
+      "name": "Risk Scoring",
+      "purpose": "Quantify threat and escalation",
+      "inputs": [
+        "Signals",
+        "trends"
+      ],
+      "outputs": [
+        "Risk vectors"
+      ],
+      "algorithm": "Risk fusion",
+      "data_structures": [
+        "RiskScore"
+      ],
+      "error_handling": "Missing trend guardrails",
+      "quality_checks": [
+        "Calibration check"
+      ]
+    },
+    {
+      "stage": 12,
+      "name": "Confidence Scoring",
+      "purpose": "Quantify certainty",
+      "inputs": [
+        "Evidence",
+        "contradictions"
+      ],
+      "outputs": [
+        "Confidence model"
+      ],
+      "algorithm": "Confidence engine",
+      "data_structures": [
+        "ConfidenceScore"
+      ],
+      "error_handling": "Wide-interval warning",
+      "quality_checks": [
+        "Coverage-adjusted confidence"
+      ]
+    },
+    {
+      "stage": 13,
+      "name": "Explanation Generation",
+      "purpose": "Human-auditable rationale",
+      "inputs": [
+        "Inferences",
+        "evidence links"
+      ],
+      "outputs": [
+        "Explanation bundle"
+      ],
+      "algorithm": "Template + citation builder",
+      "data_structures": [
+        "ExplanationItem"
+      ],
+      "error_handling": "Missing citation block",
+      "quality_checks": [
+        "Citation completeness"
+      ]
+    },
+    {
+      "stage": 14,
+      "name": "Final Behavioral Report Generation",
+      "purpose": "Deliver actionable output",
+      "inputs": [
+        "All prior artifacts"
+      ],
+      "outputs": [
+        "Behavioral report"
+      ],
+      "algorithm": "Report generator",
+      "data_structures": [
+        "BehavioralReport"
+      ],
+      "error_handling": "Block unsupported claims",
+      "quality_checks": [
+        "Report validity checklist"
+      ]
+    }
+  ],
+  "scoring_systems": {
+    "behavioral_risk_score": {
+      "formula": "BRS = clamp01(sum(w_i*x_i) - lambda1*contradiction_index + lambda2*trend_acceleration)",
+      "threshold_labels": {
+        "0.00-0.24": "Low",
+        "0.25-0.49": "Guarded",
+        "0.50-0.74": "Elevated",
+        "0.75-1.00": "High"
+      }
+    },
+    "intent_probability_score": {
+      "formula": "IPS_c = exp(z_c)/sum_k exp(z_k); z_c = b_c + sum(a_ci*x_i) - p_c*contradiction_index"
+    },
+    "deception_inconsistency_score": {
+      "formula": "DIS = clamp01(alpha*statement_conflict + beta*timeline_conflict + gamma*method_conflict)"
+    },
+    "stress_pressure_score": {
+      "formula": "SPS = clamp01(a*error_rate + b*mo_variability + c*displacement_ratio_norm)"
+    },
+    "escalation_potential_score": {
+      "formula": "EPS = clamp01(u*harm_slope + v*interval_compression + w*risk_taking_index)"
+    },
+    "reliability_score": {
+      "formula": "RS = clamp01(sum(source_weight_j * source_consistency_j))"
+    },
+    "confidence_score": {
+      "formula": "CS = clamp01(support_mass * RS * coverage - contradiction_index)"
+    },
+    "contextual_influence_score": {
+      "formula": "CIS = clamp01(m*media_reactivity + g*geographic_pressure + p*policing_pressure)"
+    },
+    "pattern_stability_score": {
+      "formula": "PSS = clamp01(recurrence_strength * motif_consistency * data_sufficiency)"
+    },
+    "baseline_deviation_score": {
+      "formula": "BDS = clamp01(distance_from_baseline * feature_importance_adjustment)"
+    }
+  },
+  "pseudocode_library": {
+    "main_pipeline_controller": "function MAIN_PIPELINE(case_payload){records=ingest_and_validate(case_payload);spans=clean_and_normalize(records.text);entities=extract_entities(spans,records.metadata);events=extract_events(spans,entities);features=extract_behavioral_features(events,records.scene_data,records.victimology);context=build_context_model(records.media,records.geo,records.institutional);timeline=construct_timeline(events,records.bio_temporal);baseline=build_or_update_baseline(records.case_id,timeline,features);deviations=detect_deviations(timeline.latest_events,baseline);inferences=generate_inferences(features,context,deviations);risks=compute_risk_scores(inferences,timeline,deviations,context);confidence=compute_confidence(inferences,risks,records.evidence_reliability);explanations=build_explanations(inferences,risks,confidence,records.evidence_links);report=generate_behavioral_report(records.case_id,baseline,deviations,inferences,risks,confidence,explanations);persist_versioned_outputs(report);return report;}",
+    "baseline_update": "function BUILD_OR_UPDATE_BASELINE(case_id,timeline,features){prior=load_baseline(case_id);if(prior==null && count(timeline.events)<MIN_EVENTS){return create_low_confidence_baseline(features);}merged=merge_with_decay(prior,features,0.92);stability=compute_stability(merged);conf=compute_baseline_confidence(merged,timeline);return BaselineModel(merged,stability,conf);}",
+    "deviation_detection": "function DETECT_DEVIATIONS(new_events,baseline){deviations=[];for(event in new_events){dist=weighted_distance(event.features,baseline.centroid,baseline.cov);exceptions=apply_exception_rules(event,baseline);score=clamp01(dist-exceptions.offset);if(score>=DEV_THRESHOLD){deviations.push(DeviationSignal(event.id,score,explain(event,baseline)));}}return deviations;}",
+    "confidence_model": "function COMPUTE_CONFIDENCE(inferences,risks,reliability){support_mass=sum(inf.support for inf in inferences);contradiction_mass=sum(inf.contradictions for inf in inferences);coverage=compute_feature_coverage(inferences);rs=reliability_score(reliability);cs=clamp01((support_mass*rs*coverage)-contradiction_mass);return ConfidenceScore(global=cs,support=support_mass,contradiction=contradiction_mass,coverage=coverage);}"
+  },
+  "data_structures": {
+    "BookConcept": {
+      "concept_id": "string",
+      "name": "string",
+      "definition": "string",
+      "evidence_refs": [
+        "EvidenceItem.id"
+      ],
+      "confidence": "float",
+      "ambiguity_notes": [
+        "string"
+      ]
+    },
+    "BehavioralVariable": {
+      "var_id": "string",
+      "name": "string",
+      "type": "float|int|bool|categorical",
+      "value": "any",
+      "normalized_value": "float",
+      "source_refs": [
+        "EvidenceItem.id"
+      ],
+      "confidence": "float"
+    },
+    "BehavioralFeature": {
+      "feature_id": "string",
+      "name": "string",
+      "vector": [
+        "float"
+      ],
+      "importance": "float",
+      "stability": "float"
+    },
+    "EvidenceItem": {
+      "id": "string",
+      "type": "scene|bio|witness|text|media|geo",
+      "content_hash": "string",
+      "source": "string",
+      "timestamp": "datetime|null",
+      "reliability": "float",
+      "contradictions": [
+        "EvidenceItem.id"
+      ]
+    },
+    "SubjectProfile": {
+      "subject_id": "string",
+      "baseline": "BaselineModel",
+      "intent_distribution": {
+        "class": "float"
+      },
+      "risk_scores": [
+        "RiskScore"
+      ],
+      "confidence": "ConfidenceScore"
+    },
+    "EventTimeline": {
+      "timeline_id": "string",
+      "events": [
+        "EventNode"
+      ],
+      "windows": [
+        {
+          "start": "datetime",
+          "end": "datetime",
+          "confidence": "float"
+        }
+      ],
+      "consistency_score": "float"
+    },
+    "BaselineModel": {
+      "model_id": "string",
+      "centroid": [
+        "float"
+      ],
+      "dispersion": [
+        "float"
+      ],
+      "signature_motifs": [
+        "string"
+      ],
+      "stability_score": "float",
+      "confidence": "float",
+      "version": "int"
+    },
+    "DeviationSignal": {
+      "signal_id": "string",
+      "event_id": "string",
+      "score": "float",
+      "kind": "method|geo|time|victim|context",
+      "explanation": "string"
+    },
+    "InferenceResult": {
+      "inference_id": "string",
+      "claim": "string",
+      "support_refs": [
+        "EvidenceItem.id"
+      ],
+      "contradict_refs": [
+        "EvidenceItem.id"
+      ],
+      "probability": "float",
+      "confidence": "float"
+    },
+    "RiskScore": {
+      "name": "string",
+      "value": "float",
+      "label": "Low|Guarded|Elevated|High",
+      "drivers": [
+        "BehavioralVariable.name"
+      ]
+    },
+    "ConfidenceScore": {
+      "global": "float",
+      "support_mass": "float",
+      "contradiction_mass": "float",
+      "coverage": "float",
+      "notes": [
+        "string"
+      ]
+    },
+    "BehavioralReport": {
+      "report_id": "string",
+      "case_id": "string",
+      "version": "int",
+      "executive_summary": "string",
+      "baseline": "BaselineModel",
+      "deviations": [
+        "DeviationSignal"
+      ],
+      "inferences": [
+        "InferenceResult"
+      ],
+      "risks": [
+        "RiskScore"
+      ],
+      "confidence": "ConfidenceScore",
+      "alternatives": [
+        "string"
+      ],
+      "generated_at": "datetime"
+    }
+  },
+  "rule_engine": [
+    {
+      "rule_id": "R001",
+      "rule_name": "Biological Timeline Contradiction",
+      "if_conditions": "bio_temporal_window conflicts with disposal_claim_window",
+      "then_inference": "decrease timeline_consistency_score; flag narrative mismatch",
+      "required_evidence": [
+        "bio markers",
+        "scene timestamps"
+      ],
+      "weight": 0.82,
+      "confidence_modifier": -0.18,
+      "contradictory_evidence": [
+        "validated delayed discovery mechanism"
+      ],
+      "explanation_template": "Biological indicators conflict with assumed disposal timeline."
+    },
+    {
+      "rule_id": "R002",
+      "rule_name": "Pattern Break with Signature Persistence",
+      "if_conditions": "mo_variability_score high AND signature_stability_score high",
+      "then_inference": "infer tactical adaptation over offender substitution",
+      "required_evidence": [
+        "method deltas",
+        "recurring motifs"
+      ],
+      "weight": 0.76,
+      "confidence_modifier": 0.12,
+      "contradictory_evidence": [
+        "strong multi-offender evidence"
+      ],
+      "explanation_template": "Operational method changed while core motifs remained stable."
+    },
+    {
+      "rule_id": "R003",
+      "rule_name": "Escalation Compression",
+      "if_conditions": "cooling_off_interval_trend < threshold AND harm_trend > threshold",
+      "then_inference": "raise escalation_potential_score",
+      "required_evidence": [
+        "event intervals",
+        "harm severity trend"
+      ],
+      "weight": 0.88,
+      "confidence_modifier": 0.15,
+      "contradictory_evidence": [
+        "known external interruption"
+      ],
+      "explanation_template": "Inter-event intervals are compressing while harm severity rises."
+    },
+    {
+      "rule_id": "R004",
+      "rule_name": "Context Reactivity",
+      "if_conditions": "media_reactivity_score high",
+      "then_inference": "increase contextual_influence_score and adaptation likelihood",
+      "required_evidence": [
+        "media timeline",
+        "post-coverage behavioral shift"
+      ],
+      "weight": 0.61,
+      "confidence_modifier": 0.08,
+      "contradictory_evidence": [
+        "non-overlapping event windows"
+      ],
+      "explanation_template": "Behavioral changes follow major media exposure."
+    },
+    {
+      "rule_id": "R005",
+      "rule_name": "High Contradiction Suppression",
+      "if_conditions": "contradiction_index > 0.55",
+      "then_inference": "cap confidence_global and force alternative hypotheses",
+      "required_evidence": [
+        "cross-source contradiction graph"
+      ],
+      "weight": 0.93,
+      "confidence_modifier": -0.25,
+      "contradictory_evidence": [
+        "source reliability reclassification"
+      ],
+      "explanation_template": "Conflicting evidence requires conservative inference posture."
+    }
+  ],
+  "machine_learning_extension": {
+    "supervised_learning_targets": [
+      "intent_class",
+      "escalation_label",
+      "linkage_probability",
+      "risk_label_next_window"
+    ],
+    "unsupervised_clustering_opportunities": [
+      "offender_behavioral_clusters",
+      "victim-selection archetypes",
+      "scene motif families"
+    ],
+    "sequence_modeling_opportunities": [
+      "temporal transformers for event trajectories",
+      "hidden-state models for pressure/adaptation transitions"
+    ],
+    "feature_vectors": [
+      "baseline distances",
+      "motif recurrence embeddings",
+      "geo-temporal drift metrics",
+      "contradiction graph statistics"
+    ],
+    "labels": [
+      "analyst-validated intent categories",
+      "escalation outcomes",
+      "verified linkage outcomes"
+    ],
+    "training_data_requirements": [
+      "de-identified structured case histories",
+      "source reliability metadata",
+      "contradiction annotations",
+      "event-level timestamps"
+    ],
+    "evaluation_metrics": [
+      "macro_f1",
+      "brier_score",
+      "auroc",
+      "ece",
+      "top_k_linkage_recall"
+    ],
+    "human_in_the_loop_review_points": [
+      "pre-label adjudication",
+      "post-prediction override with rationale",
+      "drift review and threshold resets"
+    ],
+    "model_drift_risks": [
+      "policy or media ecosystem shifts",
+      "reporting quality changes across jurisdictions",
+      "new offender adaptation patterns"
+    ]
+  },
+  "implementation_blueprint": {
+    "modules": [
+      "ingestion",
+      "normalization",
+      "extraction",
+      "feature_engine",
+      "baseline_engine",
+      "deviation_engine",
+      "inference_engine",
+      "risk_engine",
+      "confidence_engine",
+      "explanation_engine",
+      "report_engine",
+      "audit_store"
+    ],
+    "classes": [
+      "CaseIngestor",
+      "EvidenceNormalizer",
+      "EntityEventExtractor",
+      "BehavioralFeatureExtractor",
+      "BaselineModelService",
+      "DeviationService",
+      "IntentInferenceService",
+      "RiskScoringService",
+      "ConfidenceService",
+      "ExplanationBuilder",
+      "BehavioralReportBuilder"
+    ],
+    "input_output_contracts": {
+      "POST /cases/{id}/ingest": "raw case payload -> normalized artifacts",
+      "POST /cases/{id}/analyze": "normalized artifacts -> versioned report",
+      "GET /cases/{id}/report/latest": "latest report",
+      "GET /cases/{id}/report/{version}": "specific report",
+      "POST /cases/{id}/override": "analyst override + rationale",
+      "GET /cases/{id}/audit": "full trace"
+    },
+    "storage_design": {
+      "document_store": "raw evidence and references",
+      "relational_store": "normalized entities/events/scores",
+      "graph_store": "contradiction and concept links",
+      "vector_store": "motif and feature embeddings"
+    },
+    "batch_processing_strategy": [
+      "nightly full recompute",
+      "backfill for corrected evidence",
+      "checksum-based idempotent reprocessing"
+    ],
+    "streaming_processing_strategy": [
+      "event-driven incremental updates",
+      "recompute confidence/risk on append",
+      "high-impact contradiction alerts"
+    ],
+    "testing_strategy": [
+      "unit tests for formulas and rules",
+      "golden tests for report generation",
+      "property tests for normalization invariants",
+      "integration tests ingest->report",
+      "calibration regression tests"
+    ]
+  },
+  "final_behavioral_analysis_report_template": {
+    "sections": [
+      "executive_summary",
+      "dataset_overview",
+      "behavioral_baseline",
+      "key_behavioral_indicators",
+      "detected_deviations",
+      "inferred_intent",
+      "emotional_cognitive_state_indicators",
+      "risk_assessment",
+      "timeline_reconstruction",
+      "confidence_assessment",
+      "supporting_evidence",
+      "alternative_explanations",
+      "analyst_notes",
+      "machine_generated_conclusions",
+      "change_log_vs_prior_version"
+    ]
+  },
+  "verbosity_policy": {
+    "minimum_sections": 12,
+    "minimum_rules": 25,
+    "minimum_variables": 30,
+    "minimum_algorithms": 15,
+    "minimum_report_tokens": 4000,
+    "include_formulas": true,
+    "include_pseudocode": true,
+    "include_json_schemas": true,
+    "include_alternative_hypotheses": true,
+    "include_confidence_and_contradiction": true
+  }
+}

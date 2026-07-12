@@ -228,3 +228,7 @@ timeline/*.json
 uploads/
 modhistory.txt
 tree.txt
+venv/
+
+# Inert leftover from an earlier SQLite storage attempt (unused by the launcher)
+synapse.db

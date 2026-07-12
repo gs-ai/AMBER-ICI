@@ -2,7 +2,7 @@
   <img src="image/README/06b51b0b-382c-46e8-9942-6163001684c0.png" alt="AMBER ICI interface banner" width="1200" />
 </p>
 
-# AMBER ICI
+# AMBER ICI v4
 
 AMBER ICI (AMBER Investigative Command Interface) is a local-first Ollama command interface for investigative and analytical workflows.
 
@@ -13,12 +13,36 @@ It provides:
 - Chain/Pipeline execution with loops
 - Integrated local Archive (semantic vector index/search)
 - Fibonacci fractal memory retrieval for active-file context injection
-- Graph correlation view
-- Local file ingestion with PDF/DOCX/TXT/MD extraction
+- Standalone Entity Provenance Graph (`amber_graph.html`)
+- Standalone Timeline view (`amber_timeline.html`)
+- Standalone Vector Store manager (`amber_vectorstore.html`)
+- Local file ingestion with PDF/DOCX/TXT/MD/PY extraction
 - OCR fallback for PDFs (when OCR dependencies are installed)
 - Local runtime telemetry (token rate, session stats, GPU/VRAM)
 
 All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`).
+
+## v4 Update Highlights
+
+> **Note:** this section documents the *originally planned* v4 storage layer. The `synapse.db` SQLite
+> migration described below was not carried into the shipped launcher — see [Persistence Model](#persistence-model)
+> for what actually runs today (`state/*.json` via the atomic JSON store API). The rest of this section
+> (memory/context/agent behavior) is accurate.
+
+`v4` introduces persistent memory, headless web access, expanded file ingestion, and row-level vector storage:
+
+- Program state persists to `state/*.json`, written atomically per key via `/api/store/<domain>/<name>`.
+- Archive index (vector store) persists to `state/vector_store.json`, hydrated into an in-browser fractal/vector store on load.
+- Chat history persisted to `state/chat_history.json` and restored on every boot (last 100 messages kept; last 30 replayed in UI).
+- Scratchpad persisted to `state/scratch.json` and restored on every boot.
+- Context window overflow protection added: `trimMsgsToCtx()` trims oldest non-system messages to a 90% char budget before every inference call.
+- Agents now receive the last 6 conversation turns as context (previously received zero history).
+- Memory profile setting moved from `localStorage` to `state/memory_profile.json`.
+- Headless Firefox internet access toggle (`WEB OFF / ON`) added to the cpills bar.
+  - New `POST /api/web/fetch` endpoint backed by `camoufox` (Playwright-based, fingerprint-spoofing headless Firefox).
+  - Results cached in `state/web_cache.json` with a 1-hour TTL.
+  - Degrades gracefully if `camoufox` is not installed.
+- `.py` file ingestion added — Python source files are accepted and read as plain text.
 
 ## v3 Update Highlights
 
@@ -46,10 +70,10 @@ All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`
 
 <p align="center">
   <a href="image/README/feouahwofu23978.png" target="_blank" rel="noopener noreferrer">
-    <img src="image/README/feouahwofu23978.png" alt="AMBER ICI v3 workspace view 1" width="49%" />
+    <img src="image/README/feouahwofu23978.png" alt="AMBER ICI workspace view 1" width="49%" />
   </a>
   <a href="image/README/askjhf949qhgh.png" target="_blank" rel="noopener noreferrer">
-    <img src="image/README/askjhf949qhgh.png" alt="AMBER ICI v3 workspace view 2" width="49%" />
+    <img src="image/README/askjhf949qhgh.png" alt="AMBER ICI workspace view 2" width="49%" />
   </a>
 </p>
 
@@ -58,7 +82,8 @@ All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`
 ## Core Design
 
 - Local-only launcher and CSP policy (no external domains configured)
-- Disk-backed app state (`state/*.json`) instead of browser-only persistence
+- All runtime state persisted to `state/*.json` — no browser-only state
+- Archive index persisted to `state/vector_store.json`
 - Disk-backed uploads (`uploads/blobs`, `uploads/texts`, `uploads/manifest.json`)
 - Unified STOP control for active runs
 - CTX-driven prompt budget applied across Analyst, Parallel, Agents, and Pipeline
@@ -72,11 +97,16 @@ All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`
 - Required embed model for archive/index features:
   - `embeddinggemma:latest`
 
-OCR support for scanned/visual PDFs:
+OCR support for scanned/visual PDFs (optional):
 - `ocrmypdf`
 - `tesseract`
 
 If OCR tools are unavailable, AMBER still runs; PDF extraction falls back to basic text extraction.
+
+Headless web fetch support (optional):
+- `camoufox` (Python package — Playwright-based, auto-spoofs browser fingerprints)
+
+If camoufox is not installed, the `WEB` toggle appears in the UI but fetch calls degrade gracefully with an error response.
 
 ## Install And Setup
 
@@ -129,7 +159,20 @@ Windows:
 - Install `OCRmyPDF`
 - Ensure both are available in your `PATH`
 
-### 5. Launch AMBER ICI
+### 5. (Recommended) Install Camoufox for headless web fetch
+
+No conda environment is required. Standard pip install:
+
+```bash
+pip install camoufox
+python3 -m camoufox fetch
+```
+
+Camoufox bundles its own patched Firefox binary and auto-generates realistic browser fingerprints (OS, fonts, screen, WebGL, headers) to bypass bot detection on heavily guarded sites. No geckodriver, no webdriver-manager, no separate Firefox install needed.
+
+If camoufox is not installed, AMBER still runs. The `WEB` toggle will be visible in the UI but fetch calls will return an error response instead of live results.
+
+### 6. Launch AMBER ICI
 
 Browser auto-open:
 
@@ -225,7 +268,7 @@ Local semantic archive in the main UI.
 ## File Ingestion
 
 Accepted types:
-- `.txt`, `.md`, `.pdf`, `.docx`
+- `.txt`, `.md`, `.pdf`, `.docx`, `.py`
 
 Limits:
 - Max upload size: `32 MB` per file
@@ -233,7 +276,9 @@ Limits:
 Storage:
 - Raw bytes: `uploads/blobs/`
 - Extracted text: `uploads/texts/`
-- File manifest: `uploads/manifest.json`
+- File metadata: `uploads/manifest.json`
+
+`.py` files are treated as plain-text — content is read directly with no transformation.
 
 PDF extraction behavior:
 - Basic text extraction always attempted
@@ -258,9 +303,9 @@ AMBER applies context controls automatically:
 
 This reduces prompt overflow and keeps runs stable as file volume increases.
 
-## v3 Memory / Token Window
+## v4 Memory / Token Window
 
-AMBER ICI v3 exposes CTX control in the UI and now applies it across:
+AMBER ICI v4 applies context management across all run modes:
 - Analyst Console
 - Parallel
 - Agents
@@ -269,15 +314,16 @@ AMBER ICI v3 exposes CTX control in the UI and now applies it across:
 Supported CTX window options in UI:
 - `2K`, `4K`, `8K`, `16K`, `32K`
 
-Before vs now (context retrieval path):
-- Before (flat-only): active file text was assembled and then trimmed by keyword-overlap relevance.
-- Now (Fibonacci/fractal-first): AMBER queries fractal memory first (`beamWidth=3`, up to depth `4`, top `5` hits), then falls back to flat assembly if no fractal hits are available.
-- Prompt budgeting guardrail is unchanged: active file context is still capped at approximately `CTX * 3` characters before final prompt assembly.
+Context retrieval path (current):
+- `trimMsgsToCtx()` trims oldest non-system messages to a 90% character budget (~4 chars/token) before every inference call.
+- Agents receive the last 6 conversation turns in addition to their system prompt and current input.
+- Fibonacci fractal memory is queried first for active file context (`beamWidth=3`, up to depth `4`, top `5` hits); falls back to flat assembly if no fractal hits are available.
+- Prompt budgeting guardrail: active file context is capped at approximately `CTX * 3` characters before final prompt assembly.
 
-Expected improvement:
+Expected behavior:
 - Higher relevance per injected character for larger/multi-file contexts.
-- Lower overflow pressure in many runs because low-signal blocks are less likely to be injected.
-- If fractal memory is empty (not indexed yet), behavior matches the previous flat path.
+- Lower overflow pressure because low-signal blocks are less likely to be injected.
+- If fractal memory is empty (not indexed yet), behavior matches the flat path.
 
 Approximate active file-context budget by CTX:
 - `2K` CTX: ~6,000 chars
@@ -308,25 +354,41 @@ Tracked fields:
 
 ## Persistence Model
 
-Runtime state is persisted under `state/`:
+> **Correction (2026-07-10):** the `synapse.db` SQLite migration described in earlier drafts of this
+> README was never wired into the running launcher. `files/launch_amber_ici_gui.py` has no `sqlite3`
+> import and reads/writes `state/*.json` exclusively. `synapse.db` may exist on disk from an earlier
+> attempt but nothing in the codebase opens it. The table below and the "Data Hygiene" reset commands
+> have been corrected to describe the actual, current persistence layer.
 
-- `state/agents_state.json`
-- `state/pipeline_state.json`
-- `state/agent_sets.json`
-- `state/chain_sets.json`
-- `state/vector_store.json`
-- `state/timeline_state.json`
+All runtime state is persisted as individual JSON files under `state/`, written atomically (temp file +
+`Path.replace()`) by the launcher's generic `/api/store/<domain>/<name>` endpoint.
 
-Legacy store routes are still accepted and mapped to `state/` for compatibility.
+File overview:
 
-## Standalone Utilities
+| File | Contents |
+|---|---|
+| `state/agents_state.json`, `state/agent_sets.json` | Agent configs (live + saved presets) |
+| `state/pipeline_state.json`, `state/chain_sets.json` | Pipeline steps and saved chain sets |
+| `state/chat_history.json` | Conversation log (last 100 messages kept) |
+| `state/scratch.json` | Scratchpad contents |
+| `state/memory_profile.json` | Memory profile setting |
+| `state/timeline_state.json`, `state/graph_state.json` | Timeline and entity-graph state |
+| `state/vector_store.json` | Archive index (in-browser fractal/vector store is rebuilt from this on load) |
+| `state/web_cache.json` | Headless web fetch results, cached by query with a 1-hour TTL |
+| `uploads/manifest.json` | File upload metadata (id, name, size, ext, paths); blobs/text under `uploads/blobs`, `uploads/texts` |
 
-In addition to integrated Archive mode, standalone pages are available:
+There is no database migration step — `state/*.json` is read directly on every request and is the
+single source of truth today.
 
+## Standalone Tools
+
+All three standalone tools are launchable directly from the main UI header nav (`GRAPH ◈`, `TIMELINE ▶`, `VECTORS ◉`) or from the console action bar. Each can also be opened directly in a browser tab:
+
+- Entity Provenance Graph: `http://127.0.0.1:8765/amber_graph.html`
 - Timeline UI: `http://127.0.0.1:8765/amber_timeline.html`
-- Vectorstore UI: `http://127.0.0.1:8765/amber_vectorstore.html`
+- Vector Store manager: `http://127.0.0.1:8765/amber_vectorstore.html`
 
-These also persist via local API-backed state.
+All persist state via the `/api/store/<domain>/<name>` JSON store API described above. The Graph auto-polls every 10 seconds and reflects changes from active inference in the main UI in near real-time.
 
 ## Security Posture
 
@@ -337,20 +399,30 @@ These also persist via local API-backed state.
 
 ## Data Hygiene / Cleanup
 
-Remove runtime state:
+Reset all state (agents, pipelines, archive index, chat history, web cache, timeline/graph state):
 
 ```bash
 rm -f state/*.json
 ```
 
-Remove uploaded source and extracted text:
+Files are recreated with empty defaults on next read — no migration/rebuild step is needed.
+
+Remove uploaded source files, extracted text, and the upload manifest:
 
 ```bash
-rm -rf uploads/blobs uploads/texts
-rm -f uploads/manifest.json
+rm -rf uploads/blobs uploads/texts uploads/manifest.json
 ```
 
+`synapse.db`, if present from an earlier build, is inert and can be deleted independently — nothing in
+the current codebase reads or writes it.
+
 ## Troubleshooting
+
+### Web fetch is always returning errors
+
+- Install camoufox: `pip install camoufox && python3 -m camoufox fetch`
+- No conda environment is required — standard `pip install` into your Python environment is sufficient
+- Some heavily bot-protected sites (e.g. sites behind Cloudflare Turnstile) may still block fetches regardless of fingerprint spoofing
 
 ### Archive indexing fails with HTTP 500
 
@@ -385,24 +457,23 @@ python3 files/launch_amber_ici_gui.py --host 127.0.0.1 --port 8877
 ```text
 AMBER/
 ├── files/
-│   ├── amber_ui.html
+│   ├── amber_graph.html
 │   ├── amber_timeline.html
+│   ├── amber_ui.html
 │   ├── amber_vectorstore.html
 │   └── launch_amber_ici_gui.py
 ├── image/
 │   └── README/
 ├── state/
-│   ├── agents_state.json
-│   ├── pipeline_state.json
 │   ├── agent_sets.json
 │   ├── chain_sets.json
-│   ├── vector_store.json
+│   ├── pipeline_state.json
 │   └── timeline_state.json
 ├── uploads/
 │   ├── blobs/
-│   ├── texts/
-│   └── manifest.json
+│   └── texts/
 ├── package.json
 ├── README.md
+├── synapse.db
 └── LICENSE
 ```
