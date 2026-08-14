@@ -1,6 +1,6 @@
 {
   "name": "amber-ici",
-  "version": "2.0.0",
+  "version": "5.0.0",
   "description": "AMBER ICI Investigative Command Interface local launcher",
   "type": "module",
   "main": "files/launch_amber_ici_gui.py",
@@ -18,7 +18,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "playwright": "^1.53.0",
+    "playwright": "^1.62.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
   }

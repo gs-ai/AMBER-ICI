@@ -237,7 +237,7 @@ body::before {
   <div class="topbar-right">
     <button class="topbar-btn btn-cyan" onclick="loadFromDB()">↺ REFRESH</button>
     <button class="topbar-btn" onclick="exportSVG()">↓ EXPORT SVG</button>
-    <button class="topbar-btn danger" onclick="clearGraph()">✕ CLEAR ALL</button>
+    <button class="topbar-btn danger" onclick="clearGraph()">CLEAR ALL</button>
     <div class="status-dot" id="statusDot"></div>
     <span class="status-text" id="statusText">LOADING</span>
   </div>
@@ -292,9 +292,9 @@ body::before {
 
     <div class="section">
       <div class="section-title">Controls</div>
-      <button class="btn btn-cyan" onclick="loadFromDB()">↺ RELOAD FROM SYNAPSE.DB</button>
+      <button class="btn btn-cyan" onclick="loadFromDB()">RELOAD GRAPH STATE</button>
       <button class="btn" onclick="resetLayout()">⤢ RESET LAYOUT</button>
-      <button class="btn btn-red" onclick="clearGraph()">✕ CLEAR GRAPH</button>
+      <button class="btn btn-red" onclick="clearGraph()">CLEAR GRAPH</button>
     </div>
 
     <div class="section" style="flex:1">
@@ -331,7 +331,7 @@ body::before {
 </div>
 
 <div class="logbar">
-  <span class="log-text" id="logLine">AMBER ENTITY GRAPH — LOADING FROM SYNAPSE.DB</span>
+  <span class="log-text" id="logLine">AMBER ENTITY GRAPH — LOADING GRAPH STATE</span>
 </div>
 
 <script>
@@ -367,7 +367,7 @@ function updateStats(){
 
 // ── STORAGE ───────────────────────────────────────────
 async function loadFromDB(){
-  log('Loading from synapse.db...');
+  log('Loading graph state...');
   try {
     const r = await fetch(GRAPH_API, { signal: AbortSignal.timeout(4000) });
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -401,12 +401,12 @@ async function loadFromDB(){
       // Settle layout for freshly-positioned nodes, then save so the next poll
       // finds finite x/y and the merge path preserves positions.
       if (positionsWereNull) { if(live.size===0) settleLayout(); saveToDb(); }
-      log('Loaded ' + G.nodes.length + ' nodes, ' + G.edges.length + ' edges from synapse.db');
+      log('Loaded ' + G.nodes.length + ' nodes and ' + G.edges.length + ' edges from graph state');
       document.getElementById('statusDot').className = 'status-dot up';
       document.getElementById('statusText').textContent = 'CONNECTED';
     } else {
       G.nodes = []; G.edges = [];
-      log('synapse.db has no graph state yet — graph will populate as you run inference in AMBER ICI');
+      log('No graph state yet — the graph will populate as you run inference in AMBER ICI');
       document.getElementById('statusDot').className = 'status-dot up';
       document.getElementById('statusText').textContent = 'EMPTY';
     }
