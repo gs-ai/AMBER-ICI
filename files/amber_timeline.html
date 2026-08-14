@@ -364,7 +364,7 @@ body::before {
   display: flex; align-items: center; justify-content: space-between;
 }
 .modal-title { font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; }
-.modal-close { background: transparent; border: none; color: var(--text-dim); font-size: 14px; cursor: pointer; }
+.modal-close { background: transparent; border: none; color: var(--text-dim); font-size: 8px; letter-spacing: .5px; cursor: pointer; }
 .modal-close:hover { color: var(--text-bright); }
 .modal-body { padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .modal-field label { font-size: 8px; color: var(--text-dim); letter-spacing: 2px; display: block; margin-bottom: 4px; }
@@ -435,7 +435,7 @@ body::before {
           <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
         </div>
         <button class="btn btn-gold" id="extractBtn" onclick="extractEvents()">◈  EXTRACT EVENTS — LLM</button>
-        <button class="btn btn-cyan btn-sm" onclick="extractRegex()">⚡  QUICK EXTRACT — REGEX</button>
+        <button class="btn btn-cyan btn-sm" onclick="extractRegex()">QUICK EXTRACT — REGEX</button>
       </div>
     </div>
 
@@ -445,7 +445,7 @@ body::before {
         <span class="section-title">Events — <span id="eventCount">0</span></span>
         <div style="display:flex; gap:5px;">
           <button class="icon-btn" onclick="toggleAddForm()" title="Add manual event">+</button>
-          <button class="icon-btn del" onclick="clearEvents()" title="Clear all">✕</button>
+          <button class="icon-btn del" onclick="clearEvents()" title="Clear all">CLEAR</button>
         </div>
       </div>
 
@@ -515,7 +515,7 @@ body::before {
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title">Edit Event</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">CLOSE</button>
     </div>
     <div class="modal-body">
       <div class="modal-field">
@@ -869,8 +869,8 @@ function renderEventList() {
         <div class="event-src">${escHtml(e.source)} · ${e.confidence}${Number.isFinite(e.confidenceScore)?` (${e.confidenceScore}%)`:''}</div>
       </div>
       <div class="event-actions">
-        <button class="icon-btn" onclick="event.stopPropagation(); openEdit('${e.id}')" title="Edit">✎</button>
-        <button class="icon-btn del" onclick="event.stopPropagation(); deleteEvent('${e.id}')" title="Delete">✕</button>
+        <button class="icon-btn" onclick="event.stopPropagation(); openEdit('${e.id}')" title="Edit">EDIT</button>
+        <button class="icon-btn del" onclick="event.stopPropagation(); deleteEvent('${e.id}')" title="Delete">DELETE</button>
       </div>
     </div>
   `).join('');

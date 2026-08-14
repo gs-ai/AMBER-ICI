@@ -20,6 +20,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from local_endpoint import require_loopback_http_url
+
 
 ALLOWED_TOOLS = {
     "list_visible_files",
@@ -100,6 +102,10 @@ def _make_executable(path: Path, dry_run: bool) -> None:
 
 
 def _post_json(url: str, payload: Dict[str, Any], timeout_sec: int = 90) -> Dict[str, Any]:
+    try:
+        url = require_loopback_http_url(url)
+    except ValueError as error:
+        raise ContractError(str(error)) from error
     req = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
@@ -107,7 +113,8 @@ def _post_json(url: str, payload: Dict[str, Any], timeout_sec: int = 90) -> Dict
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
+        # URL is restricted to a validated loopback host immediately above.
+        with urllib.request.urlopen(req, timeout=timeout_sec) as resp:  # nosec B310
             body = resp.read().decode("utf-8", errors="ignore")
             return json.loads(body) if body else {}
     except urllib.error.HTTPError as e:

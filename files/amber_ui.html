@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AMBER // INVESTIGATIVE COMMAND INTERFACE v4</title>
+<title>AMBER // INVESTIGATIVE COMMAND INTERFACE v5</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <style>
 :root {
@@ -88,7 +88,7 @@ main{
 .splitter:hover::after,.splitter.active::after{border-color:var(--steel-border);background:var(--steel-mid)}
 .resizing,.resizing *{cursor:col-resize!important;user-select:none!important}
 main>aside{min-width:0}
-.lp-toggle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:44px;background:var(--steel-mid);border:1px solid var(--steel-border);border-left:none;border-radius:0 4px 4px 0;color:var(--td);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:background .15s,border-color .15s,color .15s,box-shadow .15s;font-family:var(--mono);padding:0}
+.lp-toggle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);width:34px;height:16px;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:0 4px 4px 0;color:var(--td);font-size:6px;letter-spacing:.4px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:background .15s,border-color .15s,color .15s,box-shadow .15s;font-family:var(--mono);padding:0}
 .lp-toggle:hover{background:var(--amber-faint);border-color:var(--amber-dim);color:var(--amber-neon);box-shadow:2px 0 8px rgba(255,157,0,.22)}
 main.lp-collapsed #SP-L .lp-toggle{color:var(--amber-hot);border-color:var(--amber-dim);background:rgba(255,157,0,.12);box-shadow:2px 0 10px rgba(255,157,0,.25)}
 main.lp-collapsed #SP-L{cursor:default}
@@ -116,7 +116,7 @@ main.lp-animating{transition:grid-template-columns .26s cubic-bezier(.4,0,.2,1)}
 .msearch{margin:9px 9px 5px;position:relative}
 .msearch input{width:100%;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px;padding:6px 9px 6px 26px;color:var(--tp);font-family:var(--mono);font-size:10px;letter-spacing:1px;outline:none;transition:border-color .2s,box-shadow .2s}
 .msearch input:focus{border-color:var(--amber-dim);box-shadow:0 0 10px rgba(255,157,0,.11)}
-.msearch::before{content:'⌕';position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--td);font-size:13px}
+.msearch::before{content:'FILTER';position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--td);font-size:6px;letter-spacing:.7px}
 
 /* Model list */
 .mlist{flex:1;overflow-y:auto;padding:0 7px 5px;min-height:0}
@@ -156,7 +156,7 @@ main.lp-animating{transition:grid-template-columns .26s cubic-bezier(.4,0,.2,1)}
 .dropz{margin:9px;padding:14px 8px;text-align:center;border:2px dashed var(--steel-border);border-radius:4px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:7px;flex-shrink:0}
 .dropz:hover,.dropz.drag{border-color:var(--amber-dim);background:var(--amber-faint)}
 .dropz.disabled{cursor:default;opacity:.75}
-.dropz-icon{font-size:22px;color:var(--td)}
+.dropz-icon{font-size:9px;letter-spacing:1px;color:var(--td)}
 .dropz-txt{font-size:8px;letter-spacing:1.5px;color:var(--td);line-height:1.9}
 .files-topbar{display:flex;gap:6px;padding:0 9px 8px}
 .fdir{margin:0 9px 8px;padding:6px 8px;border:1px solid var(--steel-border);border-radius:3px;background:var(--steel-mid);font-size:8px;letter-spacing:1px;color:var(--td)}
@@ -165,7 +165,7 @@ main.lp-animating{transition:grid-template-columns .26s cubic-bezier(.4,0,.2,1)}
 .fitem{display:flex;align-items:center;gap:7px;padding:6px 8px;margin-bottom:3px;background:var(--steel-mid);border:1px solid var(--steel-border);border-radius:3px;cursor:pointer;transition:all .15s}
 .fitem:hover{border-color:var(--amber-dim)}
 .fitem:hover .fname{color:var(--tb)}
-.ficon{font-size:13px;flex-shrink:0}
+.ficon{font-size:7px;letter-spacing:.4px;min-width:24px;flex-shrink:0}
 .finfo{flex:1;min-width:0}
 .fname{font-size:10px;color:var(--tm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
 .fmeta{font-size:8px;color:var(--td);margin-top:1px}
@@ -235,7 +235,18 @@ main.lp-animating{transition:grid-template-columns .26s cubic-bezier(.4,0,.2,1)}
 .cp .l{color:var(--amber-dim);font-size:8px;letter-spacing:1.5px}
 .cp select,.cp input{background:transparent;border:none;color:var(--tp);font-family:var(--mono);font-size:9px;letter-spacing:1px;outline:none;cursor:pointer}
 .cp select option{background:var(--steel);color:var(--tp)}
-.cp input[type=number]{width:36px}
+/* Native number spinners eat ~14px of a 36px field and clip the value.
+   Values are edited by typing or scrolling, so the spinners are dropped and
+   the reclaimed width goes to the number itself. */
+.cp input[type=number]{width:32px;text-align:left;-moz-appearance:textfield;appearance:textfield}
+.cp input[type=number]::-webkit-outer-spin-button,
+.cp input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cp select{padding-right:2px}
+.cp.grow{flex:1 1 180px;min-width:120px}
+.cp.grow input{flex:1;width:100%;min-width:0;cursor:text}
+.cp.exec-chip{color:var(--tp);border-color:var(--amber-dim)}
+.cp.exec-chip:hover{background:var(--steel)}
+.cp[hidden]{display:none}
 
 /* Token meter */
 .tbar{height:3px;background:var(--steel-light);position:relative;overflow:hidden;flex-shrink:0}
@@ -436,7 +447,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--amber-neon),var(--amber-dim),transparent);box-shadow:0 0 8px var(--amber-glow)}
 .mhd{padding:13px 17px;border-bottom:1px solid var(--steel-border);display:flex;align-items:center;justify-content:space-between}
 .mtitle{font-family:var(--display);font-size:10px;letter-spacing:3px;color:var(--amber-hot)}
-.mclose{width:22px;height:22px;background:transparent;border:1px solid var(--steel-border);border-radius:2px;color:var(--td);font-size:11px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.mclose{min-width:44px;height:22px;padding:0 6px;background:transparent;border:1px solid var(--steel-border);border-radius:2px;color:var(--td);font-size:7px;letter-spacing:.5px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
 .mclose:hover{border-color:var(--danger);color:var(--danger)}
 .mbody{padding:16px;display:flex;flex-direction:column;gap:11px}
 .fr{display:flex;flex-direction:column;gap:4px}
@@ -480,18 +491,23 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 <!-- AGENT MODAL -->
 <div class="overlay" id="AM">
   <div class="modal">
-    <div class="mhd"><span class="mtitle" id="AMT">DEFINE AGENT</span><button class="mclose" onclick="closeM('AM')">✕</button></div>
+    <div class="mhd"><span class="mtitle" id="AMT">DEFINE AGENT</span><button class="mclose" onclick="closeM('AM')" aria-label="Close">CLOSE</button></div>
     <div class="mbody">
       <div class="fr"><label class="fl">AGENT NAME</label><input class="fi" id="aName" placeholder="SUMMARIZER"></div>
-      <div class="fr"><label class="fl">MODEL</label><select class="fsel" id="aModel"><option value="">— SELECT —</option></select></div>
-      <div class="fr"><label class="fl">SYSTEM PROMPT</label><textarea class="fta" id="aSys" placeholder="You are a specialized agent..."></textarea></div>
+      <div class="fr"><label class="fl">AGENT PURPOSE</label><input class="fi" id="aObjective" placeholder="What this agent is for"></div>
+      <div class="fr"><label class="fl">AGENT SYSTEM PROMPT</label><textarea class="fta" id="aSys" placeholder="You are a specialized agent..."></textarea></div>
+      <div class="fr"><label class="fl">PREFERRED LOCAL MODEL</label><select class="fsel" id="aModel"><option value="">— SELECT —</option></select></div>
+      <div class="fr"><label class="fl">TEMPERATURE</label><input class="fi" id="aTemp" type="number" min="0" max="2" step="0.05" value="0.35"></div>
+      <div class="fr"><label class="fl">MAX OUTPUT TOKENS (0 = AUTO)</label><input class="fi" id="aMaxTokens" type="number" min="0" step="64" value="0"></div>
+      <div class="fr"><label class="fl">LOOPS (PER CHAIN PASS)</label><input class="fi" id="aLoops" type="number" min="1" step="1" value="1"></div>
+      <div class="fr"><label class="fl">OUTPUT FORMAT</label><select class="fsel" id="aFormat"><option value="">PLAIN TEXT</option><option value="json">JSON</option></select></div>
+      <div class="fr"><label class="fl">HANDOFF TO NEXT AGENT (OPTIONAL)</label><textarea class="fta" id="aHandoff" placeholder="Instructions passed forward with this agent's output" style="min-height:46px"></textarea></div>
       <div class="fr"><label class="fl">EXECUTION MODE</label><select class="fsel" id="aMode"><option value="sequential">SEQUENTIAL</option><option value="parallel">PARALLEL</option><option value="gated">INPUT GATED</option></select></div>
       <div class="fr"><label class="fl">OUTPUT → (scratchpad / analyst console)</label><input class="fi" id="aFeeds" placeholder="scratchpad"></div>
       <details class="adv-modal">
         <summary>ADVANCED / TOOL BINDING</summary>
         <div class="adv-fields">
           <div class="fr"><label class="fl">ROLE / DESIGNATION</label><input class="fi" id="aRole" placeholder="e.g. ARCHITECT"></div>
-          <div class="fr"><label class="fl">OBJECTIVE</label><input class="fi" id="aObjective" placeholder="High-level agent objective"></div>
           <div class="fr"><label class="fl">TOOL ACCESS (comma-separated)</label><input class="fi" id="aToolAccess" placeholder="web_fetch,archive_search,run_agent"></div>
           <div class="fr"><label class="fl">MEMORY SCOPE</label><select class="fsel" id="aMemoryScope"><option value="full">FULL (fractal + archive)</option><option value="local">LOCAL (scratchpad only)</option><option value="none">NONE</option></select></div>
           <div class="fr"><label class="fl">ENABLED</label><select class="fsel" id="aEnabled"><option value="true">YES</option><option value="false">NO (skip in chain)</option></select></div>
@@ -506,7 +522,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 <!-- PIPELINE MODAL -->
 <div class="overlay" id="PM">
   <div class="modal">
-    <div class="mhd"><span class="mtitle" id="PMT">ADD PIPELINE STEP</span><button class="mclose" onclick="closeM('PM')">✕</button></div>
+    <div class="mhd"><span class="mtitle" id="PMT">ADD PIPELINE STEP</span><button class="mclose" onclick="closeM('PM')" aria-label="Close">CLOSE</button></div>
     <div class="mbody">
       <div class="fr"><label class="fl">MODEL</label><select class="fsel" id="pModel"><option value="">— SELECT —</option></select></div>
       <div class="fr"><label class="fl">SYSTEM PROMPT</label><textarea class="fta" id="pSys" placeholder="You are step N..."></textarea></div>
@@ -531,9 +547,9 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 <!-- AUTO GENERATOR MODAL -->
 <div class="overlay" id="GM">
   <div class="modal">
-    <div class="mhd"><span class="mtitle">AUTO GENERATOR</span><button class="mclose" onclick="closeM('GM')">✕</button></div>
+    <div class="mhd"><span class="mtitle">AUTO GENERATOR</span><button class="mclose" onclick="closeM('GM')" aria-label="Close">CLOSE</button></div>
     <div class="mbody">
-      <div class="fr"><label class="fl">MODE</label><select class="fsel" id="gMode"><option value="both">AGENTS + CHAIN</option><option value="agents">AGENTS ONLY</option><option value="pipeline">CHAIN ONLY</option><option value="links">LINKS / ORCHESTRATION</option></select></div>
+      <div class="fr"><label class="fl">MODE</label><select class="fsel" id="gMode"><option value="agents" selected>AGENTS</option></select></div>
       <div class="fr"><label class="fl">PLANNER MODEL (optional)</label><select class="fsel" id="gPlannerModel"><option value="">AUTO SELECT</option></select></div>
       <div class="fr"><label class="fl">OBJECTIVE</label><textarea class="fta" id="gObjective" placeholder="Describe what you want built. Include constraints, outputs, and quality bar." style="min-height:120px"></textarea></div>
     </div>
@@ -548,13 +564,12 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="dial"><span class="at">@</span></div>
     <div class="logo-text">
       <div class="title">AMBER</div>
-      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v4 // LOCAL // ZERO TELEMETRY // FIBONACCI FRACTAL MEMORY</div>
+      <div class="sub">INVESTIGATIVE COMMAND INTERFACE v5 // LOCAL // ZERO TELEMETRY // FIBONACCI FRACTAL MEMORY</div>
     </div>
   </div>
   <nav class="tab-nav">
     <button class="tab-btn active" data-tab="chat" onclick="headTab(this,'chat')">ANALYST CONSOLE</button>
     <button class="tab-btn" data-tab="parallel" onclick="headTab(this,'parallel')">PARALLEL</button>
-    <button class="tab-btn" data-tab="pipeline" onclick="headTab(this,'pipeline')">PIPELINE</button>
     <button class="tab-btn" data-tab="archive" onclick="headTab(this,'archive')">ARCHIVE</button>
     <button class="tab-btn" onclick="window.open('/amber_graph.html','_blank')">GRAPH ◈</button>
     <button class="tab-btn" onclick="window.open('/amber_timeline.html','_blank')">TIMELINE ▶</button>
@@ -574,7 +589,6 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <button class="ltab active" onclick="lTab(this,'models')">MODELS</button>
     <button class="ltab" onclick="lTab(this,'files')">FILES</button>
     <button class="ltab" onclick="lTab(this,'agents')">AGENTS</button>
-    <button class="ltab" onclick="lTab(this,'pipeline')">CHAIN</button>
   </div>
   <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0">
 
@@ -582,14 +596,14 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="lpane active" id="lp-models">
       <div class="msearch"><input id="MS" placeholder="FILTER..." oninput="filterM(this.value)"></div>
       <div class="mlist" id="ML"><div class="nomods">SCANNING...<br><span style="opacity:.4;font-size:8px">CONNECT OLLAMA FIRST</span></div></div>
-      <button class="amberbtn" onclick="runPar()">⚡ RUN CHECKED PARALLEL</button>
-      <button class="rbtn" onclick="loadModels()">↻ REFRESH REGISTRY</button>
+      <button class="amberbtn" onclick="runPar()">RUN CHECKED PARALLEL</button>
+      <button class="rbtn" onclick="loadModels()">REFRESH REGISTRY</button>
     </div>
 
     <!-- FILES -->
     <div class="lpane" id="lp-files">
       <div class="dropz" id="DZ" role="button" tabindex="0" title="Click to upload files, or drop files here">
-        <div class="dropz-icon">⊕</div>
+        <div class="dropz-icon">ADD</div>
         <div class="dropz-txt">CLICK OR DROP FILES<br>TXT MD PDF DOCX PY CSV XLSX PNG JPG TIFF WEBP</div>
         <input type="file" id="FUP" multiple accept=".txt,.md,.pdf,.docx,.py,.csv,.xlsx,.json,.log,.html,.xml,.js,.ts,.tsx,.jsx,.yaml,.yml,.toml,.ini,.cfg,.conf,.sql,.sh,.bash,.zsh,.rtf,.png,.jpg,.jpeg,.bmp,.webp,.tif,.tiff,.svg" style="display:none">
       </div>
@@ -605,14 +619,22 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="lpane" id="lp-agents">
       <div class="alist" id="AL"><div class="nomods">NO AGENTS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div></div>
       <div class="pctrl">
-        <button class="pcbtn" onclick="openNewAgent()">+ AGENT</button>
-        <button class="pcbtn" onclick="openAutoGenerator('agents')">AUTO GEN</button>
-        <button class="pcbtn go" id="ARB" onclick="runChain()" disabled>▶ RUN</button>
+        <button class="pcbtn" onclick="openNewAgent()">+ CREATE AGENT</button>
+        <button class="pcbtn" onclick="openAutoGenerator('agents')">GENERATE FROM PROMPT</button>
+        <button class="pcbtn go" id="ARB" onclick="runChain()" disabled>RUN</button>
         <button class="pcbtn" onclick="clrAgents()">CLEAR</button>
       </div>
       <div class="pctrl">
+        <button class="pcbtn" onclick="addInvestigationRoleSet()">ADD INVESTIGATION ROLES</button>
+      </div>
+      <div class="pctrl">
         <span class="plbl">LOOPS</span>
-        <input id="ALOOPS" class="pcnum" type="number" min="1" step="1" value="1">
+        <input id="ALOOPS" class="pcnum" type="number" min="1" step="1" value="1" title="How many times the agent chain repeats" oninput="syncLoopInputs(this.value)">
+        <span class="plbl">AGENTS</span>
+        <input id="AGN" class="pcnum" type="number" min="0" step="1" value="0" title="How many agents to run (0 = all enabled agents)" oninput="syncAgentChip()">
+      </div>
+      <div class="pctrl" style="opacity:.7">
+        <span class="plbl" style="line-height:1.5">SEND IN THE MAIN TERMINAL RUNS THE CHAIN WHEN EXEC = AGENTS</span>
       </div>
       <div class="pctrl">
         <select id="ASV" class="pcsel"></select>
@@ -622,14 +644,16 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       </div>
     </div>
 
-    <!-- PIPELINE -->
-    <div class="lpane" id="lp-pipeline">
+    <!-- PIPELINE — retained only for backward-compatible stored state.
+         Kept in the DOM (never activated) so the chain engine and its
+         persisted state keep loading without breaking startup. -->
+    <div class="lpane" id="lp-pipeline" hidden style="display:none">
       <div class="plist" id="PL"><div class="nomods">NO STEPS<br><span style="opacity:.4;font-size:8px">ADD BELOW</span></div></div>
       <div class="pctrl">
         <button class="pcbtn" onclick="openNewPipeStep()">+ STEP</button>
         <button class="pcbtn" onclick="openAutoGenerator('pipeline')">AUTO GEN</button>
         <button class="pcbtn" onclick="clrPipe()">CLEAR</button>
-        <button class="pcbtn go" id="CRB" onclick="runPipeline()" disabled>▶ RUN CHAIN</button>
+        <button class="pcbtn go" id="CRB" onclick="runPipeline()" disabled>RUN CHAIN</button>
       </div>
       <div class="pctrl">
         <span class="plbl">LOOPS</span>
@@ -646,7 +670,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   </div>
 </aside>
 
-<div class="splitter" id="SP-L" role="separator" aria-orientation="vertical" aria-label="Resize left panel"><button class="lp-toggle" id="LP-TOGGLE" onpointerdown="event.stopPropagation()" onclick="toggleLeftPanel()" title="Collapse registry panel">◄</button></div>
+<div class="splitter" id="SP-L" role="separator" aria-orientation="vertical" aria-label="Resize left panel"><button class="lp-toggle" id="LP-TOGGLE" onpointerdown="event.stopPropagation()" onclick="toggleLeftPanel()" title="Collapse registry panel">HIDE</button></div>
 
 <!-- CENTER -->
 <section class="panel" id="CP" style="display:flex;flex-direction:column;overflow:hidden">
@@ -662,8 +686,15 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     <div class="cp"><span class="l">FMT</span><select id="FMT"><option value="">TEXT</option><option value="json">JSON</option></select></div>
     <div class="cp"><span class="l">STREAM</span><select id="ST"><option value="true">ON</option><option value="false">OFF</option></select></div>
     <div class="cp"><span class="l">SEED</span><input type="number" id="SEED" value="-1" min="-1" max="99999" style="width:48px"></div>
-    <div class="cp"><span class="l">WEB</span><select id="WEB" title="Headless Firefox web fetch before inference"><option value="off">OFF</option><option value="on">ON</option></select></div>
-    <div class="cp" style="flex:1"><span class="l">SYS</span><input type="text" id="SYS" placeholder="SYSTEM PROMPT..." style="width:100%;min-width:80px"></div>
+    <div class="cp"><span class="l">WEB</span><select id="WEB" title="Master switch for ALL internet access. OFF = no outbound request of any kind." onchange="onWebToggle()"><option value="off">OFF</option><option value="on">ON</option></select></div>
+    <div class="cp"><span class="l">EXEC</span><select id="EXECMODE" title="SEND target: single model, or the agent chain" onchange="onExecModeChange()"><option value="analyst">ANALYST</option><option value="agents">AGENTS</option></select></div>
+    <!-- Agent count and loop count live in the AGENTS pane (registry), which is
+         the single place agent execution is configured. This chip mirrors that
+         setting read-only and opens the pane, replacing the duplicate inputs. -->
+    <div class="cp exec-chip" id="AGCHIP" title="Agent chain settings — click to open the AGENTS pane" onclick="openAgentsPane()" hidden>
+      <span class="l">CHAIN</span><span id="AGCHIPV">ALL ×1</span>
+    </div>
+    <div class="cp grow"><span class="l">SYS</span><input type="text" id="SYS" placeholder="SYSTEM PROMPT..."></div>
   </div>
   <div class="tbar"><div class="tfill" id="TF"></div></div>
   <div class="spark-row">
@@ -679,6 +710,9 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <span class="av-chip">QUEUE <b id="AVQUEUE">0</b></span>
     </div>
     <div class="av-row">
+      <select class="av-sel" id="AVCASE" title="Case boundary for evidence and retrieval" onchange="onCaseChange()"><option value="">ALL ARCHIVE</option></select>
+      <button class="abtn2" onclick="createCase()">NEW CASE</button>
+      <button class="abtn2" onclick="caseAddActiveFiles()">ADD ACTIVE TO CASE</button>
       <button class="abtn2" onclick="archiveQueueActiveFiles()">QUEUE ACTIVE FILES</button>
       <button class="abtn2" id="AVINDEX" onclick="archiveIndexQueue()">INDEX QUEUE</button>
       <button class="abtn2" onclick="archiveExport()">EXPORT</button>
@@ -735,6 +769,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
       <span class="ihint">↵ SEND &nbsp;·&nbsp; SHIFT+↵ NEWLINE &nbsp;·&nbsp; ESC STOP &nbsp;·&nbsp; CTRL+K CLEAR SESSION</span>
       <div class="abtns2">
         <button class="abtn2" onclick="archiveAddLastAssistant()">ADD TO ARCHIVE</button>
+        <button class="abtn2" onclick="rememberLastAssistant()">REMEMBER LAST</button>
         <button class="abtn2" onclick="searchArchiveFromConsole()">SEARCH ARCHIVE</button>
         <button class="abtn2" onclick="clrSession()">CLEAR</button>
         <button class="abtn2" onclick="expChat()">EXPORT</button>
@@ -770,15 +805,17 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
     </div>
   </div>
   <div class="isec">
-    <div class="stitle"><span class="sl">GPU / VRAM</span><span style="font-size:8px;color:var(--td);cursor:pointer" onclick="refreshGPU()">↻</span></div>
+    <div class="stitle"><span class="sl" id="GSECL">GPU / VRAM</span><span style="font-size:8px;color:var(--td);cursor:pointer" onclick="refreshGPU()">↻</span></div>
+    <div class="srow"><span class="sl">ACCEL</span><span class="sv am" id="GACC">—</span></div>
+    <div class="srow" id="GACCDROW"><span class="sl">DEVICE</span><span class="sv" id="GACCD">—</span></div>
     <div class="ggrid">
-      <div class="gcard"><div class="glbl">VRAM USED</div><div class="gval" id="GU">—<span class="gu">GB</span></div></div>
-      <div class="gcard"><div class="glbl">VRAM FREE</div><div class="gval" id="GF">—<span class="gu">GB</span></div></div>
+      <div class="gcard"><div class="glbl" id="GULBL">VRAM USED</div><div class="gval" id="GU">—<span class="gu">GB</span></div></div>
+      <div class="gcard"><div class="glbl" id="GFLBL">VRAM FREE</div><div class="gval" id="GF">—<span class="gu">GB</span></div></div>
       <div class="gcard"><div class="glbl">GPU UTIL</div><div class="gval" id="GUL">—<span class="gu">%</span></div></div>
       <div class="gcard"><div class="glbl">GPU TEMP</div><div class="gval" id="GT">—<span class="gu">°C</span></div></div>
     </div>
     <div class="mrow" style="margin-top:6px">
-      <div class="ml"><span>VRAM</span><span id="VP">—</span></div>
+      <div class="ml"><span id="GBARL">VRAM</span><span id="VP">—</span></div>
       <div class="mbar2"><div class="mfill me" id="VB" style="width:0%"></div></div>
     </div>
   </div>
@@ -792,7 +829,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
   </div>
   <div class="isec flex1">
     <div class="stitle"><span class="sl">SYSTEM LOG</span></div>
-    <div class="log" id="LOG"><div class="ll info">[BOOT] AMBER ICI GUI v4</div></div>
+    <div class="log" id="LOG"><div class="ll info">[BOOT] AMBER ICI GUI v5</div></div>
   </div>
 </aside>
 </main>
@@ -808,7 +845,7 @@ footer::before{content:'';position:absolute;top:-1px;left:0;width:55%;height:1px
 
 <script>
 /* ═══════════════════════════════════════════════════
-   AMBER ICI GUI v4 — ALL LOCAL — ZERO TELEMETRY
+   AMBER ICI GUI v5 — ALL LOCAL — ZERO TELEMETRY
    ═══════════════════════════════════════════════════ */
 const S={
   models:[],active:null,msgs:[],streaming:false,abort:null,
@@ -821,7 +858,8 @@ const S={
   gNodes:[],gEdges:[],
   sid:rnd(8),checked:new Set(),scratch:'',
   stopRequested:false,
-  linkedDir:null
+  linkedDir:null,
+  cases:[]
 };
 const UI={editAgentId:null,editPipeId:null,drag:null,head:'chat'};
 function rnd(n){return Math.random().toString(36).substr(2,n).toUpperCase()}
@@ -879,6 +917,14 @@ const SERVER_FILE_APIS={
   unlinkDir:'/api/files/unlink-dir',
   linkedDir:'/api/files/linked-dir',
   autogenBuild:'/api/autogen/build'
+};
+const CASE_APIS={
+  cases:'/api/cases',
+  evidence:'/api/cases/evidence',
+  search:'/api/cases/search',
+  memory:'/api/memory',
+  trace:'/api/agents/trace',
+  templates:'/api/agent-templates'
 };
 const REMOTE_STORE_MAP={
   [STORE_KEYS.agents]:['state','agents_state'],
@@ -969,6 +1015,8 @@ function normAgent(a){
   const name=String(a.name||'').trim();
   const model=String(a.model||'').trim();
   if(!name||!model)return null;
+  const requestedId=String(a.id||'');
+  const id=/^[a-zA-Z0-9_-]{1,64}$/.test(requestedId)?requestedId:rnd(6);
   const mode=['sequential','parallel','gated'].includes(a.mode)?a.mode:'sequential';
   const feeds=String(a.feeds||'chat').trim()||'chat';
   // Extension fields (v5+) — safe defaults preserve backward compat
@@ -978,12 +1026,25 @@ function normAgent(a){
   const memory_scope=['full','local','none'].includes(a.memory_scope)?a.memory_scope:'full';
   const enabled=a.enabled!==false;
   const notes=String(a.notes||'').trim();
-  return {id:String(a.id||rnd(6)),name,model,system:String(a.system||''),mode,feeds,status:'idle',role,objective,tool_access,memory_scope,enabled,notes,last_run:a.last_run||null};
+  // User-defined runtime fields — every agent carries its own model/limits.
+  const temperature=clampNum(a.temperature,0,2,0.35);
+  const max_tokens=Math.max(0,Math.floor(Number(a.max_tokens)||0));
+  const loops=Math.max(1,Math.floor(Number(a.loops)||1));
+  const format=String(a.format||'')==='json'?'json':'';
+  const handoff=String(a.handoff||'').trim();
+  return {id,name,model,system:String(a.system||''),mode,feeds,status:'idle',role,objective,tool_access,memory_scope,enabled,notes,temperature,max_tokens,loops,format,handoff,last_run:a.last_run||null};
+}
+function clampNum(v,min,max,dflt){
+  const n=Number(v);
+  if(!Number.isFinite(n))return dflt;
+  return Math.min(max,Math.max(min,n));
 }
 function normStep(s){
   if(!s||typeof s!=='object')return null;
   const model=String(s.model||'').trim();
   if(!model)return null;
+  const requestedId=String(s.id||'');
+  const id=/^[a-zA-Z0-9_-]{1,64}$/.test(requestedId)?requestedId:rnd(6);
   // Extension fields (v5+) — safe defaults preserve backward compat
   const step_name=String(s.step_name||'').trim();
   const description=String(s.description||'').trim();
@@ -992,13 +1053,111 @@ function normStep(s){
   const step_output_target=String(s.step_output_target||'scratchpad').trim();
   const enabled=s.enabled!==false;
   const notes=String(s.notes||'').trim();
-  return {id:String(s.id||rnd(6)),model,system:String(s.system||''),template:String(s.template||'{{input}}')||'{{input}}',step_name,description,assigned_agents,run_mode,step_output_target,enabled,notes,execution_time_ms:s.execution_time_ms||null};
+  return {id,model,system:String(s.system||''),template:String(s.template||'{{input}}')||'{{input}}',step_name,description,assigned_agents,run_mode,step_output_target,enabled,notes,execution_time_ms:s.execution_time_ms||null};
 }
 function availableModelNames(){
   return new Set(S.models.map(m=>String(m?.name||'')).filter(Boolean));
 }
 function fallbackModelName(){
   return S.active||S.models[0]?.name||'';
+}
+// ── LOCAL MODEL AVAILABILITY ─────────────────────────
+// The user always picks the local model. Nothing is auto-switched here; a missing
+// model produces an explicit, actionable error in the main terminal instead.
+function modelIsAvailable(name){
+  const n=String(name||'').trim();
+  if(!n)return false;
+  if(!S.models.length)return true; // registry not scanned yet — let the call surface the real error
+  const names=availableModelNames();
+  if(names.has(n))return true;
+  // Ollama reports "model:tag"; accept a bare name that matches one tagged entry.
+  return [...names].some(x=>x===n||x.split(':')[0]===n.split(':')[0]&&n.indexOf(':')<0);
+}
+function reportMissingModel(name,who){
+  const avail=[...availableModelNames()];
+  const lines=[
+    'LOCAL MODEL NOT AVAILABLE',
+    'Requested by: '+(who||'ICI'),
+    'Selected model: '+(name||'(none)'),
+    'Available local models: '+(avail.length?avail.join(', '):'(none — is Ollama running at '+base()+'?)'),
+    'Fix: ollama pull '+(name||'<model>')
+  ];
+  term('sys',lines.join('\n'),'MODEL ERROR');
+  log('MODEL MISSING: '+name+' — run: ollama pull '+name,'err');
+  toast('LOCAL MODEL MISSING','err');
+}
+// Print a status/result block into the MAIN ICI terminal (not just the side log).
+function term(role,content,tag){
+  return addMsgEl(role||'sys',content,tag||'ICI','sys');
+}
+// ── CONSOLE EXECUTION CONTROLS ───────────────────────
+function execMode(){
+  return String(document.getElementById('EXECMODE')?.value||'analyst');
+}
+// Loop count is owned by the AGENTS pane (ALOOPS). This keeps the value
+// canonical and refreshes the read-only chip in the console control row.
+function syncLoopInputs(v){
+  const n=Math.max(1,Math.floor(Number(v)||1));
+  const b=document.getElementById('ALOOPS');
+  if(b&&String(b.value)!==String(n))b.value=n;
+  syncAgentChip();
+}
+function agentLimit(){
+  return Math.max(0,Math.floor(Number(document.getElementById('AGN')?.value)||0));
+}
+function agentLoops(){
+  return Math.max(1,Math.floor(Number(document.getElementById('ALOOPS')?.value)||1));
+}
+// Mirrors the AGENTS pane settings into the console row without duplicating
+// the inputs — only shown when SEND actually targets the chain.
+function syncAgentChip(){
+  const chip=document.getElementById('AGCHIP'),val=document.getElementById('AGCHIPV');
+  if(!chip||!val)return;
+  const agents=execMode()==='agents';
+  chip.hidden=!agents;
+  if(!agents)return;
+  const n=agentLimit();
+  val.textContent=(n?n:'ALL')+' ×'+agentLoops();
+}
+function openAgentsPane(){
+  const btn=Array.from(document.querySelectorAll('.ltab')).find(b=>/AGENTS/i.test(b.textContent));
+  if(btn)lTab(btn,'agents');
+}
+function onExecModeChange(){
+  const m=execMode();
+  log('EXEC MODE: '+m.toUpperCase(),'info');
+  syncAgentChip();
+  if(m==='agents'){
+    openAgentsPane();
+    if(!S.agents.length)toast('NO AGENTS — CREATE OR GENERATE ONE','warn');
+  }
+  syncActionAvailability();
+}
+async function onWebToggle(){
+  const on=document.getElementById('WEB')?.value==='on';
+  log('WEB MODE: '+(on?'ON':'OFF'),on?'ok':'info');
+  if(!on)return;
+  const st=await webHelperStatus();
+  if(!st)return;
+  if(st.ready){
+    term('sys','WEB MODE SELECTED\nHelper: '+st.helper+'\nNode: '+(st.node||'node')+'\nStatus: READY','WEB');
+    log('WEB HELPER READY: '+st.helper,'ok');
+  }else{
+    term('sys','WEB MODE SELECTED BUT NOT RUNNABLE\nHelper: '+st.helper+'\nProblem: '+st.error+'\nFix: npm install (in the AMBER project root)','WEB ERROR');
+    log('WEB HELPER NOT READY: '+st.error,'err');
+    toast('WEB HELPER NOT READY','err');
+  }
+}
+async function webHelperStatus(){
+  try{
+    const r=await fetch('/api/web/status',{signal:AbortSignal.timeout(6000)});
+    const d=await r.json();
+    const f=d?.fetch||{};
+    return {ready:!!f.ready,helper:f.helper||'(unknown)',node:f.node||'',error:f.error||'',missing:f.missing_packages||[]};
+  }catch(e){
+    log('WEB STATUS CHECK FAILED: '+e.message,'err');
+    return null;
+  }
 }
 function ensureRunnableStepModel(step){
   const names=availableModelNames();
@@ -1024,7 +1183,7 @@ function normSet(set,type){
   if(!name||!normItems.length)return null;
   return {id:String(set.id||rnd(8)),name,items:normItems};
 }
-function persistAgents(){saveStore(STORE_KEYS.agents,S.agents.map(a=>({name:a.name,model:a.model,system:a.system,mode:a.mode,feeds:a.feeds,id:a.id,role:a.role||'',objective:a.objective||'',tool_access:a.tool_access||[],memory_scope:a.memory_scope||'full',enabled:a.enabled!==false,notes:a.notes||''}))); }
+function persistAgents(){saveStore(STORE_KEYS.agents,S.agents.map(a=>({name:a.name,model:a.model,system:a.system,mode:a.mode,feeds:a.feeds,id:a.id,role:a.role||'',objective:a.objective||'',tool_access:a.tool_access||[],memory_scope:a.memory_scope||'full',enabled:a.enabled!==false,notes:a.notes||'',temperature:a.temperature,max_tokens:a.max_tokens||0,loops:a.loops||1,format:a.format||'',handoff:a.handoff||''}))); }
 function persistPipe(){saveStore(STORE_KEYS.pipeline,S.pipeline.map(s=>({id:s.id,model:s.model,system:s.system,template:s.template,step_name:s.step_name||'',description:s.description||'',assigned_agents:s.assigned_agents||[],run_mode:s.run_mode||'default',step_output_target:s.step_output_target||'scratchpad',enabled:s.enabled!==false,notes:s.notes||''}))); }
 function persistAgentSets(){saveStore(STORE_KEYS.agentSets,S.agentSets);}
 function persistChainSets(){saveStore(STORE_KEYS.chainSets,S.chainSets);}
@@ -1077,7 +1236,7 @@ async function loadVectorsFromDB(){
     const d=await r.json();
     const chunks=(d.chunks||[]).map(normVecChunk).filter(Boolean);
     S.vStore=chunks;
-    if(chunks.length)log('LOADED ARCHIVE INDEX: '+chunks.length+' CHUNKS (SYNAPSE)','ok');
+    if(chunks.length)log('LOADED ARCHIVE INDEX: '+chunks.length+' CHUNKS (LOCAL)','ok');
     renderArchive();
   }catch(e){
     log('ARCHIVE LOAD FROM DB FAILED: '+e.message,'warn');
@@ -1120,7 +1279,8 @@ function normVecChunk(v){
     text,
     embedding:emb,
     addedAt:v.addedAt||new Date().toISOString(),
-    source:v.source||'file'
+    source:v.source||'file',
+    case_id:String(v.case_id||'')
   };
 }
 function pxNum(v,d){const n=parseFloat(v);return Number.isFinite(n)?n:d;}
@@ -1375,9 +1535,33 @@ function base(){
   return n;
 }
 
-// Clock
+// ── MASTER TICK ───────────────────────────────────────
+// One timer drives every periodic UI job (clock, hardware metrics) instead of
+// each subsystem running its own. It idles while the tab is hidden, so a
+// backgrounded ICI costs no CPU and issues no polling requests.
 document.getElementById('SID').textContent='SID: '+S.sid;
-setInterval(()=>{document.getElementById('CLK').textContent=new Date().toLocaleTimeString('en-US',{hour12:false})},1000);
+const GPU_POLL_MS=5000;
+let _tick=null,_tickN=0,_gpuAccum=0;
+function _runTick(){
+  if(document.hidden)return;
+  _tickN++;
+  document.getElementById('CLK').textContent=new Date().toLocaleTimeString('en-US',{hour12:false});
+  _gpuAccum+=1000;
+  if(_gpuAccum>=GPU_POLL_MS){_gpuAccum=0;refreshGPU();}
+}
+function startTick(){
+  if(_tick)return;
+  _tick=setInterval(_runTick,1000);
+  _runTick();
+}
+function stopTick(){
+  if(!_tick)return;
+  clearInterval(_tick);_tick=null;
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){stopTick();}
+  else{_gpuAccum=GPU_POLL_MS;startTick();}   // refresh immediately on return
+});
 
 window.addEventListener('load',async ()=>{
   document.getElementById('URL').value=normBase(document.getElementById('URL').value)||LOCAL_OLLAMA_DEFAULT;
@@ -1390,19 +1574,26 @@ window.addEventListener('load',async ()=>{
   hydrateSavedState();
   await loadVectorsFromDB();
   await loadServerFiles();
+  await loadCases();
   syncActionAvailability();
   syncRunFlowDisplay();
+  syncAgentChip();
   log('BOOT OK','ok');log('SID: '+S.sid,'info');
-  connect();setInterval(refreshGPU,5000);
+  connect();
+  refreshGPU();
+  startTick();
 });
 
 // ── LOG / TOAST ─────────────────────────────────────
+const LOG_MAX_LINES=400;   // long sessions otherwise grow the log DOM forever
 function log(m,t='info'){
   const el=document.getElementById('LOG');
   const d=document.createElement('div');
   d.className='ll '+t;
   d.textContent='['+new Date().toLocaleTimeString('en-US',{hour12:false})+'] '+m;
-  el.appendChild(d);el.scrollTop=el.scrollHeight;
+  el.appendChild(d);
+  while(el.childElementCount>LOG_MAX_LINES)el.removeChild(el.firstElementChild);
+  el.scrollTop=el.scrollHeight;
 }
 function toast(m,t=''){
   const c=document.getElementById('TC');
@@ -1605,7 +1796,9 @@ function refreshModelList(){
 }
 function syncActionAvailability(){
   const sb=document.getElementById('SB');
-  if(sb)sb.disabled=S.streaming||!canSendSingleModel();
+  // In AGENTS mode each agent carries its own model, so SEND does not need an active model.
+  const agentsExec=execMode()==='agents';
+  if(sb)sb.disabled=S.streaming||(agentsExec?!S.agents.length:!canSendSingleModel());
   const agentsPaneOpen=document.getElementById('lp-agents')?.classList.contains('active');
   const chainPaneOpen=document.getElementById('lp-pipeline')?.classList.contains('active');
   const agentsReady=agentsPaneOpen&&S.agents.length>0;
@@ -1758,13 +1951,10 @@ function closeM(id){
   if(id==='AM')resetAgentForm();
   if(id==='PM')resetPipeForm();
 }
-function openAutoGenerator(target='both'){
+function openAutoGenerator(target='agents'){
+  // PIPELINE is retired from the visible ICI — the generator only builds agents now.
   const gm=document.getElementById('gMode');
-  if(gm){
-    if(target==='agents')gm.value='agents';
-    else if(target==='pipeline')gm.value='pipeline';
-    else gm.value='both';
-  }
+  if(gm)gm.value='agents';
   openM('GM');
 }
 
@@ -1800,6 +1990,43 @@ function pushTPS(t){
   requestAnimationFrame(drawSpark);
 }
 function setMeter(p){document.getElementById('TF').style.width=Math.min(p,100)+'%'}
+
+// ── STREAM PAINTER ────────────────────────────────────
+// Re-rendering the whole markdown buffer on every streamed token is O(n²) and
+// pins a core on long answers — a 4000-token reply meant 4000 full re-renders
+// plus 4000 forced scrolls. Paints are coalesced to one per animation frame,
+// which is the fastest the display can show anyway, and skipped entirely while
+// the tab is hidden. Visible output is identical.
+const _paintQ=new Map();
+let _paintRAF=0;
+function _flushPaint(){
+  _paintRAF=0;
+  for(const [el,job] of _paintQ){
+    el.innerHTML=renderModelOutput(job.text);
+    if(job.scroll){const m=document.getElementById('MSGS');if(m)m.scrollTop=9e9;}
+  }
+  _paintQ.clear();
+}
+// Queue a bubble repaint. scroll=true also pins the console to the bottom.
+function streamPaint(el,text,scroll){
+  if(!el)return;
+  _paintQ.set(el,{text,scroll:!!scroll});
+  if(document.hidden)return;               // nothing to show; flushed on finish
+  if(!_paintRAF)_paintRAF=requestAnimationFrame(_flushPaint);
+}
+// Force any pending paint out immediately — call when a stream ends so the
+// final token is never left sitting in the queue.
+function flushStreamPaint(){
+  if(_paintRAF){cancelAnimationFrame(_paintRAF);_paintRAF=0;}
+  if(_paintQ.size)_flushPaint();
+}
+// Paint final//corrected text right now, dropping any queued (stale) paint for
+// this bubble so a pending frame cannot overwrite the corrected output.
+function paintNow(el,text){
+  if(!el)return;
+  _paintQ.delete(el);
+  el.innerHTML=renderModelOutput(text);
+}
 function getCtxNum(){
   const raw=document.getElementById('CTX')?.value;
   const n=parseInt(raw,10);
@@ -1894,9 +2121,20 @@ function trimFileContext(fc,prompt,maxChars){
   return picked.join('\n\n').trim();
 }
 
-// ── WEB FETCH (headless Firefox via /api/web/fetch) ──────────────────────────
+// ── WEB FETCH (headless browser: Node + Playwright via /api/web/fetch) ───────
+// The WEB pill is the master switch for ALL outbound traffic. OFF means no
+// request leaves the machine — enforced here so agent tool calls, search intent
+// and records search cannot bypass it.
+function webAccessAllowed(){return document.getElementById('WEB')?.value==='on';}
+function reportWebOff(what){
+  term('sys','WEB IS OFF — NO OUTBOUND REQUEST MADE\nBlocked: '+String(what||'').slice(0,180)+'\nSet the WEB pill to ON to allow internet access.','WEB OFF');
+  log('WEB OFF — BLOCKED OUTBOUND REQUEST: '+String(what||'').slice(0,80),'warn');
+  toast('WEB IS OFF','warn');
+}
+// Never fails silently: every outcome is printed into the main ICI terminal.
 async function webFetch(query){
   if(!query||!query.trim())return null;
+  if(!webAccessAllowed()){reportWebOff(query);return null;}
   log('WEB FETCH → '+query.substr(0,60),'info');
   toast('FETCHING: '+query.replace(/^https?:\/\/(www\.)?/,'').substr(0,40)+'…');
   try{
@@ -1906,12 +2144,44 @@ async function webFetch(query){
       body:JSON.stringify({query:query.trim()}),
       signal:AbortSignal.timeout(55000)
     });
-    const d=await r.json();
-    if(!r.ok||!d.ok){log('WEB FETCH FAIL: '+(d.error||'HTTP '+r.status),'err');toast('WEB FETCH FAILED','err');return null;}
-    const src=d.cached?'[CACHED]':(d.url||'').substr(0,50);
-    log('WEB FETCH OK: '+d.content.length+' chars'+(src?' ← '+src:''),'ok');
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.ok){
+      const detail=[
+        'WEB FETCH FAILED',
+        'Request: '+query,
+        'Helper: '+(d.helper||'files/web_fetch_playwright.mjs'),
+        d.helper_error?('Playwright helper: '+d.helper_error):'',
+        d.fallback_error?('HTTP fallback: '+d.fallback_error):'',
+        (d.missing_packages&&d.missing_packages.length)?('Missing node packages: '+d.missing_packages.join(', ')):'',
+        'Error: '+(d.error||('HTTP '+r.status)),
+        d.install_command?('Fix: '+d.install_command+' (in the AMBER project root)'):''
+      ].filter(Boolean).join('\n');
+      term('sys',detail,'WEB ERROR');
+      log('WEB FETCH FAIL: '+(d.error||'HTTP '+r.status),'err');
+      toast('WEB FETCH FAILED','err');
+      return null;
+    }
+    const engine=d.cached?'cache':(d.engine||'playwright');
+    const chars=(d.content||'').length;
+    term('sys',[
+      'WEB FETCH OK',
+      'Request: '+(d.url||query),
+      'Helper: '+(d.helper||'files/web_fetch_playwright.mjs'),
+      'Engine: '+engine.toUpperCase()+(d.helper_error?(' (playwright fell back: '+d.helper_error+')'):''),
+      'Content: '+chars+' chars → injected as [WEB CONTEXT] into this turn'
+    ].join('\n'),'WEB');
+    log('WEB FETCH OK ['+engine+']: '+chars+' chars ← '+(d.url||query).substr(0,60),'ok');
     return d.content||null;
-  }catch(e){log('WEB FETCH ERR: '+e.message,'err');toast('WEB FETCH ERROR','err');return null;}
+  }catch(e){
+    term('sys','WEB FETCH ERROR\nRequest: '+query+'\nError: '+e.message,'WEB ERROR');
+    log('WEB FETCH ERR: '+e.message,'err');toast('WEB FETCH ERROR','err');return null;
+  }
+}
+// WEB=ON with no explicit URL in the prompt still has to run: search the open web.
+function webSearchUrl(text){
+  const q=String(text||'').replace(/\s+/g,' ').trim().slice(0,300);
+  if(!q)return null;
+  return 'https://duckduckgo.com/html/?q='+encodeURIComponent(q);
 }
 // Detect explicit search/browse intent: "search foxnews.com for ...", "check cnn.com", etc.
 // Returns a fully-qualified URL to fetch, or null.
@@ -1964,6 +2234,7 @@ async function recordsSearch(subject,locations){
   const cleanSubject=String(subject||'').trim();
   const cleanLocations=Array.isArray(locations)?locations.map(x=>String(x||'').trim()).filter(Boolean):[];
   if(!cleanSubject)return null;
+  if(!webAccessAllowed()){reportWebOff('records search for '+cleanSubject);return null;}
   log('RECORDS SEARCH → '+cleanSubject+(cleanLocations.length?' @ '+cleanLocations.join(' | '):''),'info');
   try{
     const r=await fetch('/api/web/records-search',{
@@ -1972,11 +2243,24 @@ async function recordsSearch(subject,locations){
       body:JSON.stringify({subject:cleanSubject,locations:cleanLocations}),
       signal:AbortSignal.timeout(170000)
     });
-    const d=await r.json();
-    if(!r.ok||!d.ok){log('RECORDS SEARCH FAIL: '+(d.error||'HTTP '+r.status),'err');toast('RECORDS SEARCH FAILED','err');return null;}
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.ok){
+      term('sys',[
+        'RECORDS SEARCH FAILED',
+        'Subject: '+cleanSubject,
+        'Helper: '+(d.helper||'files/records_search_playwright.mjs'),
+        (d.missing_packages&&d.missing_packages.length)?('Missing node packages: '+d.missing_packages.join(', ')):'',
+        'Error: '+(d.error||('HTTP '+r.status)),
+        d.install_command?('Fix: '+d.install_command+' (in the AMBER project root)'):''
+      ].filter(Boolean).join('\n'),'WEB ERROR');
+      log('RECORDS SEARCH FAIL: '+(d.error||'HTTP '+r.status),'err');toast('RECORDS SEARCH FAILED','err');return null;
+    }
+    term('sys','RECORDS SEARCH OK\nSubject: '+cleanSubject+'\nHelper: '+(d.helper||'files/records_search_playwright.mjs')+'\nMatches: '+(d.matches||[]).length+' → injected into this turn','WEB');
     log('RECORDS SEARCH OK: '+(d.matches||[]).length+' MATCH(ES)','ok');
     return d;
-  }catch(e){log('RECORDS SEARCH ERR: '+e.message,'err');toast('RECORDS SEARCH ERROR','err');return null;}
+  }catch(e){
+    term('sys','RECORDS SEARCH ERROR\nSubject: '+cleanSubject+'\nError: '+e.message,'WEB ERROR');
+    log('RECORDS SEARCH ERR: '+e.message,'err');toast('RECORDS SEARCH ERROR','err');return null;}
 }
 function formatRecordsSearchContext(data){
   const matches=Array.isArray(data?.matches)?data.matches:[];
@@ -2002,14 +2286,36 @@ function formatRecordsSearchContext(data){
   return lines.join('\n').trim();
 }
 async function withWebCtx(prompt,fileEnrichedPrompt){
-  const webOn=document.getElementById('WEB')?.value==='on';
-  // Always check for explicit search intent regardless of WEB toggle
+  // WEB OFF = no outbound traffic at all, including explicit search intent.
+  if(!webAccessAllowed()){
+    if(extractSearchIntentUrl(prompt)||extractRecordsSearchRequest(prompt)){
+      reportWebOff('search request in prompt (WEB toggle is OFF)');
+    }
+    return fileEnrichedPrompt;
+  }
+
+  // WEB is ON: this path must actually execute the Node/Playwright helper and report.
+  const st=await webHelperStatus();
+  if(st&&!st.ready){
+    term('sys',[
+      'WEB MODE SELECTED — HELPER NOT RUNNABLE',
+      'Helper: '+st.helper,
+      'Problem: '+st.error,
+      (st.missing&&st.missing.length)?('Missing node packages: '+st.missing.join(', ')):'',
+      'Fix: npm install (in the AMBER project root)',
+      'Continuing without web context.'
+    ].filter(Boolean).join('\n'),'WEB ERROR');
+    log('WEB HELPER NOT READY: '+st.error,'err');
+    return fileEnrichedPrompt;
+  }
+  term('sys','WEB MODE SELECTED\nHelper: '+((st&&st.helper)||'files/web_fetch_playwright.mjs')+'\nPrompt: '+String(prompt||'').slice(0,180),'WEB');
+
+  // Explicit site instruction ("search foxnews.com for X") takes priority.
   const intentUrl=extractSearchIntentUrl(prompt);
   if(intentUrl){
-    const webContent=await webFetch(intentUrl);
-    if(webContent)return '[WEB CONTEXT]\n'+webContent+'\n\n'+fileEnrichedPrompt;
+    const intentContent=await webFetch(intentUrl);
+    if(intentContent)return '[WEB CONTEXT]\n'+intentContent+'\n\n'+fileEnrichedPrompt;
   }
-  if(!webOn)return fileEnrichedPrompt;
   const recordsReq=extractRecordsSearchRequest(prompt);
   if(recordsReq){
     const records=await recordsSearch(recordsReq.subject,recordsReq.locations);
@@ -2024,8 +2330,8 @@ async function withWebCtx(prompt,fileEnrichedPrompt){
     if(bare)return 'https://'+bare[0];
     return null;
   };
-  const query=_findUrl(prompt)||_findUrl(fileEnrichedPrompt);
-  // No URL found anywhere — skip web fetch rather than sending raw text
+  // No URL anywhere → run a real web search instead of silently skipping.
+  const query=_findUrl(prompt)||_findUrl(fileEnrichedPrompt)||webSearchUrl(prompt);
   if(!query)return fileEnrichedPrompt;
   const webContent=await webFetch(query);
   if(!webContent)return fileEnrichedPrompt;
@@ -2039,7 +2345,7 @@ function onKey(e){
   if(e.key==='Escape')stopStream();
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();clrSession();}
 }
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function renderCodeBlock(code, lang){
   const escaped=esc(code).replace(/ {2}/g,'&nbsp;&nbsp;');
   const highlighted=syntaxHighlight(escaped, String(lang||'').toLowerCase());
@@ -2209,7 +2515,7 @@ async function expandOutputIfShort({mode='ANALYST',model='',output='',signal=nul
       const merged=mergeByOverlap(out,extra);
       if(merged===out)break;
       out=merged;
-      if(bubbleEl)bubbleEl.innerHTML=renderModelOutput(out);
+      if(bubbleEl)paintNow(bubbleEl,out);
       if(out.length>=p.targetChars)break;
     }catch(e){
       if(isAbortErr(e)||signal?.aborted)break;
@@ -2345,7 +2651,7 @@ async function printLocalExtraction(prompt){
     log('LOCAL EXTRACTION COMPLETE — '+out.length+' CHARS','ok');
   }catch(e){
     document.getElementById(thinkId)?.remove();
-    addMsgEl('assistant','⚠ LOCAL EXTRACTION ERROR: '+e.message,'LOCAL EXTRACT');
+    addMsgEl('assistant','LOCAL EXTRACTION ERROR: '+e.message,'LOCAL EXTRACT');
     log('LOCAL EXTRACTION ERROR: '+e.message,'err');
     toast('LOCAL EXTRACTION FAILED','err');
   }
@@ -2354,7 +2660,7 @@ async function printLocalExtraction(prompt){
 function addMsgEl(role,content,tag='',extra=''){
   const chat=document.getElementById('MSGS');
   const id='m'+rnd(6);
-  const av=role==='user'?'U':role==='sys'?'⚙':'@';
+  const av=role==='user'?'U':role==='sys'?'S':'@';
   const cls=extra||role;
   const t=new Date().toLocaleTimeString('en-US',{hour12:false});
   const el=document.createElement('div');
@@ -2401,7 +2707,14 @@ async function send(){
     await printLocalExtraction(p);
     return;
   }
+  // EXEC = AGENTS: the main terminal SEND is the agent-chain trigger.
+  if(execMode()==='agents'){
+    inp.value='';inp.style.height='auto';
+    await runAgentChainFromConsole(p);
+    return;
+  }
   if(!canSendSingleModel()){toast('SELECT EXACTLY 1 MODEL FOR SEND','err');return;}
+  if(!modelIsAvailable(S.active)){reportMissingModel(S.active,'ANALYST');return;}
   await withRunGuard('ANALYST',async runSignal=>{
     inp.value='';inp.style.height='auto';
     const _fc=await withFilesCtx(p,runSignal);
@@ -2450,18 +2763,19 @@ async function send(){
           for(const line of ls){
             if(!line.trim())continue;
             try{const j=JSON.parse(line);
-              if(j.message?.content){out+=j.message.content;bub.innerHTML=renderModelOutput(out);document.getElementById('MSGS').scrollTop=9e9;n++;setMeter(Math.min((n/ctxN)*2000,94));}
+              if(j.message?.content){out+=j.message.content;streamPaint(bub,out,true);n++;setMeter(Math.min((n/ctxN)*2000,94));}
               if(j.done&&j.eval_count){const el=(performance.now()-t0)/1000;const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
             }catch(_){}
           }
         }
       }else{
-        const j=await res.json();out=j.message?.content||'';bub.innerHTML=renderModelOutput(out);
+        const j=await res.json();out=j.message?.content||'';paintNow(bub,out);
         const el=(performance.now()-t0)/1000;
         if(j.eval_count){const tps=j.eval_count/el;pushTPS(tps);S.stats.tokOut+=j.eval_count;S.stats.tokIn+=j.prompt_eval_count||0;updStats();log('DONE — '+j.eval_count+' tok @ '+tps.toFixed(1)+' t/s','ok');}
       }
+      flushStreamPaint();   // land the final streamed token before post-processing
       const cleanOut=sanitizeModelOutput(out,[sys,full]);
-      if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+      if(cleanOut&&cleanOut!==out){out=cleanOut;paintNow(bub,out);}
       out=await expandOutputIfShort({
         mode:'ANALYST',
         model:S.active,
@@ -2480,7 +2794,7 @@ async function send(){
       extractEnt(out,S.active);
     }catch(e){
       document.getElementById(tk)?.remove();
-      if(!isAbortErr(e)){addMsgEl('assistant','⚠ ERROR: '+e.message);log('ERROR: '+e.message,'err');toast('INFERENCE ERROR','err');}
+      if(!isAbortErr(e)){addMsgEl('assistant','ERROR: '+e.message);log('ERROR: '+e.message,'err');toast('INFERENCE ERROR','err');}
       else log('STOPPED','warn');
     }finally{
       popRunningModel(runToken);
@@ -2584,8 +2898,7 @@ async function parModel(model,runSignal){
         const j=JSON.parse(l);
         if(j.message?.content){
           out+=j.message.content;
-          bub.innerHTML=renderModelOutput(out);
-          document.getElementById('MSGS').scrollTop=9e9;
+          streamPaint(bub,out,true);
           n++;
           setMeter(Math.min((n/ctxN)*2000,94));
         }
@@ -2596,8 +2909,9 @@ async function parModel(model,runSignal){
       }catch(_){}}
     }
     if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'PAR '+model+' DONE');
+    flushStreamPaint();   // land the final streamed token before post-processing
     const cleanOut=sanitizeModelOutput(out,[sys,...S.msgs.slice(-8).map(m=>m.content)]);
-    if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+    if(cleanOut&&cleanOut!==out){out=cleanOut;paintNow(bub,out);}
     out=await expandOutputIfShort({
       mode:'PARALLEL',
       model,
@@ -2610,8 +2924,8 @@ async function parModel(model,runSignal){
     });
     extractEnt(out,model);
   }catch(e){
-    if(isAbortErr(e)||runSignal?.aborted){bub.innerHTML='⏹ STOPPED';log('PAR '+model+' STOPPED','warn');return;}
-    bub.innerHTML='⚠ '+e.message;log('PAR '+model+' ERR: '+e.message,'err');
+    if(isAbortErr(e)||runSignal?.aborted){bub.innerHTML='STOPPED';log('PAR '+model+' STOPPED','warn');return;}
+    bub.textContent='ERROR: '+e.message;log('PAR '+model+' ERR: '+e.message,'err');
   }finally{
     popRunningModel(runToken);
   }
@@ -2693,10 +3007,10 @@ function renderFiles(){
     fl.innerHTML='<div class="nomods">NO FILES READY<br><span style="opacity:.4;font-size:8px">DROP FILES OR LINK A DIRECTORY</span></div>';
     return;
   }
-  const icons={txt:'📄',md:'📝',pdf:'📕',docx:'📘',py:'⌘',csv:'▦',xlsx:'▦',json:'{}',png:'▧',jpg:'▧',jpeg:'▧',webp:'▧',tif:'▧',tiff:'▧',svg:'▧'};
+  const icons={txt:'TXT',md:'MD',pdf:'PDF',docx:'DOC',py:'PY',csv:'CSV',xlsx:'XLS',json:'{}',png:'IMG',jpg:'IMG',jpeg:'IMG',webp:'IMG',tif:'IMG',tiff:'IMG',svg:'SVG'};
   fl.innerHTML=S.files.map(f=>`
     <div class="fitem">
-      <div class="ficon">${icons[f.ext]||'📄'}</div>
+      <div class="ficon">${icons[f.ext]||'FILE'}</div>
       <div class="finfo"><div class="fname">${esc(f.name)}</div><div class="fmeta">${(f.size/1024).toFixed(1)}KB · ${Number(f.chars||0)}ch · ${esc(String(f.source||'file').toUpperCase())}</div></div>
       <button class="fibtn" onclick="togFile('${f.id}',this)" style="${f.active?'border-color:var(--amber-dim);color:var(--amber-dim)':''}">${f.active?'ACTIVE':'INJECT'}</button>
       ${f.source==='upload'?`<button class="fibtn" onclick="rmFile('${f.id}')" title="Remove uploaded file">DEL</button>`:''}
@@ -2781,7 +3095,7 @@ async function runAutoGenerator(){
   const btn=document.getElementById('GSB');
   const objective=String(document.getElementById('gObjective')?.value||'').trim();
   if(!objective){toast('OBJECTIVE REQUIRED','err');return;}
-  const mode=String(document.getElementById('gMode')?.value||'both');
+  const mode=String(document.getElementById('gMode')?.value||'agents');
   const plannerModel=String(document.getElementById('gPlannerModel')?.value||'').trim();
   const models=S.models.map(m=>String(m?.name||'')).filter(Boolean);
   if(!models.length){toast('NO LOCAL MODELS FOUND','err');return;}
@@ -3073,6 +3387,101 @@ async function fractalQuery(prompt,activeFiles=[],profile=null){
 }
 
 // ── ARCHIVE / VECTOR STORE ───────────────────────────
+function selectedCaseId(){return String(document.getElementById('AVCASE')?.value||'').trim();}
+async function loadCases(preferred=''){
+  const select=document.getElementById('AVCASE');
+  if(!select)return;
+  const previous=preferred||select.value||'';
+  try{
+    const r=await fetch(CASE_APIS.cases,{signal:AbortSignal.timeout(5000)});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));
+    S.cases=Array.isArray(d.cases)?d.cases:[];
+    select.innerHTML='<option value="">ALL ARCHIVE</option>'+S.cases.map(c=>`<option value="${esc(c.id)}">CASE: ${esc(c.title)}</option>`).join('');
+    if(S.cases.some(c=>c.id===previous))select.value=previous;
+  }catch(e){
+    log('CASE LIST FAILED: '+e.message,'warn');
+  }
+}
+async function createCase(){
+  const title=String(prompt('NEW CASE TITLE:','')||'').trim();
+  if(!title)return;
+  const requested=String(prompt('CASE ID (OPTIONAL):','')||'').trim();
+  try{
+    const r=await fetch(CASE_APIS.cases,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,id:requested})});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));
+    await loadCases(d.case.id);
+    renderArchive();
+    log('CASE CREATED: '+d.case.id,'ok');toast('CASE CREATED','ok');
+  }catch(e){log('CASE CREATE FAILED: '+e.message,'err');toast('CASE CREATE FAILED','err');}
+}
+function onCaseChange(){
+  S.vLastResults=[];
+  renderArchive();
+  const caseId=selectedCaseId();
+  log(caseId?'CASE SELECTED: '+caseId:'ARCHIVE SCOPE: ALL','info');
+}
+async function caseAddActiveFiles(){
+  const caseId=selectedCaseId();
+  if(!caseId){toast('SELECT A CASE FIRST','err');return;}
+  const ids=S.files.filter(f=>f.active).map(f=>f.id);
+  if(!ids.length){toast('NO ACTIVE FILES','err');return;}
+  try{
+    const r=await fetch(CASE_APIS.evidence,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:caseId,file_ids:ids})});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));
+    const added=d.results.filter(x=>!x.duplicate).length;
+    const duplicates=d.results.length-added;
+    log('CASE EVIDENCE: '+added+' ADDED, '+duplicates+' DUPLICATE(S)','ok');
+    toast('CASE EVIDENCE RECORDED','ok');
+  }catch(e){log('CASE EVIDENCE FAILED: '+e.message,'err');toast('CASE EVIDENCE FAILED','err');}
+}
+async function rememberLastAssistant(){
+  const caseId=selectedCaseId();
+  if(!caseId){toast('SELECT A CASE FIRST','err');return;}
+  const last=S.msgs.filter(m=>m.role==='assistant').pop();
+  if(!last||!String(last.content||'').trim()){toast('NO ASSISTANT OUTPUT TO REMEMBER','err');return;}
+  try{
+    const r=await fetch(CASE_APIS.memory,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      content:String(last.content),scope:'case',case_id:caseId,source_kind:'model_output',importance:0.5,tags:['operator-selected']
+    })});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));
+    log('CASE MEMORY SAVED: '+caseId+(d.memory.duplicate?' (DUPLICATE)':''),'ok');
+    toast(d.memory.duplicate?'MEMORY ALREADY SAVED':'MEMORY SAVED','ok');
+  }catch(e){log('MEMORY SAVE FAILED: '+e.message,'err');toast('MEMORY SAVE FAILED','err');}
+}
+async function caseKeywordSearch(query,topK){
+  const r=await fetch(CASE_APIS.search,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:selectedCaseId(),query,top_k:topK})});
+  const d=await r.json();
+  if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));
+  return (d.results||[]).map(result=>({
+    id:result.id,
+    filename:result.citation?.filename||'UNKNOWN',
+    chunkIndex:Number(result.ordinal)||0,
+    totalChunks:1,
+    text:result.excerpt||'',
+    source:'CASE EVIDENCE',
+    score:Math.min(1,Math.max(0,Number(result.score)||0)),
+    citation:result.citation
+  }));
+}
+function fuseCaseResults(dense,sparse,topK,grouped){
+  const fused=new Map();
+  const add=(rows,kind)=>rows.forEach((row,index)=>{
+    const key=grouped?String(row.filename):String(row.filename)+'|'+String(row.text||'').slice(0,120);
+    const current=fused.get(key)||{row,score:0,kinds:new Set()};
+    current.score+=1/(60+index+1);
+    current.kinds.add(kind);
+    if(kind==='semantic'||!current.row)current.row=row;
+    fused.set(key,current);
+  });
+  add(dense,'semantic');add(sparse,'keyword');
+  const ranked=[...fused.values()].sort((a,b)=>b.score-a.score).slice(0,topK);
+  const ceiling=ranked[0]?.score||1;
+  return ranked.map(item=>({...item.row,score:item.score/ceiling,source:[...item.kinds].join('+').toUpperCase()}));
+}
 function archiveChunkText(text,size=ARCHIVE_CHUNK_SIZE,overlap=ARCHIVE_CHUNK_OVERLAP){
   const safeSize=Math.max(120,Math.floor(Number(size)||ARCHIVE_CHUNK_SIZE));
   const safeOverlap=Math.max(0,Math.min(Math.floor(Number(overlap)||0),safeSize-1));
@@ -3224,6 +3633,7 @@ async function archiveIndexDoc(doc,opts={}){
   if(!chunks.length)throw new Error('NO CHUNKS');
   const onChunk=typeof opts.onChunk==='function'?opts.onChunk:null;
   const src=doc.source||'file';
+  const caseId=String(doc.case_id||selectedCaseId()||'');
   const newChunks=[];
   for(let i=0;i<chunks.length;i++){
     const embedding=await archiveEmbed(chunks[i]);
@@ -3236,7 +3646,8 @@ async function archiveIndexDoc(doc,opts={}){
       text:chunks[i],
       embedding,
       addedAt:new Date().toISOString(),
-      source:src
+      source:src,
+      case_id:caseId
     });
     if(onChunk)onChunk({docName:name,chunkIndex:i,totalChunks:chunks.length});
   }
@@ -3346,7 +3757,8 @@ async function archiveAddLastAssistant(){
 function archiveRenderFiles(){
   const el=document.getElementById('AVFILES');if(!el)return;
   const byFile={};
-  S.vStore.forEach(c=>{
+  const caseId=selectedCaseId();
+  S.vStore.filter(c=>!caseId||c.case_id===caseId).forEach(c=>{
     if(!byFile[c.filename])byFile[c.filename]={name:c.filename,size:c.filesize,chunks:0,source:c.source};
     byFile[c.filename].chunks++;
   });
@@ -3381,9 +3793,10 @@ function archiveRenderResults(results=[],query=''){
   }
   el.innerHTML=results.map((r,i)=>{
     const pct=Math.max(0,Math.min(100,Math.round(r.score*100)));
+    const citation=r.citation?` · SHA256 ${esc(String(r.citation.sha256||'').slice(0,12))}`:'';
     return `<div class="av-card">
       <div class="av-head"><div class="av-name">${i+1}. ${esc(r.filename)}</div><div class="av-score">${pct}%</div></div>
-      <div class="av-meta">chunk ${r.chunkIndex+1}/${r.totalChunks} · ${esc(String(r.source||'file').toUpperCase())}</div>
+      <div class="av-meta">chunk ${r.chunkIndex+1}/${r.totalChunks} · ${esc(String(r.source||'file').toUpperCase())}${citation}</div>
       <div class="av-snippet">${esc(r.text.slice(0,320))}${r.text.length>320?'...':''}</div>
     </div>`;
   }).join('');
@@ -3391,13 +3804,21 @@ function archiveRenderResults(results=[],query=''){
 async function archiveRunSearch(forcedQuery=''){
   const q=(forcedQuery||document.getElementById('AVQ').value||'').trim();
   if(!q){toast('ENTER ARCHIVE QUERY','err');return;}
-  if(!S.vStore.length){toast('ARCHIVE INDEX EMPTY','err');return;}
   try{
-    const qEmb=await archiveEmbed(q);
     const topK=parseInt(document.getElementById('AVTOPK').value||'10',10);
+    const caseId=selectedCaseId();
+    const eligible=caseId?S.vStore.filter(c=>c.case_id===caseId):S.vStore;
+    if(!eligible.length&&caseId){
+      S.vLastResults=await caseKeywordSearch(q,topK);
+      archiveRenderResults(S.vLastResults,q);
+      log('CASE QUERY "'+q+'" RETURNED '+S.vLastResults.length+' RESULT(S)','ok');
+      return;
+    }
+    if(!eligible.length){toast('ARCHIVE INDEX EMPTY','err');return;}
+    const qEmb=await archiveEmbed(q);
     const min=parseFloat(document.getElementById('AVMIN').value||'0');
     const grouped=document.getElementById('AVGBY').value==='1';
-    let scored=S.vStore.map(c=>({...c,score:archiveCosine(qEmb,c.embedding)}))
+    let scored=eligible.map(c=>({...c,score:archiveCosine(qEmb,c.embedding)}))
       .filter(c=>Number.isFinite(c.score)&&c.score>=min)
       .sort((a,b)=>b.score-a.score);
     if(grouped){
@@ -3406,8 +3827,12 @@ async function archiveRunSearch(forcedQuery=''){
       scored=Object.values(best).sort((a,b)=>b.score-a.score);
     }
     S.vLastResults=scored.slice(0,topK);
+    if(caseId){
+      const sparse=await caseKeywordSearch(q,topK);
+      S.vLastResults=fuseCaseResults(S.vLastResults,sparse,topK,grouped);
+    }
     archiveRenderResults(S.vLastResults,q);
-    log('ARCHIVE QUERY "'+q+'" → '+S.vLastResults.length+' RESULT(S)','ok');
+    log((caseId?'CASE':'ARCHIVE')+' QUERY "'+q+'" RETURNED '+S.vLastResults.length+' RESULT(S)','ok');
   }catch(e){
     log('ARCHIVE SEARCH FAIL: '+e.message,'err');
     toast('ARCHIVE SEARCH FAILED','err');
@@ -3464,11 +3889,13 @@ function archiveClear(){
   toast('ARCHIVE CLEARED','warn');
 }
 function renderArchive(){
-  const docs=new Set(S.vStore.map(c=>c.filename)).size;
-  const dims=S.vStore.find(c=>Array.isArray(c.embedding)&&c.embedding.length)?.embedding?.length||'—';
+  const caseId=selectedCaseId();
+  const eligible=caseId?S.vStore.filter(c=>c.case_id===caseId):S.vStore;
+  const docs=new Set(eligible.map(c=>c.filename)).size;
+  const dims=eligible.find(c=>Array.isArray(c.embedding)&&c.embedding.length)?.embedding?.length||'—';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('AVDOCS',docs);
-  set('AVCHUNKS',S.vStore.length);
+  set('AVCHUNKS',eligible.length);
   set('AVDIMS',dims);
   set('AVQUEUE',S.vQueue.length);
   const idx=document.getElementById('AVINDEX');
@@ -3480,6 +3907,28 @@ function renderArchive(){
 }
 
 // ── AGENTS ────────────────────────────────────────────
+async function addInvestigationRoleSet(){
+  const model=fallbackModelName();
+  if(!model){toast('CONNECT OLLAMA AND SELECT A MODEL FIRST','err');return;}
+  if(!confirm('ADD THE SIX INVESTIGATION ROLE TEMPLATES USING '+model+'?'))return;
+  try{
+    const r=await fetch(CASE_APIS.templates,{signal:AbortSignal.timeout(5000)});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||('HTTP '+r.status));
+    const existing=new Set(S.agents.map(a=>a.name.toLowerCase()));
+    let added=0;
+    (d.templates||[]).forEach(t=>{
+      if(existing.has(String(t.name||'').toLowerCase()))return;
+      const agent=normAgent({
+        ...t,id:rnd(6),model,feeds:'chat',memory_scope:'full',enabled:true,
+        temperature:0.25,max_tokens:0,loops:1,format:'',handoff:'',notes:'Optional investigation role template'
+      });
+      if(agent){S.agents.push(agent);existing.add(agent.name.toLowerCase());added++;}
+    });
+    persistAgents();renderAgents();
+    log('INVESTIGATION ROLES ADDED: '+added,'ok');toast(added?'ROLES ADDED':'ROLES ALREADY PRESENT','ok');
+  }catch(e){log('ROLE TEMPLATE FAILED: '+e.message,'err');toast('ROLE TEMPLATE FAILED','err');}
+}
 function saveAgent(){
   const n=document.getElementById('aName').value.trim();
   const m=document.getElementById('aModel').value;
@@ -3492,16 +3941,23 @@ function saveAgent(){
   const memory_scope=document.getElementById('aMemoryScope').value;
   const enabled=document.getElementById('aEnabled').value!=='false';
   const notes=document.getElementById('aNotes').value.trim();
-  if(!n||!m){toast('NAME AND MODEL REQUIRED','err');return;}
+  const temperature=clampNum(document.getElementById('aTemp').value,0,2,0.35);
+  const max_tokens=Math.max(0,Math.floor(Number(document.getElementById('aMaxTokens').value)||0));
+  const loops=Math.max(1,Math.floor(Number(document.getElementById('aLoops').value)||1));
+  const format=document.getElementById('aFormat').value==='json'?'json':'';
+  const handoff=document.getElementById('aHandoff').value.trim();
+  if(!n||!m){toast('NAME AND LOCAL MODEL REQUIRED','err');return;}
+  if(!modelIsAvailable(m)){reportMissingModel(m,'AGENT '+n);return;}
+  const extra={temperature,max_tokens,loops,format,handoff};
   if(UI.editAgentId){
     const i=S.agents.findIndex(a=>a.id===UI.editAgentId);
     if(i>=0){
-      S.agents[i]={...S.agents[i],name:n,model:m,system:s,mode:md,feeds:f||'chat',role,objective,tool_access,memory_scope,enabled,notes};
+      S.agents[i]={...S.agents[i],name:n,model:m,system:s,mode:md,feeds:f||'chat',role,objective,tool_access,memory_scope,enabled,notes,...extra};
       log('AGENT UPDATED: '+n,'ok');toast('AGENT UPDATED','ok');
     }
   }else{
-    S.agents.push({id:rnd(6),name:n,model:m,system:s,mode:md,feeds:f||'chat',status:'idle',role,objective,tool_access,memory_scope,enabled,notes,last_run:null});
-    log('AGENT: '+n+'('+m+')','ok');toast('AGENT: '+n,'ok');
+    S.agents.push({id:rnd(6),name:n,model:m,system:s,mode:md,feeds:f||'chat',status:'idle',role,objective,tool_access,memory_scope,enabled,notes,...extra,last_run:null});
+    log('AGENT: '+n+' ('+m+') T='+temperature+' LOOPS='+loops+(format?' JSON':''),'ok');toast('AGENT: '+n,'ok');
   }
   persistAgents();
   renderAgents();closeM('AM');
@@ -3521,6 +3977,11 @@ function resetAgentForm(){
   document.getElementById('aMemoryScope').value='full';
   document.getElementById('aEnabled').value='true';
   document.getElementById('aNotes').value='';
+  document.getElementById('aTemp').value='0.35';
+  document.getElementById('aMaxTokens').value='0';
+  document.getElementById('aLoops').value='1';
+  document.getElementById('aFormat').value='';
+  document.getElementById('aHandoff').value='';
 }
 function openNewAgent(){resetAgentForm();openM('AM');}
 function editAgent(id){
@@ -3540,6 +4001,11 @@ function editAgent(id){
   document.getElementById('aMemoryScope').value=a.memory_scope||'full';
   document.getElementById('aEnabled').value=a.enabled===false?'false':'true';
   document.getElementById('aNotes').value=a.notes||'';
+  document.getElementById('aTemp').value=(a.temperature==null?0.35:a.temperature);
+  document.getElementById('aMaxTokens').value=a.max_tokens||0;
+  document.getElementById('aLoops').value=a.loops||1;
+  document.getElementById('aFormat').value=a.format||'';
+  document.getElementById('aHandoff').value=a.handoff||'';
   openM('AM');
 }
 function renderAgents(){
@@ -3556,12 +4022,12 @@ function renderAgents(){
       ondragleave="onCardDragLeave(event)"
       ondrop="onCardDrop(event,'agent','${a.id}')"
       ondragend="onCardDragEnd(event)">
-      <div class="aname">${a.name}</div>
-      <div class="ameta">${a.model} · ${a.mode.toUpperCase()} → ${a.feeds}</div>
+      <div class="aname">${esc(a.name)}</div>
+      <div class="ameta">${esc(a.model)}${modelIsAvailable(a.model)?'':' MISSING'} · ${esc(a.mode.toUpperCase())} · T${a.temperature==null?0.35:a.temperature} · x${a.loops||1}${a.format==='json'?' · JSON':''} → ${esc(a.feeds)}</div>
       <div class="abtns">
-        <button class="abtn grun" onclick="runAgent('${a.id}')">▶ RUN</button>
+        <button class="abtn grun" onclick="runAgent('${a.id}')">RUN</button>
         <button class="abtn" onclick="editAgent('${a.id}')">EDIT</button>
-        <button class="abtn" onclick="delAgent('${a.id}')">✕</button>
+        <button class="abtn" onclick="delAgent('${a.id}')">DELETE</button>
       </div>
     </div>`).join('');
   syncActionAvailability();
@@ -3583,7 +4049,13 @@ function saveAgentSet(){
   const name=(raw||'').trim();
   if(!name)return;
   const existing=S.agentSets.find(x=>x.name.toLowerCase()===name.toLowerCase());
-  const payload=S.agents.map(a=>({name:a.name,model:a.model,system:a.system,mode:a.mode,feeds:a.feeds}));
+  const payload=S.agents.map(a=>({
+    name:a.name,model:a.model,system:a.system,mode:a.mode,feeds:a.feeds,
+    role:a.role||'',objective:a.objective||'',tool_access:a.tool_access||[],
+    memory_scope:a.memory_scope||'full',enabled:a.enabled!==false,notes:a.notes||'',
+    temperature:a.temperature,max_tokens:a.max_tokens||0,loops:a.loops||1,
+    format:a.format||'',handoff:a.handoff||''
+  }));
   if(existing){
     if(!confirm('REPLACE EXISTING AGENT SET "'+existing.name+'"?'))return;
     existing.items=payload;
@@ -3613,61 +4085,70 @@ function delAgentSet(){
   persistAgentSets();renderSavedSets();
   log('AGENT SET DELETED: '+set.name,'warn');toast('AGENT SET DELETED');
 }
-async function runAgent(id,runSignal,flowCtx=''){
-  const execAgent=async signal=>{
-    const a=S.agents.find(x=>x.id===id);if(!a)return;
-    const modelNode=addNode(a.model,'model');
-    const agentNode=addNode(a.name,'concept');
-    log('AGENT RUN: '+a.name,'info');a.status='running';renderAgents();
-    const input=document.getElementById('CI').value.trim()||S.scratch.slice(-400)||'Begin.';
-    const promptNode=addNode(input.substr(0,28)+'...','prompt');
-    addEdge(modelNode,agentNode,'AGENT');
-    addEdge(agentNode,promptNode,'PROMPT');
-    const inputFull=await withFilesCtx(input,signal);
-    const inputWeb=await withWebCtx(input,inputFull);
-    // memory_scope gates how much session recall this agent gets:
-    // 'full' = last 6 conversation turns (default), 'local' = scratchpad only, 'none' = no recall.
-    const scope=a.memory_scope||'full';
-    const recentCtx=scope==='full'?S.msgs.filter(m=>m.role==='user'||m.role==='assistant').slice(-6):[];
-    const scratchCtx=scope==='local'&&S.scratch?[{role:'system',content:'[SCRATCHPAD CONTEXT]\n'+S.scratch.slice(-1200)}]:[];
-    const msgs=[...(a.system?[{role:'system',content:a.system}]:[]),{role:'system',content:ANTI_ECHO_SYSTEM},...(inputWeb.startsWith('[WEB CONTEXT]')?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),...scratchCtx,...recentCtx,{role:'user',content:inputWeb}];
-    const ctxMsgs=trimMsgsToCtx(msgs,getCtxNum());
-    addMsgEl('sys','[AGENT: '+a.name+'] → '+a.model,a.name,'sys');
-    const ctxN=getCtxNum();
-    const t0=performance.now();
-    const runToken=pushRunningModel(a.model);
-    const flowToken=pushRunFlow((flowCtx?flowCtx+' · ':'')+'AGENT '+a.name);
-    try{
-      const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          model:a.model,
-          messages:ctxMsgs,
-          stream:true,
-          options:{temperature:0.35,num_ctx:ctxN,num_predict:getNumPredict('AGENT',ctxN)}
-        }),signal});
-      if(!res.ok)throw new Error('HTTP '+res.status);
-      const mid=addMsgEl('assistant','',a.model);const bub=document.getElementById(mid+'-b');
-      const rd=res.body.getReader();const dc=new TextDecoder();let buf='',out='',n=0,statsDone=false;
-      while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
-        const ls=buf.split('\n');buf=ls.pop();
-        for(const l of ls){try{
-          const j=JSON.parse(l);
-          if(j.message?.content){
-            out+=j.message.content;
-            bub.innerHTML=renderModelOutput(out);
-            document.getElementById('MSGS').scrollTop=9e9;
-            n++;
-            setMeter(Math.min((n/ctxN)*2000,94));
-          }
-          if(j.done&&!statsDone){
-            recordRunStats(j,t0,'AGENT '+a.name+' DONE');
-            statsDone=true;
-          }
-        }catch(_){}}
+// Single inference pass for one agent. Returns the agent's output text ('' on failure).
+// All runtime knobs come from the agent record the user defined — model, temperature,
+// max output tokens and text/JSON format are never overridden here.
+async function runAgentPass(a,inputText,signal,flowLabel,handoff){
+  const modelNode=addNode(a.model,'model');
+  const agentNode=addNode(a.name,'concept');
+  const input=String(inputText||'').trim()||'Begin.';
+  const promptNode=addNode(input.substr(0,28)+'...','prompt');
+  addEdge(modelNode,agentNode,'AGENT');
+  addEdge(agentNode,promptNode,'PROMPT');
+  const inputFull=await withFilesCtx(input,signal);
+  const inputWeb=await withWebCtx(input,inputFull);
+  // memory_scope gates how much session recall this agent gets:
+  // 'full' = last 6 conversation turns (default), 'local' = scratchpad only, 'none' = no recall.
+  const scope=a.memory_scope||'full';
+  const recentCtx=scope==='full'?S.msgs.filter(m=>m.role==='user'||m.role==='assistant').slice(-6):[];
+  const scratchCtx=scope==='local'&&S.scratch?[{role:'system',content:'[SCRATCHPAD CONTEXT]\n'+S.scratch.slice(-1200)}]:[];
+  const handoffCtx=handoff?[{role:'system',content:'[HANDOFF FROM PREVIOUS AGENT]\n'+handoff}]:[];
+  const purposeCtx=a.objective?[{role:'system',content:'[AGENT PURPOSE]\n'+a.objective}]:[];
+  const msgs=[...(a.system?[{role:'system',content:a.system}]:[]),...purposeCtx,{role:'system',content:ANTI_ECHO_SYSTEM},...(inputWeb.startsWith('[WEB CONTEXT]')?[{role:'system',content:WEB_CTX_SYSTEM}]:[]),...handoffCtx,...scratchCtx,...recentCtx,{role:'user',content:inputWeb}];
+  const ctxN=getCtxNum();
+  const ctxMsgs=trimMsgsToCtx(msgs,ctxN);
+  addMsgEl('sys','[AGENT: '+a.name+'] → '+a.model+(flowLabel?' · '+flowLabel:''),a.name,'sys');
+  const t0=performance.now();
+  const runToken=pushRunningModel(a.model);
+  const flowToken=pushRunFlow((flowLabel?flowLabel+' · ':'')+'AGENT '+a.name);
+  let out='';
+  try{
+    const params={
+      model:a.model,
+      messages:ctxMsgs,
+      stream:true,
+      options:{
+        temperature:(a.temperature==null?0.35:a.temperature),
+        num_ctx:ctxN,
+        num_predict:(a.max_tokens>0?a.max_tokens:getNumPredict('AGENT',ctxN))
       }
-      if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'AGENT '+a.name+' DONE');
-      const cleanOut=sanitizeModelOutput(out,[a.system,inputWeb]);
-      if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+    };
+    if(a.format==='json')params.format='json';
+    const res=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params),signal});
+    if(!res.ok)throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
+    const mid=addMsgEl('assistant','',a.model);const bub=document.getElementById(mid+'-b');
+    const rd=res.body.getReader();const dc=new TextDecoder();let buf='',n=0,statsDone=false;
+    while(true){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});
+      const ls=buf.split('\n');buf=ls.pop();
+      for(const l of ls){try{
+        const j=JSON.parse(l);
+        if(j.message?.content){
+          out+=j.message.content;
+          streamPaint(bub,out,true);
+          n++;
+          setMeter(Math.min((n/ctxN)*2000,94));
+        }
+        if(j.done&&!statsDone){
+          recordRunStats(j,t0,'AGENT '+a.name+' DONE');
+          statsDone=true;
+        }
+      }catch(_){}}
+    }
+    if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'AGENT '+a.name+' DONE');
+    flushStreamPaint();   // land the final streamed token before post-processing
+    const cleanOut=sanitizeModelOutput(out,[a.system,inputWeb]);
+    if(cleanOut&&cleanOut!==out){out=cleanOut;paintNow(bub,out);}
+    if(a.format!=='json'){
       out=await expandOutputIfShort({
         mode:'AGENT',
         model:a.model,
@@ -3678,19 +4159,54 @@ async function runAgent(id,runSignal,flowCtx=''){
         bubbleEl:bub,
         ctxN
       });
-      if(a.feeds==='scratchpad'){S.scratch+='\n['+a.name+']: '+out;persistScratch();}
-      a.status='done';renderAgents();extractEnt(out,a.model);
-    }catch(e){
-      a.status='idle';renderAgents();
-      if(isAbortErr(e)||signal?.aborted){log('AGENT '+a.name+' STOPPED','warn');return;}
-      log('AGENT '+a.name+' ERR: '+e.message,'err');toast('AGENT ERROR','err');
-    }finally{
-      popRunFlow(flowToken);
-      popRunningModel(runToken);
     }
+    if(a.feeds==='scratchpad'){S.scratch+='\n['+a.name+']: '+out;persistScratch();}
+    extractEnt(out,a.model);
+    logAgentRun(a.id,a.name,a.model,t0,performance.now(),true,flowLabel||'');
+    return out;
+  }catch(e){
+    logAgentRun(a.id,a.name,a.model,t0,performance.now(),false,String(e.message||e).slice(0,160));
+    if(isAbortErr(e)||signal?.aborted){log('AGENT '+a.name+' STOPPED','warn');return out;}
+    term('sys','AGENT FAILED: '+a.name+'\nModel: '+a.model+'\nError: '+e.message,'AGENT ERROR');
+    log('AGENT '+a.name+' ERR: '+e.message,'err');toast('AGENT ERROR','err');
+    return out;
+  }finally{
+    popRunFlow(flowToken);
+    popRunningModel(runToken);
+  }
+}
+// Runs one agent for its configured loop count. opts:{prompt, handoff} — returns final output.
+async function runAgent(id,runSignal,flowCtx='',opts={}){
+  const execAgent=async signal=>{
+    const a=S.agents.find(x=>x.id===id);if(!a)return '';
+    if(!modelIsAvailable(a.model)){reportMissingModel(a.model,'AGENT '+a.name);return '';}
+    const agentLoops=Math.max(1,Math.floor(Number(a.loops)||1));
+    const seed=String(opts.prompt||'').trim()||document.getElementById('CI').value.trim()||S.scratch.slice(-400)||'Begin.';
+    log('AGENT RUN: '+a.name+' ('+a.model+') x'+agentLoops,'info');
+    a.status='running';renderAgents();
+    let input=seed,out='';
+    try{
+      for(let i=1;i<=agentLoops;i++){
+        if(signal?.aborted)break;
+        const label=(flowCtx||'')+(agentLoops>1?(flowCtx?' · ':'')+'PASS '+i+'/'+agentLoops:'');
+        out=await runAgentPass(a,input,signal,label,opts.handoff||'');
+        // Later passes refine the agent's own previous output.
+        if(out)input=seed+'\n\n[YOUR PREVIOUS PASS]\n'+out+'\n\nRefine and improve the answer.';
+      }
+      a.status='done';
+    }catch(e){
+      a.status='idle';
+      log('AGENT '+a.name+' ERR: '+e.message,'err');
+    }finally{
+      renderAgents();
+      persistRunLogs();
+    }
+    return out;
   };
   if(runSignal)return execAgent(runSignal);
-  await withRunGuard('AGENT',async signal=>{await execAgent(signal);});
+  let result='';
+  await withRunGuard('AGENT',async signal=>{result=await execAgent(signal);});
+  return result;
 }
 function loopCount(id,label){
   const el=document.getElementById(id);
@@ -3704,31 +4220,96 @@ function loopCount(id,label){
   el.value=String(n);
   return n;
 }
-async function runChain(){
-  if(!S.agents.length){toast('NO AGENTS','err');return;}
-  const loops=loopCount('ALOOPS','AGENT LOOPS');
-  if(!loops)return;
-  await withRunGuard('CHAIN',async runSignal=>{
-    const chainToken=pushRunFlow('CHAIN · '+S.agents.length+' AGENTS · '+loops+' LOOPS');
-    log('CHAIN STARTING ('+loops+' LOOP'+(loops===1?'':'S')+')','warn');
+// The agent chain is the execution path. The user controls: which agents exist,
+// how many of them run, how many loops, and which local model each one uses.
+function selectedChainAgents(limit){
+  // 'gated' agents stay out of the chain — they run only from their own card's RUN button.
+  const enabled=S.agents.filter(a=>a.enabled!==false&&a.mode!=='gated');
+  const n=Math.max(0,Math.floor(Number(limit)||0));
+  return n>0?enabled.slice(0,n):enabled;
+}
+async function runAgentChain({prompt='',loops=1,limit=0,label='CHAIN'}={}){
+  const agents=selectedChainAgents(limit);
+  if(!agents.length){
+    term('sys','NO AGENTS TO RUN\nCreate one with + CREATE AGENT, or build a set with GENERATE FROM PROMPT.','AGENTS');
+    toast('NO AGENTS','err');return;
+  }
+  // Fail fast and loudly on missing local models — never silently switch model.
+  const missing=[...new Set(agents.filter(a=>!modelIsAvailable(a.model)).map(a=>a.model))];
+  if(missing.length){
+    missing.forEach(m=>reportMissingModel(m,'AGENT CHAIN'));
+    return;
+  }
+  await withRunGuard(label,async runSignal=>{
+    const chainToken=pushRunFlow(label+' · '+agents.length+' AGENTS · '+loops+' LOOPS');
+    term('sys',[
+      'AGENT CHAIN START',
+      'Agents: '+agents.length+' ('+agents.map(a=>a.name).join(', ')+')',
+      'Loops: '+loops,
+      'Models: '+[...new Set(agents.map(a=>a.model))].join(', '),
+      prompt?('Prompt: '+prompt.slice(0,200)):''
+    ].filter(Boolean).join('\n'),'AGENTS');
+    log(label+' STARTING: '+agents.length+' AGENT(S) x '+loops+' LOOP(S)','warn');
     toast('RUNNING CHAIN x'+loops);
+    let last='';
     try{
       for(let lp=1;lp<=loops&&!runSignal.aborted;lp++){
-        log('CHAIN LOOP '+lp+'/'+loops,'info');
-        const flowPrefix='CHAIN LOOP '+lp+'/'+loops;
-        await Promise.all(S.agents.filter(a=>a.mode==='parallel').map(a=>runAgent(a.id,runSignal,flowPrefix)));
+        log(label+' LOOP '+lp+'/'+loops,'info');
+        const flowPrefix=label+' LOOP '+lp+'/'+loops;
+        const parallel=agents.filter(a=>a.mode==='parallel');
+        if(parallel.length){
+          const outs=await Promise.all(parallel.map(a=>runAgent(a.id,runSignal,flowPrefix,{prompt})));
+          last=outs.filter(Boolean).join('\n\n')||last;
+        }
         if(runSignal.aborted)break;
-        for(const a of S.agents.filter(x=>x.mode==='sequential')){
+        let upstream='',handoffNote='';
+        for(const a of agents.filter(x=>x.mode==='sequential')){
           if(runSignal.aborted)break;
-          await runAgent(a.id,runSignal,flowPrefix);
+          const out=await runAgent(a.id,runSignal,flowPrefix,{
+            prompt:(upstream?prompt+'\n\n[UPSTREAM OUTPUT]\n'+upstream:prompt),
+            handoff:handoffNote
+          });
+          if(out){
+            last=out;
+            upstream=out;
+            // Each agent's own handoff instructions travel forward to the next agent.
+            handoffNote=a.handoff||'';
+          }
         }
       }
-      if(runSignal.aborted||S.stopRequested){log('CHAIN STOPPED','warn');toast('CHAIN STOPPED','warn');return;}
-      log('CHAIN COMPLETE','ok');toast('CHAIN COMPLETE','ok');
+      if(runSignal.aborted||S.stopRequested){
+        term('sys','AGENT CHAIN STOPPED BY USER','AGENTS');
+        log(label+' STOPPED','warn');toast('CHAIN STOPPED','warn');return;
+      }
+      if(last){
+        S.msgs.push({role:'assistant',content:last});
+        persistChatHistory();
+      }
+      term('sys','AGENT CHAIN COMPLETE\nAgents: '+agents.length+' · Loops: '+loops+'\nFinal output printed above · run log saved to state/agent_run_log.json','AGENTS');
+      log(label+' COMPLETE','ok');toast('CHAIN COMPLETE','ok');
     }finally{
       popRunFlow(chainToken);
+      persistRunLogs();
     }
   });
+}
+async function runChain(){
+  const loops=loopCount('ALOOPS','AGENT LOOPS');
+  if(!loops)return;
+  syncLoopInputs(loops);
+  const prompt=document.getElementById('CI')?.value.trim()||'';
+  await runAgentChain({prompt,loops,limit:agentLimit(),label:'CHAIN'});
+}
+// SEND in the main terminal is the trigger when EXEC = AGENTS.
+async function runAgentChainFromConsole(prompt){
+  const loops=loopCount('ALOOPS','AGENT LOOPS');
+  if(!loops)return;
+  syncLoopInputs(loops);
+  const limit=agentLimit();
+  S.msgs.push({role:'user',content:prompt});
+  addMsgEl('user',prompt);
+  persistChatHistory();
+  await runAgentChain({prompt,loops,limit,label:'AGENTS'});
 }
 
 // ── PIPELINE ──────────────────────────────────────────
@@ -3809,7 +4390,7 @@ function renderPipe(){
       <div class="sbody"><div class="smodel">${s.model}</div><div class="sprompt">${s.template.substr(0,55)}${s.template.length>55?'...':''}</div></div>
       <div class="sctrl">
         <button class="psbtn" onclick="editPipeStep('${s.id}')">EDIT</button>
-        <button class="psbtn" onclick="delPipeStep('${s.id}')">✕</button>
+        <button class="psbtn" onclick="delPipeStep('${s.id}')">DELETE</button>
       </div>
     </div>`).join('');
   syncActionAvailability();
@@ -3946,8 +4527,7 @@ async function runPipeline(){
                 const j=JSON.parse(l);
                 if(j.message?.content){
                   out+=j.message.content;
-                  bub.innerHTML=renderModelOutput(out);
-                  document.getElementById('MSGS').scrollTop=9e9;
+                  streamPaint(bub,out,true);
                   n++;
                   setMeter(Math.min((n/ctxN)*2000,94));
                 }
@@ -3958,8 +4538,9 @@ async function runPipeline(){
               }catch(_){}}
             }
             if(!statsDone&&out.trim())recordRunStats({eval_count:0,prompt_eval_count:0},t0,'LOOP '+lp+' STEP '+(i+1)+' DONE');
+            flushStreamPaint();   // land the final streamed token before post-processing
             const cleanOut=sanitizeModelOutput(out,[st.system,prWeb,st.template]);
-            if(cleanOut&&cleanOut!==out){out=cleanOut;bub.innerHTML=renderModelOutput(out);}
+            if(cleanOut&&cleanOut!==out){out=cleanOut;paintNow(bub,out);}
             out=await expandOutputIfShort({
               mode:'PIPELINE',
               model:runnableModel,
@@ -4269,44 +4850,86 @@ async function dlTimeline(){
 
 
 
-// ── GPU ───────────────────────────────────────────────
+// ── GPU / ACCELERATOR ─────────────────────────────────
 let _lastGpuTemp=null;
-async function refreshGPU(){
-  // Fetch VRAM usage from Ollama /api/ps
-  try{
-    const r=await fetch(base()+'/api/ps',{signal:AbortSignal.timeout(2000)});
-    if(r.ok){
-      const d=await r.json();const mods=d.models||[];
-      const tv=(mods.reduce((s,m)=>s+(m.size_vram||0),0)/1e9);
-      document.getElementById('GU').innerHTML=tv.toFixed(1)+'<span class="gu">GB</span>';
-      document.getElementById('GUL').innerHTML=mods.length?'<span style="color:var(--success)">LOAD</span>':'<span style="color:var(--td)">IDLE</span>';
-    }
-  }catch(_){}
-  // Compute free VRAM
-  const used=parseFloat(document.getElementById('GU').textContent)||0;
-  const tot=8;const free=Math.max(0,tot-used);
-  document.getElementById('GF').innerHTML=free.toFixed(1)+'<span class="gu">GB</span>';
-  const pct=Math.min((used/tot)*100,100);
-  document.getElementById('VP').textContent=pct.toFixed(0)+'%';
-  const vb=document.getElementById('VB');vb.style.width=pct+'%';
-  vb.className='mfill '+(pct<40?'lo':pct<75?'me':'hi');
-  // Fetch real system temperature
-  try{
-    const mr=await fetch('/api/metrics',{signal:AbortSignal.timeout(1500)});
-    if(mr.ok){
-      const md=await mr.json();
-      const t=md?.metrics?.gpu_temp??md?.metrics?.cpu_temp;
-      if(typeof t==='number'&&Number.isFinite(t)){
-        _lastGpuTemp=t;
-        document.getElementById('GT').innerHTML=t.toFixed(0)+'<span class="gu">°C</span>';
-        return;
-      }
-    }
-  }catch(_){}
-  // Fallback: show last known temp or dash
-  if(_lastGpuTemp!==null){
-    document.getElementById('GT').innerHTML=_lastGpuTemp.toFixed(0)+'<span class="gu">°C</span>';
+let _accelApplied=false;      // static hardware labels only need writing once
+let _memTotalGB=null;         // real total, from the host — never assumed
+let _gpuBusy=false;           // guards against overlapping polls
+
+// Static labels: Apple Silicon shares one unified pool between CPU and GPU,
+// so calling it "VRAM" would misrepresent what the numbers mean.
+function applyAccelProfile(m){
+  if(_accelApplied||!m)return;
+  const accel=String(m.accel||'CPU').toUpperCase();
+  const unified=!!m.unified_memory;
+  const ok=accel!=='CPU';
+  const acc=document.getElementById('GACC');
+  acc.textContent=accel==='METAL'?'METAL':accel;
+  acc.style.color=ok?'var(--success)':'var(--td)';
+  acc.title=ok?'GPU offload active via '+accel:'No GPU offload — inference runs on CPU';
+  const det=document.getElementById('GACCD');
+  const drow=document.getElementById('GACCDROW');
+  const detail=m.accel_detail||m.chip||'';
+  if(detail){det.textContent=detail;}else{drow.style.display='none';}
+  if(unified){
+    document.getElementById('GSECL').textContent='GPU / UNIFIED MEM';
+    document.getElementById('GULBL').textContent='MEM USED';
+    document.getElementById('GFLBL').textContent='MEM FREE';
+    document.getElementById('GBARL').textContent='UNIFIED';
   }
+  if(typeof m.vram_total_gb==='number'&&m.vram_total_gb>0)_memTotalGB=m.vram_total_gb;
+  _accelApplied=true;
+}
+
+async function refreshGPU(){
+  if(_gpuBusy)return;
+  _gpuBusy=true;
+  try{
+    let usedGB=null;
+    // Model residency from Ollama.
+    try{
+      const r=await fetch(base()+'/api/ps',{signal:AbortSignal.timeout(2000)});
+      if(r.ok){
+        const d=await r.json();const mods=d.models||[];
+        usedGB=mods.reduce((s,m)=>s+(m.size_vram||0),0)/1e9;
+        document.getElementById('GU').innerHTML=usedGB.toFixed(1)+'<span class="gu">GB</span>';
+        document.getElementById('GUL').innerHTML=mods.length?'<span style="color:var(--success)">LOAD</span>':'<span style="color:var(--td)">IDLE</span>';
+      }
+    }catch(_){}
+
+    // Host metrics: accelerator, real total memory, temperature.
+    try{
+      const mr=await fetch('/api/metrics',{signal:AbortSignal.timeout(2500)});
+      if(mr.ok){
+        const md=await mr.json();
+        const m=md?.metrics||{};
+        applyAccelProfile(m);
+        if(typeof m.gpu_util==='number'&&Number.isFinite(m.gpu_util)){
+          document.getElementById('GUL').innerHTML=m.gpu_util.toFixed(0)+'<span class="gu">%</span>';
+        }
+        const t=(typeof m.gpu_temp==='number'&&Number.isFinite(m.gpu_temp))?m.gpu_temp
+               :(typeof m.cpu_temp==='number'&&Number.isFinite(m.cpu_temp))?m.cpu_temp:null;
+        if(t!==null)_lastGpuTemp=t;
+      }
+    }catch(_){}
+
+    const gt=document.getElementById('GT');
+    gt.innerHTML=(_lastGpuTemp!==null?_lastGpuTemp.toFixed(0):'—')+'<span class="gu">°C</span>';
+    if(_lastGpuTemp!==null){
+      gt.style.color=_lastGpuTemp>=90?'var(--danger)':_lastGpuTemp>=75?'var(--amber)':'';
+    }
+
+    // Free memory / bar — only meaningful once the real total is known.
+    if(usedGB===null)usedGB=parseFloat(document.getElementById('GU').textContent)||0;
+    if(_memTotalGB){
+      const free=Math.max(0,_memTotalGB-usedGB);
+      document.getElementById('GF').innerHTML=free.toFixed(1)+'<span class="gu">GB</span>';
+      const pct=Math.min((usedGB/_memTotalGB)*100,100);
+      document.getElementById('VP').textContent=pct.toFixed(0)+'%';
+      const vb=document.getElementById('VB');vb.style.width=pct+'%';
+      vb.className='mfill '+(pct<40?'lo':pct<75?'me':'hi');
+    }
+  }finally{_gpuBusy=false;}
 }
 
 // ── UTILS ─────────────────────────────────────────────
@@ -4343,6 +4966,9 @@ function clrSession(){
   const st=document.getElementById('ST');if(st)st.value='true';
   const seed=document.getElementById('SEED');if(seed)seed.value='-1';
   const web=document.getElementById('WEB');if(web)web.value='off';
+  const ex=document.getElementById('EXECMODE');if(ex)ex.value='analyst';
+  const agn=document.getElementById('AGN');if(agn)agn.value='0';
+  syncLoopInputs(1);
   syncDial();
   // Clear GPU temp display
   _lastGpuTemp=null;
@@ -4500,6 +5126,12 @@ function logAgentRun(agentId,agentName,model,startTs,endTs,ok,notes){
   if(ICI_AGENT_RUN_LOG.length>=ICI_MAX_LOG_ENTRIES)ICI_AGENT_RUN_LOG.shift();
   ICI_AGENT_RUN_LOG.push({agentId,agentName,model,startTs,endTs,durationMs:endTs-startTs,ok,notes:notes||'',ts:Date.now()});
   const a=S.agents.find(x=>x.id===agentId);if(a)a.last_run=endTs;
+  fetch(CASE_APIS.trace,{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      case_id:selectedCaseId(),agent_id:agentId,agent_name:agentName,model,
+      status:ok?'completed':'failed',output_kind:'model_output',error:ok?'':String(notes||'')
+    })
+  }).catch(()=>{});
 }
 
 function logStepRun(stepId,stepIndex,model,startTs,endTs,ok,outputLen){

@@ -136,6 +136,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+!.env.example
 .envrc
 .venv
 env/
@@ -208,19 +210,29 @@ __marimo__/
 
 # OCI / local artifacts
 .DS_Store
+.playwright-cli/
 node_modules/
-package-lock.json
 ollama-gui/
 *.pem
 *.key
 *.p12
 *.pfx
 *.crt
+*.jks
+*.keystore
+*.mobileprovision
 id_rsa
 id_rsa.pub
 
+# Credentials and authentication material
+.npmrc
+auth.json
+credentials*.json
+secrets*.json
+service-account*.json
+
 # AMBER runtime data (sensitive/local-only)
-state/*.json
+state/
 agents/*.json
 chains/*.json
 vectors/*.json
@@ -230,5 +242,21 @@ modhistory.txt
 tree.txt
 venv/
 
-# Inert leftover from an earlier SQLite storage attempt (unused by the launcher)
-synapse.db
+# Local databases and sidecars
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.wal
+*.shm
+
+# Investigation captures, dumps, and local release-working material
+*.har
+*.warc
+*.warc.gz
+*.pcap
+*.pcapng
+*.dmp
+*.dump
+*.core
