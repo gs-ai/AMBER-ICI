@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ╔══════════════════════════════════════════════════════╗
-║   AMBER ICI // INVESTIGATIVE COMMAND INTERFACE v2    ║
+║   AMBER ICI // INVESTIGATIVE COMMAND INTERFACE v5    ║
 ║   Launches the local GUI in your default browser.    ║
 ║   NO cloud. NO telemetry. NO outbound requests.      ║
 ╚══════════════════════════════════════════════════════╝
@@ -10,6 +10,7 @@ Usage:
     python3 launch_amber_ici_gui.py [--port 8765] [--no-browser]
 
 Options:
+    --version     Print the AMBER ICI version and exit
     --port        Port to serve the GUI on (default: 8765)
     --host        Host address (default: 127.0.0.1)
     --no-browser  Don't auto-open the browser
@@ -37,6 +38,7 @@ from io import BytesIO
 from pathlib import Path
 from constrained_executor import ContractError, execute_contract
 from autogen_builder import AutoGenError, build_autogen_plan
+from amber_intelligence import CaseIntelligence, IntelligenceError, investigation_role_templates
 
 # ── ANSI colors ────────────────────────────────────────────────────────────────
 R  = "\033[0m"
@@ -47,7 +49,11 @@ DM = "\033[38;5;244m"  # dim
 RD = "\033[38;5;196m"  # red
 CY = "\033[38;5;117m"  # cyan
 
+AMBER_VERSION = "5.0.0"
+AMBER_RELEASE = "AMBER ICI v5"
 STORAGE_ROOT = None
+_CASE_INTELLIGENCE = None
+_CASE_INTELLIGENCE_LOCK = threading.Lock()
 STORE_DOMAINS = {"state", "agents", "chains", "vectors", "timeline"}
 STORE_DIR = "state"
 LEGACY_STORE_NAMES = {
@@ -77,6 +83,129 @@ PDF_OCR_MIN_CHARS = 240
 IMAGE_OCR_TIMEOUT_SEC = 120
 IMAGE_OCR_MIN_CHARS = 8
 
+# ── Hardware profile / metrics cache ───────────────────────────────────────────
+# The GUI polls /api/metrics on a timer. Probing the SMC, nvidia-smi and
+# system_profiler on every poll is expensive, so results are cached: the static
+# hardware profile is resolved once per process, live readings for a few seconds.
+METRICS_TTL_SEC = 4.0
+_HW_PROFILE = None
+_HW_PROFILE_LOCK = threading.Lock()
+_METRICS_CACHE = {"t": 0.0, "data": None}
+_METRICS_LOCK = threading.Lock()
+
+
+def _detect_hw_profile():
+    """
+    Resolve the static hardware profile once per process.
+
+    Returns a dict describing the machine and which inference accelerator is
+    actually available: METAL on Apple Silicon, CUDA/ROCm on discrete GPUs,
+    CPU when there is no GPU offload path.
+    """
+    import platform
+
+    prof = {
+        "os": platform.system(),
+        "arch": platform.machine(),
+        "chip": None,
+        "accel": "CPU",          # METAL | CUDA | ROCM | CPU
+        "accel_detail": None,    # e.g. "Apple M2 · 10 CORES"
+        "unified_memory": False,
+        "vram_total_gb": None,
+    }
+
+    # NVIDIA — discrete VRAM, reported by the driver.
+    if shutil.which("nvidia-smi"):
+        try:
+            r = subprocess.run(
+                ["nvidia-smi", "--query-gpu=name,memory.total",
+                 "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, timeout=3,
+            )
+            if r.returncode == 0 and r.stdout.strip():
+                name, mem = (r.stdout.strip().splitlines()[0].split(",") + ["", ""])[:2]
+                prof["accel"] = "CUDA"
+                prof["accel_detail"] = name.strip()
+                prof["chip"] = name.strip()
+                try:
+                    prof["vram_total_gb"] = round(float(mem.strip()) / 1024.0, 1)
+                except Exception:
+                    pass
+                return prof
+        except Exception:
+            pass
+
+    # AMD ROCm.
+    if shutil.which("rocm-smi"):
+        prof["accel"] = "ROCM"
+        prof["accel_detail"] = "AMD ROCm"
+        return prof
+
+    # macOS — Metal is available on every Mac Ollama runs on; Apple Silicon
+    # shares one unified memory pool between CPU and GPU.
+    if prof["os"] == "Darwin":
+        try:
+            chip = subprocess.run(
+                ["sysctl", "-n", "machdep.cpu.brand_string"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout.strip()
+            prof["chip"] = chip or None
+        except Exception:
+            chip = ""
+        apple_silicon = prof["arch"] == "arm64"
+        cores = None
+        try:
+            sp = subprocess.run(
+                ["system_profiler", "-json", "SPDisplaysDataType"],
+                capture_output=True, text=True, timeout=8,
+            )
+            if sp.returncode == 0:
+                gpus = json.loads(sp.stdout).get("SPDisplaysDataType") or []
+                for g in gpus:
+                    if any("Metal" in str(k) for k in g):
+                        prof["accel"] = "METAL"
+                    cores = cores or g.get("sppci_cores")
+                    if not prof["chip"]:
+                        prof["chip"] = g.get("sppci_model")
+        except Exception:
+            pass
+        if prof["accel"] == "CPU" and apple_silicon:
+            prof["accel"] = "METAL"  # every Apple Silicon Mac has Metal
+        if prof["accel"] == "METAL":
+            detail = prof["chip"] or "Apple GPU"
+            if cores:
+                detail += f" · {cores} CORES"
+            prof["accel_detail"] = detail
+        if apple_silicon:
+            prof["unified_memory"] = True
+            try:
+                total = int(subprocess.run(
+                    ["sysctl", "-n", "hw.memsize"],
+                    capture_output=True, text=True, timeout=3,
+                ).stdout.strip())
+                prof["vram_total_gb"] = round(total / (1024 ** 3), 1)
+            except Exception:
+                pass
+        return prof
+
+    return prof
+
+
+def hw_profile():
+    """Cached accessor for the static hardware profile."""
+    global _HW_PROFILE
+    if _HW_PROFILE is None:
+        with _HW_PROFILE_LOCK:
+            if _HW_PROFILE is None:
+                try:
+                    _HW_PROFILE = _detect_hw_profile()
+                except Exception:
+                    _HW_PROFILE = {"os": "", "arch": "", "chip": None, "accel": "CPU",
+                                   "accel_detail": None, "unified_memory": False,
+                                   "vram_total_gb": None}
+    return _HW_PROFILE
+
+
 def banner():
     print(f"""
 {AM}{BO}
@@ -85,7 +214,7 @@ def banner():
  ███████║██╔████╔██║██████╔╝█████╗  ██████╔╝
  ██╔══██║██║╚██╔╝██║██╔══██╗██╔══╝  ██╔══██╗
  ██║  ██║██║ ╚═╝ ██║██████╔╝███████╗██║  ██║{R}
-{DM}  INVESTIGATIVE COMMAND INTERFACE // LOCAL INFERENCE // NO TELEMETRY{R}
+{DM}  {AMBER_RELEASE} // LOCAL INFERENCE // NO TELEMETRY{R}
 """)
 
 def check_port_free(host, port):
@@ -136,6 +265,141 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
         except self._CLIENT_DISCONNECT_ERRORS:
             # Browser may cancel in-flight polling requests; treat as benign.
             return
+
+    def _case_service(self):
+        """Return the process-wide case service after launch establishes storage."""
+        global _CASE_INTELLIGENCE
+        if _CASE_INTELLIGENCE is None:
+            with _CASE_INTELLIGENCE_LOCK:
+                if _CASE_INTELLIGENCE is None:
+                    _CASE_INTELLIGENCE = CaseIntelligence(Path(STORAGE_ROOT or Path.cwd()))
+        return _CASE_INTELLIGENCE
+
+    def _json_payload(self, max_bytes=2 * 1024 * 1024, require_object=True):
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0 or length > max_bytes:
+            raise IntelligenceError("invalid request size")
+        raw = self.rfile.read(length)
+        payload = json.loads(raw.decode("utf-8"))
+        if require_object and not isinstance(payload, dict):
+            raise IntelligenceError("JSON object required")
+        return payload
+
+    def _case_error(self, error):
+        status = 400 if isinstance(error, (IntelligenceError, ValueError, json.JSONDecodeError)) else 500
+        message = str(error) if status == 400 else "case intelligence request failed"
+        self._send_json(status, {"ok": False, "error": message})
+
+    def _cases_list(self):
+        try:
+            self._send_json(200, {"ok": True, "cases": self._case_service().list_cases()})
+        except Exception as error:
+            self._case_error(error)
+
+    def _case_evidence_list(self, case_id):
+        try:
+            items = self._case_service().list_evidence(urllib.parse.unquote(case_id))
+            self._send_json(200, {"ok": True, "evidence": items})
+        except Exception as error:
+            self._case_error(error)
+
+    def _case_create(self):
+        try:
+            payload = self._json_payload()
+            case = self._case_service().create_case(
+                title=payload.get("title", ""),
+                case_id=payload.get("id", ""),
+                summary=payload.get("summary", ""),
+            )
+            self._send_json(201, {"ok": True, "case": case})
+        except Exception as error:
+            self._case_error(error)
+
+    def _case_ingest_evidence(self):
+        try:
+            payload = self._json_payload()
+            case_id = str(payload.get("case_id", "")).strip()
+            file_ids = payload.get("file_ids", [])
+            if isinstance(file_ids, str):
+                file_ids = [file_ids]
+            if not case_id or not isinstance(file_ids, list) or not file_ids:
+                raise IntelligenceError("case_id and file_ids are required")
+            wanted = {str(value) for value in file_ids}
+            _, entries = self._all_file_entries()
+            selected = [entry for entry in entries if str(entry.get("id", "")) in wanted]
+            if len(selected) != len(wanted):
+                found = {str(entry.get("id", "")) for entry in selected}
+                missing = sorted(wanted - found)
+                raise IntelligenceError("unknown file id(s): " + ", ".join(missing))
+            results = []
+            service = self._case_service()
+            for entry in selected:
+                raw_path = Path(str(entry.get("abs_path", "")))
+                if not raw_path.exists() or not raw_path.is_file():
+                    raise IntelligenceError(f"artifact is unavailable: {entry.get('name', 'UNKNOWN')}")
+                record = service.ingest_evidence(
+                        case_id=case_id,
+                        file_id=str(entry.get("id", "")),
+                        filename=str(entry.get("name", "UNKNOWN")),
+                        media_type=str(entry.get("ext", "unknown")),
+                        raw_path=raw_path,
+                        extracted_text=self._entry_text(entry),
+                        source_type=str(entry.get("source", "file")),
+                        captured_at=str(entry.get("uploaded_at", "")),
+                    )
+                results.append({"duplicate": record.get("duplicate", False), **service.public_evidence(record)})
+            self._send_json(200, {"ok": True, "case_id": case_id, "results": results})
+        except Exception as error:
+            self._case_error(error)
+
+    def _case_search(self):
+        try:
+            payload = self._json_payload()
+            results = self._case_service().search_case(
+                case_id=payload.get("case_id", ""),
+                query=payload.get("query", ""),
+                top_k=payload.get("top_k", 8),
+            )
+            self._send_json(200, {"ok": True, "results": results})
+        except Exception as error:
+            self._case_error(error)
+
+    def _memory_store(self):
+        try:
+            payload = self._json_payload()
+            memory = self._case_service().remember(
+                content=payload.get("content", ""),
+                scope=payload.get("scope", "case"),
+                source_kind=payload.get("source_kind", "operator"),
+                case_id=payload.get("case_id", ""),
+                agent_id=payload.get("agent_id", ""),
+                importance=payload.get("importance", 0.5),
+                tags=payload.get("tags", []),
+            )
+            self._send_json(201, {"ok": True, "memory": memory})
+        except Exception as error:
+            self._case_error(error)
+
+    def _memory_search(self):
+        try:
+            payload = self._json_payload()
+            results = self._case_service().recall(
+                query=payload.get("query", ""),
+                scope=payload.get("scope", "case"),
+                case_id=payload.get("case_id", ""),
+                agent_id=payload.get("agent_id", ""),
+                top_k=payload.get("top_k", 8),
+            )
+            self._send_json(200, {"ok": True, "results": results})
+        except Exception as error:
+            self._case_error(error)
+
+    def _agent_trace(self):
+        try:
+            trace = self._case_service().record_trace(self._json_payload())
+            self._send_json(201, {"ok": True, "trace": trace})
+        except Exception as error:
+            self._case_error(error)
 
     def _store_path(self, domain, name):
         if domain not in STORE_DOMAINS:
@@ -196,11 +460,15 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
         tmp.replace(p)
 
     def _file_id_for_linked(self, rel_name):
-        digest = hashlib.sha1(rel_name.encode("utf-8", errors="ignore")).hexdigest()[:12].upper()
+        # This is a stable UI identifier, not a trust or integrity primitive.
+        digest = hashlib.sha1(
+            rel_name.encode("utf-8", errors="ignore"), usedforsecurity=False
+        ).hexdigest()[:12].upper()
         return f"LD_{digest}"
 
     def _file_id_for_upload(self, safe_name, raw):
-        h = hashlib.sha1()
+        # Existing manifests rely on this non-security identifier format.
+        h = hashlib.sha1(usedforsecurity=False)
         h.update(safe_name.encode("utf-8", errors="ignore"))
         h.update(b"\0")
         h.update(raw[:1024 * 1024])
@@ -884,11 +1152,56 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
         tmp.write_text(json.dumps(cache, ensure_ascii=True), encoding="utf-8")
         tmp.replace(path)
 
+    # ── WEB helper environment (Node + Playwright) ──────────────────────────────
+    REQUIRED_NODE_PACKAGES = ("playwright", "playwright-extra", "puppeteer-extra-plugin-stealth")
+
+    @staticmethod
+    def _project_root() -> Path:
+        return Path(__file__).resolve().parent.parent
+
+    @classmethod
+    def _web_helper_env(cls, helper_name: str) -> dict:
+        """Report whether the Node helper can actually run, with actionable fix text."""
+        helper = Path(__file__).with_name(helper_name)
+        node = shutil.which("node")
+        root = cls._project_root()
+        modules = root / "node_modules"
+        missing = [p for p in cls.REQUIRED_NODE_PACKAGES if not (modules / p).exists()]
+        problems = []
+        if not helper.exists():
+            problems.append(f"helper missing: {helper}")
+        if not node:
+            problems.append("Node.js not found on PATH — install Node 18+ (https://nodejs.org)")
+        if not modules.exists():
+            problems.append(f"node_modules missing in {root} — run: npm install")
+        elif missing:
+            problems.append("missing node packages: " + ", ".join(missing) + " — run: npm install")
+        return {
+            "helper": str(helper),
+            "helper_exists": helper.exists(),
+            "node": node or "",
+            "node_modules": str(modules),
+            "missing_packages": missing,
+            "ready": not problems,
+            "problems": problems,
+            "error": "; ".join(problems) if problems else "",
+        }
+
+    def _web_status(self):
+        """GET /api/web/status — lets the ICI print the exact WEB helper state in-terminal."""
+        fetch_env = self._web_helper_env("web_fetch_playwright.mjs")
+        records_env = self._web_helper_env("records_search_playwright.mjs")
+        self._send_json(200, {
+            "ok": True,
+            "fetch": fetch_env,
+            "records": records_env,
+            "ready": fetch_env["ready"],
+            "install_command": "npm install",
+        })
+
     def _web_fetch(self):
         try:
-            length = int(self.headers.get("Content-Length", "0"))
-            raw = self.rfile.read(length) if length > 0 else b"{}"
-            payload = json.loads(raw.decode("utf-8"))
+            payload = self._json_payload(max_bytes=64 * 1024)
             query = str(payload.get("query", "")).strip()
         except Exception:
             self._send_json(400, {"ok": False, "error": "invalid web fetch payload"})
@@ -897,52 +1210,80 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             self._send_json(400, {"ok": False, "error": "WEB fetch requires an explicit http(s) URL"})
             return
-        cache_key = hashlib.sha1(query.encode("utf-8", errors="ignore")).hexdigest()
+        env = self._web_helper_env("web_fetch_playwright.mjs")
+        cache_key = hashlib.sha256(query.encode("utf-8", errors="ignore")).hexdigest()
         cache = self._load_web_cache()
         now = time.time()
         cached = cache.get(cache_key)
         if isinstance(cached, dict) and now - float(cached.get("ts", 0)) < 3600:
-            self._send_json(200, {"ok": True, "cached": True, "url": query, "content": cached.get("content", "")})
+            self._send_json(200, {
+                "ok": True, "cached": True, "url": query,
+                "content": cached.get("content", ""),
+                "engine": "cache", "helper": env["helper"],
+            })
             return
-        text = self._web_fetch_playwright(query)
+        text, helper_error = (None, env["error"])
+        if env["ready"]:
+            text, helper_error = self._web_fetch_playwright(query)
+        engine = "playwright"
+        fallback_error = ""
         if text is None:
-            text = self._web_fetch_urllib(query)
+            engine = "urllib"
+            text, fallback_error = self._web_fetch_urllib(query)
         if text is None:
-            self._send_json(502, {"ok": False, "error": "web fetch failed: both Playwright and urllib returned no content"})
+            self._send_json(502, {
+                "ok": False,
+                "engine": "none",
+                "helper": env["helper"],
+                "node": env["node"],
+                "helper_ready": env["ready"],
+                "helper_error": helper_error,
+                "fallback_error": fallback_error,
+                "install_command": "npm install",
+                "error": f"web fetch failed for {query} — playwright: {helper_error or 'no content'}; "
+                         f"urllib fallback: {fallback_error or 'no content'}",
+            })
             return
         cache[cache_key] = {"ts": now, "url": query, "content": text}
         self._save_web_cache(cache)
-        self._send_json(200, {"ok": True, "cached": False, "url": query, "content": text})
+        self._send_json(200, {
+            "ok": True, "cached": False, "url": query, "content": text,
+            "engine": engine, "helper": env["helper"],
+            "helper_error": helper_error if engine != "playwright" else "",
+        })
 
-    def _web_fetch_playwright(self, url: str) -> "Optional[str]":
-        """Fetch a URL using the Playwright helper for JS-rendered pages. Returns text or None."""
+    def _web_fetch_playwright(self, url: str):
+        """Run the Node Playwright helper. Returns (text_or_None, error_string)."""
         helper = Path(__file__).with_name("web_fetch_playwright.mjs")
-        if not helper.exists() or not shutil.which("node"):
-            return None
         request = json.dumps({"url": url, "timeout": 22000}, ensure_ascii=True)
         try:
             run = subprocess.run(
                 ["node", str(helper), request],
-                cwd=str(Path(__file__).resolve().parent.parent),
+                cwd=str(self._project_root()),
                 env=dict(os.environ),
                 capture_output=True,
                 text=True,
                 timeout=50,
             )
-        except (subprocess.TimeoutExpired, Exception):
-            return None
+        except subprocess.TimeoutExpired:
+            return None, "playwright helper timed out after 50s"
+        except Exception as e:
+            return None, f"could not start node helper: {e}"
         stdout = (run.stdout or "").strip()
+        stderr = (run.stderr or "").strip()
         try:
             data = json.loads(stdout) if stdout else {}
         except Exception:
-            return None
+            return None, f"helper returned non-JSON output: {(stdout or stderr)[:300]}"
         content = data.get("content", "")
-        if not data.get("ok") or not content or len(content.strip()) < 100:
-            return None
-        return content
+        if not data.get("ok"):
+            return None, str(data.get("error") or stderr or "helper reported failure")[:300]
+        if not content or len(content.strip()) < 100:
+            return None, f"helper returned only {len(content.strip())} chars of content"
+        return content, ""
 
-    def _web_fetch_urllib(self, url: str) -> "Optional[str]":
-        """Fallback plain HTTP fetch for simple non-JS pages. Returns text or None."""
+    def _web_fetch_urllib(self, url: str):
+        """Fallback plain HTTP fetch for simple non-JS pages. Returns (text_or_None, error)."""
         try:
             import urllib.request as _ur
             req = _ur.Request(
@@ -952,15 +1293,18 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.5",
                 },
             )
-            with _ur.urlopen(req, timeout=20) as resp:
+            # External HTTP(S) retrieval is the explicit purpose of WEB mode.
+            with _ur.urlopen(req, timeout=20) as resp:  # nosec B310
                 raw_page = resp.read(2_000_000)
             text = raw_page.decode("utf-8", errors="ignore")
             text = re.sub(r"(?is)<(script|style|noscript).*?</\1>", " ", text)
             text = re.sub(r"(?s)<[^>]+>", " ", text)
             text = re.sub(r"\s+", " ", text).strip()[:20000]
-            return text if len(text) >= 100 else None
-        except Exception:
-            return None
+            if len(text) < 100:
+                return None, f"urllib fetch returned only {len(text)} chars"
+            return text, ""
+        except Exception as e:
+            return None, str(e)[:200]
 
     def _records_search(self):
         try:
@@ -981,12 +1325,17 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
         if not subject:
             self._send_json(400, {"ok": False, "error": "subject is required"})
             return
-        helper = Path(__file__).with_name("records_search_playwright.mjs")
-        if not helper.exists():
-            self._send_json(500, {"ok": False, "error": "records search helper is missing"})
-            return
-        if not shutil.which("node"):
-            self._send_json(500, {"ok": False, "error": "Node.js is required for Playwright records search"})
+        env = self._web_helper_env("records_search_playwright.mjs")
+        helper = Path(env["helper"])
+        if not env["ready"]:
+            self._send_json(500, {
+                "ok": False,
+                "helper": env["helper"],
+                "node": env["node"],
+                "missing_packages": env["missing_packages"],
+                "install_command": "npm install",
+                "error": "records search helper cannot run: " + env["error"],
+            })
             return
         request = json.dumps({"subject": subject, "locations": locations}, ensure_ascii=True)
         env = dict(os.environ)
@@ -1012,8 +1361,9 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
             data = {"ok": False, "error": "records search returned invalid json"}
         if run.returncode != 0 or not data.get("ok"):
             err = data.get("error") or (run.stderr or "records search failed").strip()
-            self._send_json(502, {"ok": False, "error": err})
+            self._send_json(502, {"ok": False, "error": err, "helper": env["helper"]})
             return
+        data["helper"] = env["helper"]
         # The helper already filters for subject + location corroboration; keep only compact fields.
         matches = data.get("matches", [])
         if not isinstance(matches, list):
@@ -1023,9 +1373,7 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
 
     def _task_execute(self):
         try:
-            length = int(self.headers.get("Content-Length", "0"))
-            raw = self.rfile.read(length) if length > 0 else b"{}"
-            payload = json.loads(raw.decode("utf-8"))
+            payload = self._json_payload()
         except Exception:
             self._send_json(400, {"ok": False, "error": "invalid json payload"})
             return
@@ -1040,9 +1388,7 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
 
     def _autogen_build(self):
         try:
-            length = int(self.headers.get("Content-Length", "0"))
-            raw = self.rfile.read(length) if length > 0 else b"{}"
-            payload = json.loads(raw.decode("utf-8"))
+            payload = self._json_payload()
         except Exception:
             self._send_json(400, {"ok": False, "error": "invalid json payload"})
             return
@@ -1096,9 +1442,7 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json(400, {"ok": False, "error": "invalid store path"})
             return
         try:
-            length = int(self.headers.get("Content-Length", "0"))
-            raw = self.rfile.read(length) if length > 0 else b"null"
-            data = json.loads(raw.decode("utf-8"))
+            data = self._json_payload(require_object=False)
         except Exception:
             self._send_json(400, {"ok": False, "error": "invalid json payload"})
             return
@@ -1134,18 +1478,36 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
         if seg == ["api", "metrics"]:
             self._metrics()
             return
+        if seg == ["api", "web", "status"]:
+            self._web_status()
+            return
+        if seg == ["api", "cases"]:
+            self._cases_list()
+            return
+        if len(seg) == 4 and seg[0] == "api" and seg[1] == "cases" and seg[3] == "evidence":
+            self._case_evidence_list(seg[2])
+            return
+        if seg == ["api", "agent-templates"]:
+            self._send_json(200, {"ok": True, "templates": investigation_role_templates()})
+            return
         super().do_GET()
 
     # ── Apple SMC reader (Apple Silicon GPU cluster temps without sudo) ──────────
-    @staticmethod
-    def _read_apple_smc_gpu_temp():
+    _SMC_UNAVAILABLE = False   # set once if the SMC cannot be reached at all
+    _SMC_LIVE_KEYS = None      # keys that actually returned a reading on this Mac
+
+    @classmethod
+    def _read_apple_smc_gpu_temp(cls):
         """
         Read GPU cluster temperature from Apple SMC via IOKit on macOS.
         Works on Apple Silicon (M1/M2/M3/M4) without sudo or extra tools.
         Returns the highest GPU cluster temp in °C, or None on failure.
+
+        After the first successful read only the keys this Mac actually answers
+        are probed, so the steady-state poll touches 1-2 keys instead of 8.
         """
         import ctypes, struct, platform
-        if platform.system() != "Darwin":
+        if platform.system() != "Darwin" or cls._SMC_UNAVAILABLE:
             return None
         try:
             # Apple Silicon GPU die/cluster SMC keys.
@@ -1227,6 +1589,7 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
                 iokit.IOServiceMatching(b"AppleSMC"),
             )
             if not service:
+                cls._SMC_UNAVAILABLE = True
                 return None
 
             conn = ctypes.c_uint32(0)
@@ -1235,6 +1598,7 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
             ret  = iokit.IOServiceOpen(service, task, KERNEL_INDEX_SMC, ctypes.byref(conn))
             iokit.IOObjectRelease(service)
             if ret != 0:
+                cls._SMC_UNAVAILABLE = True
                 return None
 
             def _key_u32(k):
@@ -1277,15 +1641,52 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
                     return None
                 return val if 0 < val < 150 else None
 
-            temps = [t for k in GPU_KEYS if (t := _read_key(k)) is not None]
+            probe = cls._SMC_LIVE_KEYS or GPU_KEYS
+            readings = {k: t for k in probe if (t := _read_key(k)) is not None}
             iokit.IOServiceClose(conn)
-            return max(temps) if temps else None
+            if readings:
+                cls._SMC_LIVE_KEYS = tuple(readings)
+                return max(readings.values())
+            # A pruned key set went silent (thermal sensor gated) — re-probe all.
+            cls._SMC_LIVE_KEYS = None
+            return None
         except Exception:
             return None
 
     def _metrics(self):
-        """GET /api/metrics — lightweight system metrics (GPU/CPU temp, util)."""
-        metrics = {"gpu_temp": None, "cpu_temp": None, "gpu_util": None}
+        """
+        GET /api/metrics — system metrics (accelerator, GPU/CPU temp, util).
+
+        Readings are cached for METRICS_TTL_SEC so several browser tabs polling
+        at once collapse into a single hardware probe.
+        """
+        now = time.monotonic()
+        with _METRICS_LOCK:
+            cached = _METRICS_CACHE["data"]
+            if cached is not None and (now - _METRICS_CACHE["t"]) < METRICS_TTL_SEC:
+                self._send_json(200, {"ok": True, "cached": True, "metrics": cached})
+                return
+        metrics = self._probe_metrics()
+        with _METRICS_LOCK:
+            _METRICS_CACHE["t"] = time.monotonic()
+            _METRICS_CACHE["data"] = metrics
+        self._send_json(200, {"ok": True, "cached": False, "metrics": metrics})
+
+    def _probe_metrics(self):
+        """Read live hardware metrics. Called at most once per METRICS_TTL_SEC."""
+        prof = hw_profile()
+        metrics = {
+            "gpu_temp": None,
+            "cpu_temp": None,
+            "gpu_util": None,
+            "accel": prof.get("accel"),
+            "accel_detail": prof.get("accel_detail"),
+            "chip": prof.get("chip"),
+            "os": prof.get("os"),
+            "arch": prof.get("arch"),
+            "unified_memory": prof.get("unified_memory"),
+            "vram_total_gb": prof.get("vram_total_gb"),
+        }
         # NVIDIA GPU via nvidia-smi
         if shutil.which("nvidia-smi"):
             try:
@@ -1344,7 +1745,7 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
                         break
             except Exception:
                 pass
-        self._send_json(200, {"ok": True, "metrics": metrics})
+        return metrics
 
     def do_POST(self):
         parts = urllib.parse.urlparse(self.path)
@@ -1394,6 +1795,24 @@ class SilentHandler(http.server.SimpleHTTPRequestHandler):
         if seg == ["api", "autogen", "build"]:
             self._autogen_build()
             return
+        if seg == ["api", "cases"]:
+            self._case_create()
+            return
+        if seg == ["api", "cases", "evidence"]:
+            self._case_ingest_evidence()
+            return
+        if seg == ["api", "cases", "search"]:
+            self._case_search()
+            return
+        if seg == ["api", "memory"]:
+            self._memory_store()
+            return
+        if seg == ["api", "memory", "search"]:
+            self._memory_search()
+            return
+        if seg == ["api", "agents", "trace"]:
+            self._agent_trace()
+            return
         self._send_json(404, {"ok": False, "error": "not found"})
 
     def end_headers(self):
@@ -1427,8 +1846,9 @@ def launch(host, port, gui_path, open_browser):
     gui_file = gui_path.name
     project_root = gui_dir.parent
 
-    global STORAGE_ROOT
+    global STORAGE_ROOT, _CASE_INTELLIGENCE
     STORAGE_ROOT = str(project_root)
+    _CASE_INTELLIGENCE = None
     state_dir = Path(STORAGE_ROOT) / STORE_DIR
     state_dir.mkdir(parents=True, exist_ok=True)
     legacy_dirs = [
@@ -1461,7 +1881,7 @@ def launch(host, port, gui_path, open_browser):
     os.chdir(gui_dir)
 
     if not check_port_free(host, port):
-        print(f"{RD}✗{R} Port {port} is already in use. Try --port XXXX")
+        print(f"{RD}ERROR:{R} Port {port} is already in use. Try --port XXXX")
         sys.exit(1)
 
     server = http.server.ThreadingHTTPServer((host, port), SilentHandler)
@@ -1501,11 +1921,11 @@ def launch(host, port, gui_path, open_browser):
         os._exit(0)
 
 def main():
-    banner()
     parser = argparse.ArgumentParser(
         description="Launch the Investigative Command Interface (AMBER ICI) in your browser",
         add_help=True
     )
+    parser.add_argument("--version", action="version", version=AMBER_RELEASE)
     parser.add_argument("--port", type=int, default=8765,
                         help="Port to serve on (default: 8765)")
     parser.add_argument("--host", default="127.0.0.1",
@@ -1516,6 +1936,7 @@ def main():
                         help="Path to GUI HTML (e.g. files/amber_ui.html)")
     args = parser.parse_args()
 
+    banner()
     gui_path = find_gui_file(args.gui)
 
     print(f"  {AM}INVESTIGATIVE COMMAND INTERFACE LAUNCHER{R}\n")

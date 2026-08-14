@@ -2,71 +2,24 @@
   <img src="image/README/06b51b0b-382c-46e8-9942-6163001684c0.png" alt="AMBER ICI interface banner" width="1200" />
 </p>
 
-# AMBER ICI v4
+# AMBER ICI v5
 
-AMBER ICI (AMBER Investigative Command Interface) is a local-first Ollama command interface for investigative and analytical workflows.
+AMBER ICI (AMBER Investigative Command Interface) is a local-first browser interface for investigative and analytical workflows powered by a local [Ollama](https://ollama.com/) server.
 
-It provides:
-- Analyst Console for direct model interaction
-- Parallel model execution
-- Agent orchestration with loops
-- Chain/Pipeline execution with loops
-- Integrated local Archive (semantic vector index/search)
-- Fibonacci fractal memory retrieval for active-file context injection
-- Standalone Entity Provenance Graph (`amber_graph.html`)
-- Standalone Timeline view (`amber_timeline.html`)
-- Standalone Vector Store manager (`amber_vectorstore.html`)
-- Local file ingestion with PDF/DOCX/TXT/MD/PY extraction
-- OCR fallback for PDFs (when OCR dependencies are installed)
-- Local runtime telemetry (token rate, session stats, GPU/VRAM)
+It includes:
 
-All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`).
+- A single-model Analyst Console and multi-model Parallel execution
+- A user-defined agent chain driven from the main terminal's `SEND` button
+- User control over which agents run, how many, how many loops, and which local model each uses
+- Local-model generation of agent configurations from a plain-language objective
+- A persistent semantic Archive backed by Ollama embeddings
+- Fibonacci fractal retrieval for active-file context
+- File uploads, read-only linked-directory access, text extraction, and OCR
+- Optional Playwright-backed web fetch and public-record search, behind a single master switch
+- Standalone entity graph, timeline, and vector-store views
+- Local token-rate, session, GPU/VRAM, and temperature telemetry where available
 
-## v4 Update Highlights
-
-> **Note:** this section documents the *originally planned* v4 storage layer. The `synapse.db` SQLite
-> migration described below was not carried into the shipped launcher — see [Persistence Model](#persistence-model)
-> for what actually runs today (`state/*.json` via the atomic JSON store API). The rest of this section
-> (memory/context/agent behavior) is accurate.
-
-`v4` introduces persistent memory, headless web access, expanded file ingestion, and row-level vector storage:
-
-- Program state persists to `state/*.json`, written atomically per key via `/api/store/<domain>/<name>`.
-- Archive index (vector store) persists to `state/vector_store.json`, hydrated into an in-browser fractal/vector store on load.
-- Chat history persisted to `state/chat_history.json` and restored on every boot (last 100 messages kept; last 30 replayed in UI).
-- Scratchpad persisted to `state/scratch.json` and restored on every boot.
-- Context window overflow protection added: `trimMsgsToCtx()` trims oldest non-system messages to a 90% char budget before every inference call.
-- Agents now receive the last 6 conversation turns as context (previously received zero history).
-- Memory profile setting moved from `localStorage` to `state/memory_profile.json`.
-- Headless Firefox internet access toggle (`WEB OFF / ON`) added to the cpills bar.
-  - New `POST /api/web/fetch` endpoint backed by `camoufox` (Playwright-based, fingerprint-spoofing headless Firefox).
-  - Results cached in `state/web_cache.json` with a 1-hour TTL.
-  - Degrades gracefully if `camoufox` is not installed.
-- `.py` file ingestion added — Python source files are accepted and read as plain text.
-
-## v3 Update Highlights
-
-`v3` introduces the expanded operational workflow and storage/runtime hardening:
-
-- UI identity updated to `v3`.
-- Integrated `ARCHIVE` mode in the main UI for semantic indexing/search.
-- Added standalone tools:
-  - `amber_timeline.html`
-  - `amber_vectorstore.html`
-- Disk-backed persistence moved to `state/*.json` (away from browser-only state).
-- Disk-backed uploads under `uploads/blobs`, `uploads/texts`, and `uploads/manifest.json`.
-- Agent and Chain/Pipeline enhancements:
-  - edit support
-  - drag/drop reordering
-  - loop execution controls
-- Unified STOP handling across Analyst, Parallel, Agents, and Pipeline runs.
-- CTX now applied consistently across Analyst, Parallel, Agents, and Pipeline inference calls.
-- Automatic file-context budgeting and relevance trimming for large active file context.
-- Scratchpad injection cap for `{{scratchpad}}` templates.
-- Session/token telemetry now updates during Agent and Pipeline execution (not only Analyst).
-- Graph enhancements for inferred property/similarity-based node connections.
-- PDF ingestion now includes OCR fallback (`ocrmypdf` + `tesseract`) when available.
-- Added Fibonacci fractal memory indexing/retrieval path for active file context.
+Ollama inference is restricted by the UI to loopback endpoints (`127.0.0.1`, `localhost`, or `::1`). AMBER does not include cloud inference or application telemetry, and no feature requires a login, API key, or account. The `WEB` pill is the master switch for all internet access: with it `OFF`, AMBER makes no outbound request of any kind.
 
 <p align="center">
   <a href="image/README/feouahwofu23978.png" target="_blank" rel="noopener noreferrer">
@@ -77,40 +30,131 @@ All inference is intended to run locally against Ollama (`127.0.0.1`/`localhost`
   </a>
 </p>
 
-<p align="center"><sub>Click either image to open full size.</sub></p>
+<p align="center"><sub>Click either image to open it at full size.</sub></p>
 
-## Core Design
+## v5 Highlights
 
-- Local-only launcher and CSP policy (no external domains configured)
-- All runtime state persisted to `state/*.json` — no browser-only state
-- Archive index persisted to `state/vector_store.json`
-- Disk-backed uploads (`uploads/blobs`, `uploads/texts`, `uploads/manifest.json`)
-- Unified STOP control for active runs
-- CTX-driven prompt budget applied across Analyst, Parallel, Agents, and Pipeline
-- Hierarchical Fibonacci fractal memory retrieval with beam-search routing (when available)
+- Local case workspaces with case-bounded evidence and Archive retrieval
+- Streaming SHA-256 artifact identity, ingestion provenance, duplicate detection, and source citations
+- Deterministic keyword retrieval fused with existing semantic Archive results
+- Explicit, bounded memory scoped to sessions, investigators, cases, agents, or reasoning tasks
+- Operator-selected investigation role templates using installed local Ollama models
+- Agent execution from the main terminal with per-agent models, limits, formats, handoffs, and loop controls
+- Playwright WEB preflight, visible execution diagnostics, direct-fetch fallback, and one-hour local caching
+- Cached hardware detection with Metal, CUDA, ROCm, unified-memory, utilization, and temperature reporting
+- Coalesced streaming updates for responsive long-form output
+- Bounded persisted metadata, escaped generated UI content, reproducible Node dependencies, and expanded sensitive-runtime exclusions
+
+## Current Feature Set
+
+### Analyst Console
+
+- Streams a conversation with one selected Ollama model
+- Supports a system prompt, JSON output mode, seed, temperature, and CTX size
+- Injects active-file, optional web, and retained conversation context
+- Stops active work with `STOP` or `Esc`
+
+The console pill bar carries the execution controls:
+
+| Pill | Values | Purpose |
+|---|---|---|
+| `TEMP` / `CTX` / `MEM` / `FMT` / `STREAM` / `SEED` / `SYS` | — | Analyst-mode inference settings |
+| `WEB` | `OFF` (default) / `ON` | Master switch for all internet access |
+| `EXEC` | `ANALYST` (default) / `AGENTS` | What `SEND` runs: the single active model, or the agent chain |
+| `AGN` | `0` = all | How many agents the chain runs, taken in card order |
+| `LOOPS` | `1`+ | How many times the chain repeats; mirrored with the Agents panel `LOOPS` field |
+
+### Parallel
+
+- Runs the same prompt against all checked models
+- Streams and tracks each response independently
+- Applies the same CTX and active-file controls used by the Analyst Console
+
+### Agents — the execution chain
+
+Agents are user-defined and are the primary execution path. There is no built-in or fixed agent list; the Agents panel starts empty and you populate it two ways:
+
+- `+ CREATE AGENT` — define one by hand
+- `GENERATE FROM PROMPT` — describe an objective and a selected local planner model writes the agent set for you
+
+Each agent stores its own runtime configuration:
+
+| Field | Default | Notes |
+|---|---|---|
+| Agent name | — | Required |
+| Agent purpose | — | Injected as `[AGENT PURPOSE]` |
+| Agent system prompt | — | The agent's role instruction |
+| Preferred local model | — | Required; must be installed in Ollama |
+| Temperature | `0.35` | Per agent, independent of the console `TEMP` pill |
+| Max output tokens | `0` (auto) | `0` uses AMBER's length heuristic |
+| Loops | `1` | Passes this agent makes per chain loop, each refining its own previous output |
+| Output format | plain text | `JSON` sets Ollama's JSON mode and skips length expansion |
+| Handoff instructions | — | Passed to the next sequential agent as `[HANDOFF FROM PREVIOUS AGENT]` |
+| Execution mode | `sequential` | `sequential`, `parallel`, or `gated` |
+| Output target, memory scope, role, tool access, enabled, notes | — | Under `ADVANCED` |
+
+**Running the chain.** Set `EXEC` to `AGENTS`, type a prompt in the main terminal, and press `SEND`. AMBER reads the selected mode, the enabled agents, each agent's local model, the `AGN` count, and the `LOOPS` count, then executes: `parallel` agents concurrently, followed by `sequential` agents in card order, once per loop. Each sequential agent receives the previous agent's output as `[UPSTREAM OUTPUT]` plus that agent's handoff note. Progress and every agent's streamed output print into the main terminal, and the final answer is retained in conversation history. The Agents panel `RUN` button does the same thing using the panel's own `LOOPS` field.
+
+In `AGENTS` mode `SEND` does not require an active model in the Models panel, because each agent carries its own. `gated` agents are excluded from the chain — run them individually with their card's `RUN` button.
+
+**Missing models are never substituted.** Saving an agent or starting a chain with a model that Ollama does not have prints an actionable block in the terminal naming the requested model, the models actually installed, and the `ollama pull <model>` command needed, and the run does not start.
+
+Saved agent sets can be stored and restored by name from the Agents panel.
+
+> The earlier `PIPELINE` / `CHAIN` step-sequence mode was retired from the interface. Its engine and `state/pipeline_state.json` remain in place for backward compatibility, but it is no longer a selectable mode; agents are the execution chain.
+
+### Archive and Memory
+
+- Chunks and embeds queued files with `embeddinggemma:latest`
+- Searches the local archive by cosine similarity
+- Imports and exports archive JSON
+- Adds the most recent assistant output directly to the archive
+- Builds an in-browser Fibonacci fractal index for file-source retrieval
+- Offers `FAST`, `HYBRID`, and `DEEP` retrieval profiles
+
+### Case Intelligence
+
+The Archive now includes an optional case boundary without replacing its existing all-archive workflow:
+
+- `NEW CASE` creates local case metadata.
+- `ADD ACTIVE TO CASE` records selected files as evidence, retains the existing raw upload, computes a streaming SHA-256 identity, and records ingestion provenance.
+- Archive vectors indexed while a case is selected carry that case ID. Case searches fuse those semantic results with a deterministic keyword fallback when both are available.
+- `REMEMBER LAST` explicitly saves the latest assistant output as labeled case memory. Model output is never silently promoted to evidence or memory.
+- `ADD INVESTIGATION ROLES` adds optional Director, Researcher, Investigator, Analyst, Documenter, and Critic templates to the existing user-defined agent registry. They use the operator-selected local model and do not run automatically.
+
+Case intelligence is stored atomically in one versioned standard-library JSON store and uses AMBER's existing Ollama client.
+
+### Standalone Views
+
+The header opens these tools in separate tabs:
+
+- Entity Provenance Graph: `http://127.0.0.1:8765/amber_graph.html`
+- Timeline: `http://127.0.0.1:8765/amber_timeline.html`
+- Vector Store manager: `http://127.0.0.1:8765/amber_vectorstore.html`
 
 ## Requirements
 
-- Python 3.10+
+Core runtime:
+
+- Python 3.10 or newer; the launcher and core backend use only the standard library, so no `pip install` is required to run AMBER
 - Ollama installed and running locally
-- Node/npm (only used to run convenience scripts)
-- Required embed model for archive/index features:
-  - `embeddinggemma:latest`
+- At least one Ollama generation model
+- `embeddinggemma:latest` for Archive indexing and semantic search
 
-OCR support for scanned/visual PDFs (optional):
-- `ocrmypdf`
-- `tesseract`
+Optional capabilities:
 
-If OCR tools are unavailable, AMBER still runs; PDF extraction falls back to basic text extraction.
+- Node.js 18+ and npm, plus the project dependencies, for JavaScript-rendered web fetches and records search
+- A Playwright Chromium browser for those browser-backed features
+- `ocrmypdf` and Tesseract for PDF OCR
+- Tesseract for image OCR
+- Pillow for converting WebP images before OCR when Tesseract cannot read them directly
+- `psutil`, `nvidia-smi`, or `osx-cpu-temp` for additional system metrics; unavailable readings simply remain blank
 
-Headless web fetch support (optional):
-- `camoufox` (Python package — Playwright-based, auto-spoofs browser fingerprints)
+Everything above is local. No component requires an account, API key, or cloud service.
 
-If camoufox is not installed, the `WEB` toggle appears in the UI but fetch calls degrade gracefully with an error response.
+## Install and Run
 
-## Install And Setup
-
-### 1. Clone and enter project
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/gs-ai/AMBER-ICI.git
@@ -119,32 +163,77 @@ cd AMBER-ICI
 
 ### 2. Start Ollama
 
+In a separate terminal:
+
 ```bash
 ollama serve
 ```
 
-### 3. Pull required models
-
-Required for Archive indexing/search:
+Pull the required embedding model and at least one generation model:
 
 ```bash
 ollama pull embeddinggemma:latest
+ollama pull qwen2.5-coder:7b
 ```
 
-Pull any generation models you plan to use (examples):
+The generation model is only an example; AMBER discovers locally installed models from Ollama.
+
+### 3. Create the Python environment
+
+The core backend imports only the Python standard library, so a virtual environment is optional for a direct launch. Create one anyway if you want the npm scripts (which call `venv/bin/python3`) or optional Pillow support:
 
 ```bash
-ollama pull deepseek-r1:7b
-ollama pull qwen2.5-coder:7b
-ollama pull dolphin-llama3:latest
+python3 -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\activate
+python3 -m pip install --upgrade pip
 ```
 
-### 4. (Recommended) Install OCR tools for PDF ingestion
+There is no `requirements.txt` because nothing is required. Install optional extras into that environment only if you want them:
 
-macOS (Homebrew):
+```bash
+python3 -m pip install Pillow     # optional: WebP conversion before OCR
+```
+
+Deactivate with `deactivate`. If a previous AMBER version left unused packages in `venv/` (for example `camoufox`), they are not imported by the current code and can be ignored or removed.
+
+### 4. Launch the core application
+
+```bash
+python3 files/launch_amber_ici_gui.py
+```
+
+AMBER opens the browser automatically. To launch without opening a tab:
+
+```bash
+python3 files/launch_amber_ici_gui.py --no-browser
+```
+
+Then open `http://127.0.0.1:8765/amber_ui.html`.
+
+### 5. Install optional browser-backed web features
+
+Required only if you intend to turn the `WEB` pill on:
+
+```bash
+npm install                       # playwright, playwright-extra, stealth plugin
+npx playwright install chromium   # the browser binary itself
+```
+
+Verify the helpers are runnable — with AMBER running, this reports the helper paths, the resolved `node` binary, and any missing package:
+
+```bash
+curl -s http://127.0.0.1:8765/api/web/status
+```
+
+AMBER uses the Node/Chromium helper for JavaScript-rendered pages, with a plain Python HTTP fetch as a fallback for direct URLs. The records-search helper requires Node.js, the npm dependencies, and Chromium; it has no plain-HTTP fallback.
+
+### 6. Install optional OCR support
+
+macOS with Homebrew:
 
 ```bash
 brew install ocrmypdf tesseract
+python3 -m pip install Pillow
 ```
 
 Ubuntu/Debian:
@@ -152,49 +241,35 @@ Ubuntu/Debian:
 ```bash
 sudo apt-get update
 sudo apt-get install -y ocrmypdf tesseract-ocr
+python3 -m pip install Pillow
 ```
 
-Windows:
-- Install `Tesseract OCR`
-- Install `OCRmyPDF`
-- Ensure both are available in your `PATH`
+Pillow is only needed for image formats that require conversion before Tesseract can process them. AMBER continues to run when any optional OCR dependency is absent.
 
-### 5. (Recommended) Install Camoufox for headless web fetch
+### npm convenience scripts
 
-No conda environment is required. Standard pip install:
+The supplied npm scripts launch AMBER with `venv/bin/python3`, so create that environment first (step 3):
 
 ```bash
-pip install camoufox
-python3 -m camoufox fetch
+npm start                 # 127.0.0.1:8765, no browser tab
+npm run start:browser     # same, and opens the browser
 ```
 
-Camoufox bundles its own patched Firefox binary and auto-generates realistic browser fingerprints (OS, fonts, screen, WebGL, headers) to bypass bot detection on heavily guarded sites. No geckodriver, no webdriver-manager, no separate Firefox install needed.
+Direct `python3` launch is the most portable option.
 
-If camoufox is not installed, AMBER still runs. The `WEB` toggle will be visible in the UI but fetch calls will return an error response instead of live results.
-
-### 6. Launch AMBER ICI
-
-Browser auto-open:
+### Complete setup, start to finish
 
 ```bash
-npm run start:browser
+git clone https://github.com/gs-ai/AMBER-ICI.git
+cd AMBER-ICI
+python3 -m venv venv                       # for the npm scripts
+npm install                                # optional: WEB features
+npx playwright install chromium            # optional: WEB features
+ollama serve &                             # in its own terminal
+ollama pull embeddinggemma:latest          # required for Archive
+ollama pull qwen2.5-coder:7b               # any generation model
+npm start                                  # → http://127.0.0.1:8765/amber_ui.html
 ```
-
-No auto-open:
-
-```bash
-npm start
-```
-
-Direct Python launch (same backend):
-
-```bash
-python3 files/launch_amber_ici_gui.py --host 127.0.0.1 --port 8765
-```
-
-Open:
-
-- `http://127.0.0.1:8765/amber_ui.html`
 
 ## Launcher Options
 
@@ -202,278 +277,253 @@ Open:
 python3 files/launch_amber_ici_gui.py --help
 ```
 
-Supported flags:
-- `--host` (default `127.0.0.1`)
-- `--port` (default `8765`)
-- `--no-browser`
-- `--gui PATH`
+| Flag | Default | Purpose |
+|---|---:|---|
+| `--host HOST` | `127.0.0.1` | Address on which the AMBER HTTP server listens |
+| `--port PORT` | `8765` | AMBER HTTP server port |
+| `--no-browser` | off | Do not open the default browser |
+| `--gui PATH` | auto-detected | Serve a specific GUI HTML file |
+| `--version` | — | Print the AMBER ICI release version and exit |
+
+The browser UI intentionally accepts only loopback Ollama URLs even if the AMBER server is bound to another interface.
 
 ## First-Run Workflow
 
-1. Confirm endpoint (top-right): `http://127.0.0.1:11434`
-2. Click `PING`
-3. Select one model in `MODELS`
-4. Use `ANALYST CONSOLE` to send prompt
-5. Upload files in `FILES` (optional)
-6. Mark uploaded files active so they become context for runs
+1. Confirm the Ollama endpoint in the top-right is `http://127.0.0.1:11434`.
+2. Click `PING` to load locally installed models.
+3. Select one model in the Models panel.
+4. Enter a prompt in the Analyst Console and click `SEND`.
+5. Optionally upload files or link a directory, then activate files to include them in context.
+6. Pull `embeddinggemma:latest` before indexing files in Archive.
 
-## Workspaces And How They Run
+To run the agent chain instead:
 
-### Analyst Console
+1. Open the `AGENTS` tab in the left panel.
+2. Create an agent with `+ CREATE AGENT`, or describe an objective under `GENERATE FROM PROMPT`.
+3. Set `EXEC` to `AGENTS` in the console pill bar.
+4. Set `AGN` (how many agents; `0` = all) and `LOOPS` (how many passes).
+5. Type the prompt in the main terminal and press `SEND`.
 
-Use for direct single-model interaction.
-
-- `SEND` activates when exactly one active model context is selected
-- Supports system prompt, stream toggle, JSON output mode, CTX setting, seed
-- `STOP` / `ESC` aborts active run
-
-### Parallel
-
-Run the same prompt across checked models.
-
-- Select multiple models via checkboxes
-- Click `RUN CHECKED PARALLEL`
-- Per-model outputs stream independently
-
-### Agents
-
-Card-based orchestration with execution modes.
-
-- Add/Edit/Delete agents
-- Reorder agent cards by drag-and-drop
-- Set loop count (`LOOPS`)
-- `RUN` under Agents executes the configured agent chain
-
-### Chain / Pipeline
-
-Ordered step execution using templates.
-
-- Add/Edit/Delete steps
-- Template supports `{{input}}` and `{{scratchpad}}`
-- Reorder steps by drag-and-drop
-- Set loop count (`LOOPS`)
-- `RUN CHAIN` executes current steps
-
-### Archive (Integrated)
-
-Local semantic archive in the main UI.
-
-- Queue active files
-- Index queued files with `embeddinggemma:latest`
-- Search by semantic similarity
-- Export/import archive JSON
-- Add last assistant output to archive directly
-- File-source archive indexing also builds a Fibonacci fractal memory tree in runtime state
+To let AMBER read the internet, set the `WEB` pill to `ON` first; it is `OFF` by default.
 
 ## File Ingestion
 
-Accepted types:
-- `.txt`, `.md`, `.pdf`, `.docx`, `.py`
+Uploads are limited to 100 MiB per file. The file picker and drag-and-drop path currently accept:
 
-Limits:
-- Max upload size: `32 MB` per file
+- Documents: `.txt`, `.md`, `.pdf`, `.docx`, `.rtf`
+- Data/config: `.csv`, `.xlsx`, `.json`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg`, `.conf`, `.xml`
+- Source/logs: `.py`, `.js`, `.ts`, `.tsx`, `.jsx`, `.html`, `.sql`, `.sh`, `.bash`, `.zsh`, `.log`
+- Images: `.png`, `.jpg`, `.jpeg`, `.bmp`, `.webp`, `.tif`, `.tiff`, `.svg`
 
-Storage:
-- Raw bytes: `uploads/blobs/`
-- Extracted text: `uploads/texts/`
-- File metadata: `uploads/manifest.json`
+Extraction behavior:
 
-`.py` files are treated as plain-text — content is read directly with no transformation.
+- Plain-text, source, configuration, CSV, and RTF files are decoded as text.
+- XLSX worksheets are extracted with the Python standard library; formulas and complex formatting are not preserved.
+- DOCX text is extracted from the document XML; complex layout is not preserved.
+- PDF extraction first attempts embedded text and also attempts OCR when `ocrmypdf` is installed, retaining the more useful result.
+- Raster images use Tesseract OCR when installed. SVG extraction reads embedded `<text>` and `<tspan>` content.
 
-PDF extraction behavior:
-- Basic text extraction always attempted
-- OCR fallback attempted when `ocrmypdf` is available
-- Better of basic vs OCR text is saved as extracted text
+Uploaded raw bytes are stored in `uploads/blobs/`, extracted text in `uploads/texts/`, and metadata in `uploads/manifest.json`.
 
-## Context Budgeting (Current Runtime Behavior)
+### Linked directories
 
-AMBER applies context controls automatically:
+`LINK DIRECTORY` exposes supported, non-hidden files from one local directory to AMBER. The Files panel treats linked entries as read-only, and directory listing is non-recursive. The selected path is stored in `state/linked_dir_state.json`; file content remains in its original location and is read only when requested for context or extraction.
 
-- CTX applies to Analyst, Parallel, Agents, and Pipeline requests
-- Active file-context injection path:
-  - first tries Fibonacci fractal retrieval against active file entries (when fractal store is available)
-  - falls back to flat file-context assembly if no fractal hits are available
-- Active file context budget is capped to approximately:
-  - `maxChars = CTX * 3`
-- If active file context exceeds budget:
-  - it is trimmed using simple relevance scoring (keyword overlap)
-- `{{scratchpad}}` injection is tail-capped:
-  - min ~8k chars, max ~20k chars
-  - additionally bounded by file-context budget
+The native folder chooser uses Python's Tkinter. If it is unavailable, the UI prompts for a path manually. Unlinking the directory removes the saved link but does not delete source files.
 
-This reduces prompt overflow and keeps runs stable as file volume increases.
+The backend recognizes a few additional linked-file formats (`.xls`, `.ods`, `.gif`, `.heic`, `.ico`, `.ppt`, `.pptx`, and `.zip`). Formats without a text extractor contribute a metadata label rather than decoded content. Legacy `.xls` and `.ods` extraction is best-effort and may report that extraction is unavailable.
 
-## v4 Memory / Token Window
+## Context and Memory Behavior
 
-AMBER ICI v4 applies context management across all run modes:
-- Analyst Console
-- Parallel
-- Agents
-- Chain/Pipeline
+CTX options in the UI are `2K`, `4K`, `8K`, `16K`, and `32K` and apply across Analyst, Parallel, and Agent calls.
 
-Supported CTX window options in UI:
-- `2K`, `4K`, `8K`, `16K`, `32K`
+- Before inference, `trimMsgsToCtx()` removes the oldest non-system messages until the request fits about 90% of the selected context budget, estimated at four characters per token.
+- Active-file retrieval first queries the Fibonacci fractal store, when populated, and falls back to flat file-context assembly.
+- Retrieval uses up to depth 4, beam width 2–4, and profile-dependent result limits.
+- Active-file context is capped according to the memory profile: approximately `CTX × 2.6` characters in Fast, `CTX × 3.2` in Hybrid, and `CTX × 4.0` in Deep.
+- Oversized flat context is ranked with keyword-overlap scoring before injection.
+- Scratchpad injection keeps a tail of roughly 8,000–20,000 characters and is additionally bounded by the active profile's file-context budget.
+- Agents with full memory receive the last six conversation messages. Local memory uses a scratchpad tail; `none` disables that recall.
 
-Context retrieval path (current):
-- `trimMsgsToCtx()` trims oldest non-system messages to a 90% character budget (~4 chars/token) before every inference call.
-- Agents receive the last 6 conversation turns in addition to their system prompt and current input.
-- Fibonacci fractal memory is queried first for active file context (`beamWidth=3`, up to depth `4`, top `5` hits); falls back to flat assembly if no fractal hits are available.
-- Prompt budgeting guardrail: active file context is capped at approximately `CTX * 3` characters before final prompt assembly.
+These are character-based guardrails, not exact tokenizer counts.
 
-Expected behavior:
-- Higher relevance per injected character for larger/multi-file contexts.
-- Lower overflow pressure because low-signal blocks are less likely to be injected.
-- If fractal memory is empty (not indexed yet), behavior matches the flat path.
+The vector Archive is durable, but the separate Fibonacci tree is session memory. It is built for a file when that file is indexed during the current page session and is not automatically reconstructed from `state/vector_store.json` after a reload; until rebuilt, active-file context uses the flat fallback.
 
-Approximate active file-context budget by CTX:
-- `2K` CTX: ~6,000 chars
-- `4K` CTX: ~12,000 chars
-- `8K` CTX: ~24,000 chars
-- `16K` CTX: ~48,000 chars
-- `32K` CTX: ~96,000 chars
+## Persistence
 
-Scratchpad behavior:
-- `{{scratchpad}}` injection is tail-limited (~8k to ~20k chars)
-- Also bounded by the current CTX-derived file-context budget
+The launcher stores durable application data as JSON under `state/` using atomic temporary-file replacement. There is no active SQLite migration or database dependency.
 
-## Session Stats And Telemetry
-
-Right panel session stats update during:
-- Analyst runs
-- Parallel runs
-- Agent runs
-- Pipeline runs
-
-Tracked fields:
-- Turns
-- Tok In
-- Tok Out
-- Peak T/S
-- Avg T/S
-- Live token rate sparkline
-
-## Persistence Model
-
-> **Correction (2026-07-10):** the `synapse.db` SQLite migration described in earlier drafts of this
-> README was never wired into the running launcher. `files/launch_amber_ici_gui.py` has no `sqlite3`
-> import and reads/writes `state/*.json` exclusively. `synapse.db` may exist on disk from an earlier
-> attempt but nothing in the codebase opens it. The table below and the "Data Hygiene" reset commands
-> have been corrected to describe the actual, current persistence layer.
-
-All runtime state is persisted as individual JSON files under `state/`, written atomically (temp file +
-`Path.replace()`) by the launcher's generic `/api/store/<domain>/<name>` endpoint.
-
-File overview:
-
-| File | Contents |
+| Path | Contents |
 |---|---|
-| `state/agents_state.json`, `state/agent_sets.json` | Agent configs (live + saved presets) |
-| `state/pipeline_state.json`, `state/chain_sets.json` | Pipeline steps and saved chain sets |
-| `state/chat_history.json` | Conversation log (last 100 messages kept) |
-| `state/scratch.json` | Scratchpad contents |
-| `state/memory_profile.json` | Memory profile setting |
-| `state/timeline_state.json`, `state/graph_state.json` | Timeline and entity-graph state |
-| `state/vector_store.json` | Archive index (in-browser fractal/vector store is rebuilt from this on load) |
-| `state/web_cache.json` | Headless web fetch results, cached by query with a 1-hour TTL |
-| `uploads/manifest.json` | File upload metadata (id, name, size, ext, paths); blobs/text under `uploads/blobs`, `uploads/texts` |
+| `state/agents_state.json` | Current agents, including each agent's model, temperature, token limit, loops, format, and handoff |
+| `state/agent_sets.json` | Saved agent presets |
+| `state/agent_run_log.json` | Last 100 agent executions: agent, model, duration, success, and context |
+| `state/pipeline_state.json` | Retired pipeline steps, retained for backward compatibility |
+| `state/chain_sets.json` | Saved chain presets |
+| `state/step_run_log.json`, `state/tool_call_log.json`, `state/tool_registry_state.json` | Step, tool-call, and tool-registry records |
+| `state/chat_history.json` | Last 100 conversation messages; the UI replays the latest 30 |
+| `state/scratch.json` | Last 20,000 scratchpad characters |
+| `state/memory_profile.json` | Fast, Hybrid, or Deep retrieval selection |
+| `state/vector_store.json` | Archive chunks and embeddings |
+| `state/case_intelligence.json` | Case metadata, evidence contracts and provenance, bounded explicit memory, and agent trace receipts; created on the first write |
+| `state/graph_state.json`, `state/timeline_state.json` | Graph and timeline data |
+| `state/web_cache.json` | Direct web-fetch results with a one-hour TTL |
+| `state/linked_dir_state.json` | Current linked-directory path |
+| `uploads/manifest.json` | Uploaded-file metadata |
 
-There is no database migration step — `state/*.json` is read directly on every request and is the
-single source of truth today.
+Panel layout is stored in browser `localStorage`, so it is browser-profile specific. Runtime-only selections, statistics, and the in-memory fractal tree reset on page load.
 
-## Standalone Tools
+If a state JSON file cannot be decoded, the launcher quarantines it with a `.corrupt-<timestamp>.json` suffix and returns an empty value so the affected panel can recover.
 
-All three standalone tools are launchable directly from the main UI header nav (`GRAPH ◈`, `TIMELINE ▶`, `VECTORS ◉`) or from the console action bar. Each can also be opened directly in a browser tab:
+## Web Access and Network Boundaries
 
-- Entity Provenance Graph: `http://127.0.0.1:8765/amber_graph.html`
-- Timeline UI: `http://127.0.0.1:8765/amber_timeline.html`
-- Vector Store manager: `http://127.0.0.1:8765/amber_vectorstore.html`
+The `WEB` pill is the master switch, and it defaults to `OFF`.
 
-All persist state via the `/api/store/<domain>/<name>` JSON store API described above. The Graph auto-polls every 10 seconds and reflects changes from active inference in the main UI in near real-time.
+**With `WEB` off, AMBER makes no outbound request of any kind.** The gate is enforced inside the fetch functions themselves, so prompt phrasing, injected file context, and agent tool calls (`web_fetch`, `online_records_search`) are all blocked equally. If a prompt asks for a fetch while the switch is off, the terminal says so and the request is not sent rather than failing silently.
 
-## Security Posture
+With `WEB` on, AMBER checks the helper environment first, prints the helper path it will use, and then resolves the request in this order:
 
-- Launcher binds to localhost by default (`127.0.0.1`)
-- CSP `connect-src` restricted to localhost addresses
-- Referrer/permissions hardened in launcher headers
-- No cloud endpoint is configured in this repo by default
+1. An explicit site instruction such as “search foxnews.com for X” — fetches that site, using a known search URL when the topic is specific.
+2. A specifically phrased “records search for/on [person] in [location]” request — invokes the records helper.
+3. An explicit `http://`/`https://` URL or recognized bare domain in the prompt or injected file context.
+4. Otherwise, the prompt text is submitted to DuckDuckGo's HTML endpoint and the results page is fetched.
 
-## Data Hygiene / Cleanup
+Step 4 means that with `WEB` on, prompt text can reach a general search engine. Turn `WEB` off for prompts whose text should not leave the machine.
 
-Reset all state (agents, pipelines, archive index, chat history, web cache, timeline/graph state):
+Every outcome is reported in the main terminal: the mode selected, the helper path used, the request sent, the engine that served it (`playwright`, `urllib`, or `cache`), the content size and where it was injected, or a failure block naming the missing dependency and the command that fixes it. Direct fetches are cached for one hour in `state/web_cache.json`.
+
+Records search queries these sources and returns only matches whose page text corroborates both the subject and the requested location: `casesearch.kscourts.gov`, `doc.ks.gov/offender-search`, `kbi.ks.gov/registeredoffender`, DuckDuckGo, and Brave Search.
+
+Network behavior is:
+
+- Model discovery, inference, embeddings, and model status connect only to a loopback Ollama endpoint.
+- The AMBER backend serves local files and API routes from the configured AMBER host/port.
+- With `WEB` on, the Playwright web fetch, its Python HTTP fallback, and records search make outbound requests to user-selected, search-provider, and public-record sites. With `WEB` off, none of these run.
+- `GET /api/web/status` is a local-only preflight; it inspects the filesystem and `PATH` and makes no network request.
+- There is no AMBER telemetry endpoint, and no feature transmits credentials, keys, or usage data.
+
+Fetched pages are injected into the prompt as `[WEB CONTEXT]` and therefore become part of conversation history persisted in `state/chat_history.json`; agents whose output target is the scratchpad also append to `state/scratch.json`. Live web content lands in local case state.
+
+The launcher sends a restrictive Content Security Policy, disables framing, sets `no-referrer`, blocks sensitive browser permissions, and disables HTTP caching. The backend's `/api/task/execute` contract can list, read, write, append, or create files within the linked root when explicitly called. It rejects paths that escape that root, hidden paths, unknown tools, and overwrites that were not explicitly authorized. Link only a directory whose visible contents the local application may access and modify.
+
+## Telemetry Panel
+
+Session counters update during Analyst, Parallel, and Agent execution and include turns, prompt/output tokens, peak token rate, average token rate, and a live token-rate sparkline.
+
+VRAM/model residency comes from Ollama's local `/api/ps` endpoint. Temperature/utilization readings are best-effort: NVIDIA uses `nvidia-smi`, Apple Silicon attempts direct SMC reads, Linux checks thermal zones, and optional tools provide fallbacks.
+
+## Data Cleanup
+
+Stop AMBER before cleanup.
+
+Reset persisted state while preserving uploaded files:
 
 ```bash
 rm -f state/*.json
 ```
 
-Files are recreated with empty defaults on next read — no migration/rebuild step is needed.
-
-Remove uploaded source files, extracted text, and the upload manifest:
+Remove uploaded blobs, extracted text, and their manifest:
 
 ```bash
 rm -rf uploads/blobs uploads/texts uploads/manifest.json
 ```
 
-`synapse.db`, if present from an earlier build, is inert and can be deleted independently — nothing in
-the current codebase reads or writes it.
+Linked source files are never removed by these commands. State and upload directories are recreated as needed.
 
 ## Troubleshooting
 
-### Web fetch is always returning errors
+### PING fails or no models appear
 
-- Install camoufox: `pip install camoufox && python3 -m camoufox fetch`
-- No conda environment is required — standard `pip install` into your Python environment is sufficient
-- Some heavily bot-protected sites (e.g. sites behind Cloudflare Turnstile) may still block fetches regardless of fingerprint spoofing
+- Confirm `ollama serve` is running.
+- Confirm the UI endpoint is `http://127.0.0.1:11434`.
+- Run `ollama list` to verify that at least one generation model is installed.
 
-### Archive indexing fails with HTTP 500
+### Archive indexing fails
 
-Check:
-- Embed model present: `ollama pull embeddinggemma:latest`
-- Ollama running and reachable at `127.0.0.1:11434`
-- PDF is text-extractable or OCR dependencies are installed
+- Run `ollama pull embeddinggemma:latest`.
+- Confirm Ollama is reachable at the endpoint shown in the UI.
+- Inspect the AMBER event log for the failing embedding endpoint or input chunk.
 
-### PDF extracted text is poor
+### Browser-backed web fetch or records search fails
 
-- Install OCR dependencies (`ocrmypdf`, `tesseract`)
-- Re-upload PDF so extraction re-runs with OCR path
-- Inspect saved text in `uploads/texts/<FILE_ID>.txt`
-
-### SEND button disabled
-
-`SEND` is enabled only when single-model send conditions are met.
-Use:
-- One active model for Analyst send
-- Parallel button when running checked multi-model mode
-
-### Port already in use
-
-Use another port:
+The terminal names the exact problem. Check the environment directly with AMBER running:
 
 ```bash
-python3 files/launch_amber_ici_gui.py --host 127.0.0.1 --port 8877
+curl -s http://127.0.0.1:8765/api/web/status
+```
+
+Then install whatever it reports missing:
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+Direct web fetch may still succeed through its plain-HTTP fallback. Records search requires Playwright and may fail when a source changes markup, requires authentication/CAPTCHA, blocks automation, or is unavailable.
+
+### Nothing is fetched and the terminal says `WEB IS OFF`
+
+The `WEB` pill is `OFF`, which blocks every outbound request by design. Set it to `ON`.
+
+### An agent will not run: `LOCAL MODEL NOT AVAILABLE`
+
+The agent's selected model is not installed in Ollama. The terminal prints the requested model, the models you do have, and the fix:
+
+```bash
+ollama pull <model-name>
+ollama list
+```
+
+AMBER never silently substitutes a different model.
+
+### `SEND` is greyed out
+
+In `ANALYST` mode, select exactly one model in the Models panel. In `AGENTS` mode, create at least one agent — no active model is needed there.
+
+### PDF or image text is missing
+
+- Install `ocrmypdf` and Tesseract.
+- Install Pillow for WebP conversion if necessary.
+- Re-upload the file so extraction runs again.
+- Inspect the corresponding file under `uploads/texts/`.
+
+### `npm start` cannot find Python
+
+The npm scripts expect `venv/bin/python3`. Run `python3 -m venv venv`, or launch directly with `python3 files/launch_amber_ici_gui.py`.
+
+### Port 8765 is already in use
+
+```bash
+python3 files/launch_amber_ici_gui.py --port 8877
 ```
 
 ## Project Layout
 
 ```text
-AMBER/
+AMBER-ICI/
 ├── files/
 │   ├── amber_graph.html
 │   ├── amber_timeline.html
 │   ├── amber_ui.html
 │   ├── amber_vectorstore.html
-│   └── launch_amber_ici_gui.py
-├── image/
-│   └── README/
-├── state/
-│   ├── agent_sets.json
-│   ├── chain_sets.json
-│   ├── pipeline_state.json
-│   └── timeline_state.json
-├── uploads/
-│   ├── blobs/
-│   └── texts/
+│   ├── amber_intelligence/       # Standard-library case/evidence/memory service
+│   ├── autogen_builder.py
+│   ├── constrained_executor.py
+│   ├── launch_amber_ici_gui.py
+│   ├── records_search_playwright.mjs
+│   └── web_fetch_playwright.mjs
+├── image/README/
+├── state/                  # created/populated at runtime
+├── uploads/                # created/populated at runtime
+├── tests/                  # Case-intelligence and ICI regression tests
+├── ollama_llm_chart.md
 ├── package.json
+├── spec.json
+├── spec.schema.json
 ├── README.md
-├── synapse.db
 └── LICENSE
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).

@@ -8,12 +8,18 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List
 
+from local_endpoint import require_loopback_http_url
+
 
 class AutoGenError(Exception):
     pass
 
 
 def _post_json(url: str, payload: Dict[str, Any], timeout: int = 600) -> Dict[str, Any]:
+    try:
+        url = require_loopback_http_url(url)
+    except ValueError as error:
+        raise AutoGenError(str(error)) from error
     req = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
@@ -21,7 +27,8 @@ def _post_json(url: str, payload: Dict[str, Any], timeout: int = 600) -> Dict[st
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        # URL is restricted to a validated loopback host immediately above.
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             raw = resp.read().decode("utf-8", errors="ignore")
             return json.loads(raw) if raw else {}
     except urllib.error.HTTPError as e:
