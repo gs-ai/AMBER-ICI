@@ -21,17 +21,6 @@ It includes:
 
 Ollama inference is restricted by the UI to loopback endpoints (`127.0.0.1`, `localhost`, or `::1`). AMBER does not include cloud inference or application telemetry, and no feature requires a login, API key, or account. The `WEB` pill is the master switch for all internet access: with it `OFF`, AMBER makes no outbound request of any kind.
 
-<p align="center">
-  <a href="image/README/feouahwofu23978.png" target="_blank" rel="noopener noreferrer">
-    <img src="image/README/feouahwofu23978.png" alt="AMBER ICI workspace view 1" width="49%" />
-  </a>
-  <a href="image/README/askjhf949qhgh.png" target="_blank" rel="noopener noreferrer">
-    <img src="image/README/askjhf949qhgh.png" alt="AMBER ICI workspace view 2" width="49%" />
-  </a>
-</p>
-
-<p align="center"><sub>Click either image to open it at full size.</sub></p>
-
 ## v5 Highlights
 
 - Local case workspaces with case-bounded evidence and Archive retrieval
@@ -516,7 +505,6 @@ AMBER-ICI/
 ├── state/                  # created/populated at runtime
 ├── uploads/                # created/populated at runtime
 ├── tests/                  # Case-intelligence and ICI regression tests
-├── ollama_llm_chart.md
 ├── package.json
 ├── spec.json
 ├── spec.schema.json

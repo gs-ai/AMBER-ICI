@@ -238,6 +238,7 @@ chains/*.json
 vectors/*.json
 timeline/*.json
 uploads/
+/ollama_llm_chart.md
 modhistory.txt
 tree.txt
 venv/
