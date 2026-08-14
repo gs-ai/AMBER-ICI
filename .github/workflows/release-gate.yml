@@ -1,0 +1,53 @@
+name: Release gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked Node dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+      - name: Run Python tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile Python sources
+        run: python -m py_compile files/*.py files/amber_intelligence/*.py tests/*.py
+
+      - name: Validate inline JavaScript
+        shell: bash
+        run: |
+          for file in files/amber_ui.html files/amber_graph.html files/amber_timeline.html files/amber_vectorstore.html; do
+            perl -0777 -ne 'while (/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi) { print "$1\n" }' "$file" | node --check -
+          done
